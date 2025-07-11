@@ -15,28 +15,13 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
-#include "dimmer.h"
+#ifndef DIMMER_H
+#define DIMMER_H
 
-void setup()
-{
-    Serial.begin(BAUD_RATE);
-    dimmer_initialize(DIMMER_ZC_PIN, DIMMER_PSM_PIN);
-    dimmer_set_power(0.0);
-}
+void dimmer_initialize(int32_t zc_pin, int32_t psm_pin);
 
-void loop()
-{
-    if (Serial.available() >= 2) {
-        int8_t command = Serial.read();
-        Serial.printf("Received command: %c\n", command);
-        if (command == 'd') {
-            int8_t encoded_power = Serial.read();
-            float power = encoded_power >= '1' && encoded_power <= '9' ? 0.3 * (encoded_power - '1') / ('9' - '1') + 0.2 : 0.0;
-            dimmer_set_power(power);
-            Serial.printf("Setting dimmer power to: %.2f\n", power);
-        }
-    }
+void dimmer_set_power(float power);
 
-    dimmer_update();
-}
+void dimmer_update();
+
+#endif
