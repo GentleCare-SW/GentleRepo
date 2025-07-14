@@ -15,15 +15,11 @@
  * SOFTWARE.
  */
 
-#ifndef DIMMER_H
-#define DIMMER_H
+#ifndef PRESSURE_CONTROLLER_H
+#define PRESSURE_CONTROLLER_H
 
-void dimmer_initialize(int32_t zc_pin, int32_t psm_pin);
+void pressure_controller_set_reference(float reference);
 
-void dimmer_set_power(float power);
-
-float dimmer_get_power();
-
-void dimmer_update();
+void pressure_controller_update(float pressure, float pressure_derivative);
 
 #endif

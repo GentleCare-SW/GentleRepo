@@ -52,6 +52,11 @@ void dimmer_set_power(float power)
     delay_time = (int32_t)(HALF_CYCLE_TIME * (1.0 - power));
 }
 
+float dimmer_get_power()
+{
+    return 1.0 - (float)delay_time / HALF_CYCLE_TIME;
+}
+
 void dimmer_update()
 {
     if (zero_cross_time < 0 || delay_time == HALF_CYCLE_TIME)

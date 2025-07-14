@@ -15,15 +15,27 @@
  * SOFTWARE.
  */
 
-#ifndef DIMMER_H
-#define DIMMER_H
+#include <Arduino.h>
+#include "pressure_controller.h"
+#include "dimmer.h"
 
-void dimmer_initialize(int32_t zc_pin, int32_t psm_pin);
+static float dimmer_power = 0.0;
+static float pressure_reference = 0.0;
 
-void dimmer_set_power(float power);
+void pressure_controller_set_reference(float reference)
+{
+    pressure_reference = reference;
+    if (reference == 0.0) {
+        dimmer_power = 0.0;
+        dimmer_set_power(0.0);
+    }
+}
 
-float dimmer_get_power();
-
-void dimmer_update();
-
-#endif
+void pressure_controller_update(float pressure, float pressure_derivative)
+{
+    if (pressure_reference > 0.0) {
+        dimmer_power += (pressure_reference - pressure) * 0.000025;
+        dimmer_power = constrain(dimmer_power, 0.0, 0.5);
+        dimmer_set_power(dimmer_power);
+    }
+}
