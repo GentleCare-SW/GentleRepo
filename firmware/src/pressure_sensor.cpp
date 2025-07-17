@@ -25,32 +25,41 @@ static const float MAX_VOLTAGE = 4.5;
 static const float MIN_PSI = 0.0;
 static const float MAX_PSI = 100.0; 
 
-static const int32_t WINDOW_SIZE = 1024;
-
 static int32_t adc_pin = -1;
 static float moving_pressure = 0.0;
-static float previous_moving_pressure = 0.0;
+static int64_t previous_read_time = 0;
+static float pressure_derivative = 0.0;
 static float EMA_ALPHA = 0.001;
+static float pressure_offset = 0.0;
 
 void pressure_sensor_initialize(int32_t adc)
 {
     adc_pin = adc;
     pinMode(adc_pin, INPUT);
 }
- 
-float pressure_sensor_read()
+
+float pressure_sensor_read(bool calibrate)
 {
     int32_t adc_value = analogRead(adc_pin);
     float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
     float psi = (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
 
-    previous_moving_pressure = moving_pressure;
+    float previous_moving_pressure = moving_pressure;
     moving_pressure = moving_pressure * (1.0 - EMA_ALPHA) + psi * EMA_ALPHA;
 
-    return moving_pressure;
+    int64_t current_time = micros();
+    float dt = (float)(current_time - previous_read_time) / 1e6;
+    previous_read_time = current_time;
+
+    pressure_derivative = (moving_pressure - previous_moving_pressure) / dt;
+
+    if (calibrate)
+        pressure_offset = pressure_offset * (1.0 - EMA_ALPHA) + moving_pressure * EMA_ALPHA;
+
+    return moving_pressure - pressure_offset;
 }
 
 float pressure_sensor_read_derivative()
 {
-    return moving_pressure - previous_moving_pressure; 
+    return pressure_derivative;
 }

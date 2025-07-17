@@ -22,6 +22,8 @@ void servo_initialize(int32_t pwm_pin);
 
 void servo_set_angle(float angle);
 
+float servo_get_angle();
+
 void servo_update();
  
 #endif

@@ -16,29 +16,35 @@
  */
 
 #include <Arduino.h>
-#include "pressure_controller.h"
-#include "dimmer.h"
+#include <ODriveArduino.h>
+#include "motor_controller.h"
 
-static float dimmer_power = 0.0;
-static float pressure_reference = 0.0;
+static ODriveArduino odrive(Serial1);
 
-static const float Kp = 0.000025;
-static const float Kd = 0.00003;
-
-void pressure_controller_set_reference(float reference)
+bool motor_controller_initialize(int32_t rx_pin, int32_t tx_pin)
 {
-    pressure_reference = reference;
-    if (reference == 0.0) {
-        dimmer_power = 0.0;
-        dimmer_set_power(0.0);
-    }
+    Serial1.begin(BAUD_RATE, SERIAL_8N1, rx_pin, tx_pin);
+    while (!Serial1);
+
+    if (!odrive.runState(ODRIVE_AXIS, AXIS_STATE_ENCODER_INDEX_SEARCH, true, 1.0))
+        return false;
+
+    odrive.runState(ODRIVE_AXIS, AXIS_STATE_CLOSED_LOOP_CONTROL, false);
+    odrive.setVelocity(ODRIVE_AXIS, 0.0);
+    return true;
 }
 
-void pressure_controller_update(float pressure, float pressure_derivative)
+void motor_controller_set_velocity(float velocity)
 {
-    if (pressure_reference > 0.0) {
-        dimmer_power += (pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-        dimmer_power = constrain(dimmer_power, 0.0, 0.5);
-        dimmer_set_power(dimmer_power);
-    }
+    odrive.setVelocity(ODRIVE_AXIS, velocity);
+}
+
+float motor_controller_get_velocity()
+{
+    return odrive.getVelocity(ODRIVE_AXIS);
+}
+
+float motor_controller_get_position()
+{
+    return odrive.getPosition(ODRIVE_AXIS);
 }

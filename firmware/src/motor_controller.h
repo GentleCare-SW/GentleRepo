@@ -15,30 +15,17 @@
  * SOFTWARE.
  */
 
+#ifndef MOTOR_CONTROLLER_H
+#define MOTOR_CONTROLLER_H
+
 #include <Arduino.h>
-#include "pressure_controller.h"
-#include "dimmer.h"
 
-static float dimmer_power = 0.0;
-static float pressure_reference = 0.0;
+bool motor_controller_initialize(int32_t rx_pin, int32_t tx_pin);
 
-static const float Kp = 0.000025;
-static const float Kd = 0.00003;
+void motor_controller_set_velocity(float velocity);
 
-void pressure_controller_set_reference(float reference)
-{
-    pressure_reference = reference;
-    if (reference == 0.0) {
-        dimmer_power = 0.0;
-        dimmer_set_power(0.0);
-    }
-}
+float motor_controller_get_velocity();
 
-void pressure_controller_update(float pressure, float pressure_derivative)
-{
-    if (pressure_reference > 0.0) {
-        dimmer_power += (pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-        dimmer_power = constrain(dimmer_power, 0.0, 0.5);
-        dimmer_set_power(dimmer_power);
-    }
-}
+float motor_controller_get_position();
+
+#endif

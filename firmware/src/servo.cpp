@@ -42,6 +42,11 @@ void servo_set_angle(float angle)
     pulse_length = (int64_t)(angle / 180.0 * 2000.0 + 500.0);
 }
 
+float servo_get_angle()
+{
+    return (pulse_length - 500.0) / 2000.0 * 180.0;
+}
+
 void servo_update()
 {
     int64_t current_time = micros();
