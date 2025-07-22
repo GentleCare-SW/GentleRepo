@@ -20,8 +20,10 @@
 
 void pressure_sensor_initialize(int32_t adc_pin);
 
-float pressure_sensor_read(bool calibrate = false);
+void pressure_sensor_update(bool calibrate = false);
 
-float pressure_sensor_read_derivative();
+float pressure_sensor_get_pressure();
+
+float pressure_sensor_get_derivative();
 
 #endif

@@ -34,6 +34,11 @@ void pressure_controller_set_reference(float reference)
     }
 }
 
+float pressure_controller_get_reference()
+{
+    return pressure_reference;
+}
+
 void pressure_controller_update(float pressure, float pressure_derivative)
 {
     if (pressure_reference > 0.0) {

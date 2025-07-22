@@ -15,13 +15,36 @@
  * SOFTWARE.
  */
 
-#ifndef PRESSURE_CONTROLLER_H
-#define PRESSURE_CONTROLLER_H
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
 
-void pressure_controller_set_reference(float reference);
+#include <Arduino.h>
 
-float pressure_controller_get_reference();
+static const int32_t MESSAGE_LENGTH = 5;
 
-void pressure_controller_update(float pressure, float pressure_derivative);
+typedef enum command_code {
+    COMMAND_CODE_SET_DIMMER_LEVEL = 'd',
+    COMMAND_CODE_SET_CHAMBER = 'c',
+    COMMAND_CODE_SET_SERVO_ANGLE = 's',
+    COMMAND_CODE_SET_PRESSURE_REFERENCE = 'a',
+    COMMAND_CODE_SET_MOTOR_VELOCITY = 'v',
+    COMMAND_CODE_GET_DIMMER_LEVEL = 'D',
+    COMMAND_CODE_GET_SERVO_ANGLE = 'S',
+    COMMAND_CODE_GET_PRESSURE = 'R',
+    COMMAND_CODE_GET_PRESSURE_REFERENCE = 'A',
+    COMMAND_CODE_GET_MOTOR_VELOCITY = 'V',
+    COMMAND_CODE_GET_MOTOR_POSITION = 'P',
+    COMMAND_CODE_GET_MOTOR_CURRENT = 'M',
+} command_code_t;
+
+typedef enum response_code {
+    RESPONSE_CODE_OK = 'o',
+    RESPONSE_CODE_ERROR = 'e',
+} response_code_t;
+
+typedef union message_content {
+    int32_t int_value;
+    float float_value;
+} message_content_t;
 
 #endif

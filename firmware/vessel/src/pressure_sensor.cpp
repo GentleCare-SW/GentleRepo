@@ -38,7 +38,7 @@ void pressure_sensor_initialize(int32_t adc)
     pinMode(adc_pin, INPUT);
 }
 
-float pressure_sensor_read(bool calibrate)
+void pressure_sensor_update(bool calibrate)
 {
     int32_t adc_value = analogRead(adc_pin);
     float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
@@ -55,11 +55,14 @@ float pressure_sensor_read(bool calibrate)
 
     if (calibrate)
         pressure_offset = pressure_offset * (1.0 - EMA_ALPHA) + moving_pressure * EMA_ALPHA;
+}
 
+float pressure_sensor_get_pressure()
+{
     return moving_pressure - pressure_offset;
 }
 
-float pressure_sensor_read_derivative()
+float pressure_sensor_get_derivative()
 {
     return pressure_derivative;
 }
