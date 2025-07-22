@@ -28,4 +28,6 @@ float motor_controller_get_velocity();
 
 float motor_controller_get_position();
 
+float motor_controller_get_current();
+
 #endif

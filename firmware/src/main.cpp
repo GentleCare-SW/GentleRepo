@@ -16,11 +16,14 @@
  */
 
 #include <Arduino.h>
+#include <BluetoothSerial.h>
 #include "dimmer.h"
 #include "servo.h"
 #include "pressure_sensor.h"
 #include "pressure_controller.h"
 #include "motor_controller.h"
+
+static BluetoothSerial SerialBT;
 
 static int64_t print_timer = 0;
 
@@ -30,7 +33,11 @@ static float SERVO_ANGLE2 = SERVO_ANGLE1 + 90.0;
 void setup()
 {
     Serial.begin(BAUD_RATE);
-    while (!Serial);
+    while (!Serial); 
+
+    if (!SerialBT.begin("GentleWedge"))
+        Serial.println("Failed to initialize Bluetooth Serial.");
+    while (!SerialBT);
 
     dimmer_initialize(DIMMER_ZC_PIN, DIMMER_PSM_PIN);
     dimmer_set_power(0.0);
@@ -50,36 +57,39 @@ void setup()
 
 void loop()
 {
-    if (Serial.available() >= 2) {
-        int8_t command = Serial.read();
-        Serial.printf("Received command: %c\n", command);
+    if (SerialBT.available() >= 2) {
+        int8_t command = SerialBT.read();
+
         if (command == 'd') {
-            int8_t encoded_power = Serial.read();
-            float power = encoded_power >= '1' && encoded_power <= '9' ? 0.3 * (encoded_power - '1') / ('9' - '1') + 0.2 : 0.0;
+            uint8_t encoded_power = SerialBT.read();
+            float power = encoded_power / 255.0;
             dimmer_set_power(power);
-            Serial.printf("Setting dimmer power to: %.2f\n", power);
+        }
+
+        if (command == 'c') {
+            uint8_t chamber = SerialBT.read();
+            if (chamber == '1')
+                servo_set_angle(SERVO_ANGLE1);
+            else if (chamber == '2')
+                servo_set_angle(SERVO_ANGLE2);
         }
 
         if (command == 's') {
-            int8_t encoded_angle = Serial.read();
-            if (encoded_angle == '1' || encoded_angle == '2') {
-                servo_set_angle(encoded_angle == '1' ? SERVO_ANGLE1 : SERVO_ANGLE2);
-                Serial.printf("Setting servo mode to: %c\n", encoded_angle);
-            }
+            uint8_t encoded_angle = SerialBT.read();
+            float angle = encoded_angle / 255.0 * 180.0;
+            servo_set_angle(angle);
         }
 
         if (command == 'a') {
-            int8_t encoded_pressure = Serial.read();
-            float pressure = (encoded_pressure - '0') / 10.0 * 2.0;
+            uint8_t encoded_pressure = SerialBT.read();
+            float pressure = encoded_pressure / 255.0 * 5.0;
             pressure_controller_set_reference(pressure);
-            Serial.printf("Setting pressure to: %.2f\n", pressure);
         }
 
-        if (command == 'm') {
-            int8_t encoded_velocity = Serial.read();
-            float velocity = (encoded_velocity - '0') / 10.0 * 50.0 - 25.0;
+        if (command == 'v') {
+            uint8_t encoded_velocity = SerialBT.read();
+            float velocity = (encoded_velocity / 255.0) * 50.0 - 25.0;
             motor_controller_set_velocity(velocity);
-            Serial.printf("Setting motor velocity to: %.2f\n", velocity);
         }
     }
 
@@ -91,15 +101,22 @@ void loop()
     float pressure_derivative = pressure_sensor_read_derivative();
     pressure_controller_update(pressure, pressure_derivative);
 
-#if DEBUG_MODE
     if (micros() - print_timer >= 100000) {
+#if DEBUG_MODE
         Serial.printf(">Air Pressure (PSI):%.4f\n", pressure);
         Serial.printf(">Pressure Derivative (PSI/s):%.4f\n", pressure_derivative);
         Serial.printf(">Voltage Dimmer (%%):%.2f\n", dimmer_get_power() * 100.0);
         Serial.printf(">Servo Angle (deg):%.2f\n", servo_get_angle());
         Serial.printf(">Motor Position (rotations):%.2f\n", motor_controller_get_position());
         Serial.printf(">Motor Velocity (rotations/s):%.2f\n", motor_controller_get_velocity());
+        Serial.printf(">Motor Current (A):%.2f\n", motor_controller_get_current());
+#endif
+        SerialBT.printf("pressure:%f\n", pressure);
+        SerialBT.printf("dimmer_power:%f\n", dimmer_get_power());
+        SerialBT.printf("servo_angle:%f\n", servo_get_angle());
+        SerialBT.printf("motor_position:%f\n", motor_controller_get_position());
+        SerialBT.printf("motor_velocity:%f\n", motor_controller_get_velocity());
+        SerialBT.printf("motor_current:%f\n", motor_controller_get_current());
         print_timer = micros();
     }
-#endif
 }

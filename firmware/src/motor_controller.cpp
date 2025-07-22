@@ -30,7 +30,9 @@ bool motor_controller_initialize(int32_t rx_pin, int32_t tx_pin)
         return false;
 
     odrive.runState(ODRIVE_AXIS, AXIS_STATE_CLOSED_LOOP_CONTROL, false);
+    delay(1000);
     odrive.setVelocity(ODRIVE_AXIS, 0.0);
+
     return true;
 }
 
@@ -47,4 +49,10 @@ float motor_controller_get_velocity()
 float motor_controller_get_position()
 {
     return odrive.getPosition(ODRIVE_AXIS);
+}
+
+float motor_controller_get_current()
+{
+    Serial1.printf("r axis%i.motor.current_control.Iq_setpoint\n", ODRIVE_AXIS);
+    return odrive.readFloat();
 }
