@@ -26,66 +26,55 @@
 
 static BluetoothSerial SerialBT;
 
-static void send_response(response_code_t response, message_content_t content = { 0 })
-{
-    uint8_t data[MESSAGE_LENGTH];
-    data[0] = (uint8_t)response;
-    memcpy(&data[1], &content, sizeof(content));
-    SerialBT.write(data, MESSAGE_LENGTH);
-}
-
 static void process_commands()
 {
-    while (SerialBT.available() >= MESSAGE_LENGTH) {
-        uint8_t command = SerialBT.read();
-
-        message_content_t content;
-        SerialBT.readBytes((uint8_t *)&content, sizeof(content));
-
+    int command;
+    float value;
+    while (read_message(&SerialBT, &command, &value)) {
         switch (command) {
         case COMMAND_CODE_SET_DIMMER_LEVEL:
-            dimmer_set_power(content.float_value);
-            send_response(RESPONSE_CODE_OK);
+            dimmer_set_power(value);
+            write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_SET_CHAMBER:
-            servo_set_angle(content.int_value == 0 ? CHAMBER1_SERVO_ANGLE : CHAMBER2_SERVO_ANGLE);
-            send_response(RESPONSE_CODE_OK);
+            servo_set_angle(value == 0.0 ? CHAMBER1_SERVO_ANGLE : CHAMBER2_SERVO_ANGLE);
+            write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_SET_SERVO_ANGLE:
-            servo_set_angle(content.float_value);
-            send_response(RESPONSE_CODE_OK);
+            servo_set_angle(value);
+            write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_SET_PRESSURE_REFERENCE:
-            pressure_controller_set_reference(content.float_value);
-            send_response(RESPONSE_CODE_OK);
+            pressure_controller_set_reference(value);
+            write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_SET_MOTOR_VELOCITY:
-            motor_controller_set_velocity(content.float_value);
-            send_response(RESPONSE_CODE_OK);
+            motor_controller_set_velocity(value);
+            write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_GET_DIMMER_LEVEL:
-            send_response(RESPONSE_CODE_OK, (message_content_t){ .float_value = dimmer_get_power() });
+            write_message(&SerialBT, RESPONSE_CODE_OK, dimmer_get_power());
             break;
         case COMMAND_CODE_GET_SERVO_ANGLE:
-            send_response(RESPONSE_CODE_OK, (message_content_t){ .float_value = servo_get_angle() });
+            write_message(&SerialBT, RESPONSE_CODE_OK, servo_get_angle());
             break;
         case COMMAND_CODE_GET_PRESSURE:
-            send_response(RESPONSE_CODE_OK, (message_content_t){ .float_value = pressure_sensor_get_pressure() });
+            write_message(&SerialBT, RESPONSE_CODE_OK, pressure_sensor_get_pressure());
             break;
         case COMMAND_CODE_GET_PRESSURE_REFERENCE:
-            send_response(RESPONSE_CODE_OK, (message_content_t){ .float_value = pressure_controller_get_reference() });
+            write_message(&SerialBT, RESPONSE_CODE_OK, pressure_controller_get_reference());
             break;
         case COMMAND_CODE_GET_MOTOR_VELOCITY:
-            send_response(RESPONSE_CODE_OK, (message_content_t){ .float_value = motor_controller_get_velocity() });
+            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_velocity());
             break;
         case COMMAND_CODE_GET_MOTOR_POSITION:
-            send_response(RESPONSE_CODE_OK, (message_content_t){ .float_value = motor_controller_get_position() });
+            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_position());
             break;
         case COMMAND_CODE_GET_MOTOR_CURRENT:
-            send_response(RESPONSE_CODE_OK, (message_content_t){ .float_value = motor_controller_get_current() });
+            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_current());
             break;
         default:
-            send_response(RESPONSE_CODE_ERROR);
+            write_message(&SerialBT, RESPONSE_CODE_ERROR);
             break;
         }
     }

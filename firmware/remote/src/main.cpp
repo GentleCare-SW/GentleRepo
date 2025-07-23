@@ -35,6 +35,8 @@ static float dimmer_level = 0.0;
 static float motor_velocity = 0.0;
 static int32_t chamber = 0;
 
+static int64_t monitor_timer = 0;
+
 static void on_button_event(ace_button::AceButton *button, uint8_t event_type, uint8_t button_state)
 {
     if (event_type != ace_button::AceButton::kEventReleased)
@@ -42,27 +44,15 @@ static void on_button_event(ace_button::AceButton *button, uint8_t event_type, u
 
     if (button->getPin() == BUTTON1_PIN) {
         chamber = 1 - chamber;
-
-        uint8_t message[MESSAGE_LENGTH] = { 0 };
-        message[0] = COMMAND_CODE_SET_CHAMBER;
-        message_content_t content = { .int_value = chamber };
-        memcpy(&message[1], &content, sizeof(content));
-        SerialBT.write(message, MESSAGE_LENGTH);
-        Serial.printf("Chamber: %d\n", chamber);
+        write_message(&SerialBT, COMMAND_CODE_SET_CHAMBER, chamber);
+        wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
     } else if (button->getPin() == BUTTON2_PIN) {
         dimmer_level = 0.0;
         motor_velocity = 0.0;
-
-        uint8_t message[MESSAGE_LENGTH] = { 0 };
-        message[0] = COMMAND_CODE_SET_DIMMER_LEVEL;
-        message_content_t content = { .float_value = dimmer_level };
-        memcpy(&message[1], &content, sizeof(content));
-        SerialBT.write(message, MESSAGE_LENGTH);
-        message[0] = COMMAND_CODE_SET_MOTOR_VELOCITY;
-        content.float_value = motor_velocity;
-        memcpy(&message[1], &content, sizeof(content));
-        SerialBT.write(message, MESSAGE_LENGTH);
-        Serial.printf("Reset dimmer and motor velocity to 0.\n");
+        write_message(&SerialBT, COMMAND_CODE_SET_DIMMER_LEVEL, dimmer_level);
+        write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
+        wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
+        wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
     }
 }
 
@@ -99,14 +89,8 @@ void loop()
     if (knob1_position != last_knob1_position) {
         dimmer_level += (knob1_position - last_knob1_position) * 0.005;
         dimmer_level = constrain(dimmer_level, 0.0, 1.0);
-
-        uint8_t message[MESSAGE_LENGTH] = { 0 };
-        message[0] = COMMAND_CODE_SET_DIMMER_LEVEL;
-        message_content_t content = { .float_value = dimmer_level };
-        memcpy(&message[1], &content, sizeof(content));
-        SerialBT.write(message, MESSAGE_LENGTH);
-
-        Serial.printf("Dimmer Level: %.2f\n", dimmer_level);
+        write_message(&SerialBT, COMMAND_CODE_SET_DIMMER_LEVEL, dimmer_level);
+        wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
 
         last_knob1_position = knob1_position;
     }
@@ -115,20 +99,44 @@ void loop()
     if (knob2_position != last_knob2_position) {
         motor_velocity += (knob2_position - last_knob2_position) * 0.5;
         motor_velocity = constrain(motor_velocity, -25.0, 25.0);
-
-        uint8_t message[MESSAGE_LENGTH] = { 0 };
-        message[0] = COMMAND_CODE_SET_MOTOR_VELOCITY;
-        message_content_t content = { .float_value = motor_velocity };
-        memcpy(&message[1], &content, sizeof(content));
-        SerialBT.write(message, MESSAGE_LENGTH);
-        Serial.printf("Motor Velocity: %.2f\n", motor_velocity);
+        write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
+        wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
 
         last_knob2_position = knob2_position;
     }
-
-    while (SerialBT.available())
-        SerialBT.read();
     
     button1.check();
     button2.check();
+
+#if ENABLE_MONITOR
+    if (millis() - monitor_timer >= 100) {
+        int response_code = 0;
+        float value = 0.0;
+
+        write_message(&SerialBT, COMMAND_CODE_GET_DIMMER_LEVEL);
+        write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE);
+        write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE_REFERENCE);
+        write_message(&SerialBT, COMMAND_CODE_GET_SERVO_ANGLE);
+        write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_VELOCITY);
+        write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_POSITION);
+        write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_CURRENT);
+
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Dimmer Level (%%): %.2f\n", value * 100.0);
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Pressure (PSI): %.2f\n", value);
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Pressure Reference (PSI): %.2f\n", value);
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Servo Angle (degrees): %.2f\n", value);
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Motor Velocity (rotations/s): %.2f\n", value);
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Motor Position (rotations): %.2f\n", value);
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Motor Current (A): %.2f\n", value);
+
+        monitor_timer = millis();
+    }
+#endif
 }

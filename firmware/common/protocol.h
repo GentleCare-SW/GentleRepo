@@ -42,9 +42,41 @@ typedef enum response_code {
     RESPONSE_CODE_ERROR = 'e',
 } response_code_t;
 
-typedef union message_content {
-    int32_t int_value;
-    float float_value;
-} message_content_t;
+static inline void write_message(BluetoothSerial *serial, int code, float value = 0.0)
+{
+    uint8_t data[MESSAGE_LENGTH];
+    data[0] = code;
+    memcpy(&data[1], &value, sizeof(float));
+    serial->write(data, MESSAGE_LENGTH);
+}
+
+static inline bool read_message(BluetoothSerial *serial, int *code = nullptr, float *value = nullptr)
+{
+    if (serial->available() >= MESSAGE_LENGTH) {
+        uint8_t data[MESSAGE_LENGTH];
+        serial->readBytes(data, MESSAGE_LENGTH);
+
+        if (code != nullptr)
+            *code = data[0];
+        if (value != nullptr)
+            memcpy(value, &data[1], sizeof(float));
+
+        return true;
+    }
+
+    return false;
+}
+
+static inline bool wait_for_response(BluetoothSerial *serial, int64_t timeout_ms, int *code = nullptr, float *value = nullptr)
+{
+    int64_t start_time = millis();
+
+    while (millis() - start_time < timeout_ms) {
+        if (read_message(serial, code, value))
+            return true;
+    }
+
+    return false;
+}
 
 #endif

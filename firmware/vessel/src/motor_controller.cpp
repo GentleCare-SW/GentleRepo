@@ -23,16 +23,21 @@ static ODriveArduino odrive(Serial1);
 
 bool motor_controller_initialize(int32_t rx_pin, int32_t tx_pin)
 {
+    delay(1000);
+
     Serial1.begin(BAUD_RATE, SERIAL_8N1, rx_pin, tx_pin);
     while (!Serial1);
 
+    delay(1000);
+
     if (!odrive.runState(ODRIVE_AXIS, AXIS_STATE_ENCODER_INDEX_SEARCH, true, 1.0))
-        return false;
+        return true;
 
     odrive.runState(ODRIVE_AXIS, AXIS_STATE_CLOSED_LOOP_CONTROL, false);
-    delay(1000);
-    odrive.setVelocity(ODRIVE_AXIS, 0.0);
 
+    delay(1000);
+
+    odrive.setVelocity(ODRIVE_AXIS, 0.0);
     return true;
 }
 
