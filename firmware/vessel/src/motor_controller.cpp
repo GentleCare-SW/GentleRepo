@@ -30,8 +30,8 @@ bool motor_controller_initialize(int32_t rx_pin, int32_t tx_pin)
 
     delay(1000);
 
-    if (!odrive.runState(ODRIVE_AXIS, AXIS_STATE_ENCODER_INDEX_SEARCH, true, 1.0))
-        return true;
+    if (!odrive.runState(ODRIVE_AXIS, AXIS_STATE_FULL_CALIBRATION_SEQUENCE, true, 100.0))
+        return false;
 
     odrive.runState(ODRIVE_AXIS, AXIS_STATE_CLOSED_LOOP_CONTROL, false);
 
