@@ -16,48 +16,71 @@
  */
 
 #include <Arduino.h>
-#include <ODriveArduino.h>
 #include "motor_controller.h"
 
-static ODriveArduino odrive(Serial1);
+typedef enum AxisState {
+    AXIS_STATE_IDLE = 1,
+    AXIS_STATE_FULL_CALIBRATION_SEQUENCE = 3,
+    AXIS_STATE_CLOSED_LOOP_CONTROL = 8,
+} axis_state_t;
 
-bool motor_controller_initialize(int32_t rx_pin, int32_t tx_pin)
+static HardwareSerial *odrive_serial;
+
+static void set_state(axis_state_t state)
 {
-    delay(1000);
+    odrive_serial->printf("w axis0.requested_state %i\n", state);
+}
 
-    Serial1.begin(BAUD_RATE, SERIAL_8N1, rx_pin, tx_pin);
-    while (!Serial1);
+static axis_state_t get_state()
+{
+    odrive_serial->printf("r axis0.current_state\n");
+    return (axis_state_t)odrive_serial->readStringUntil('\n').toInt();
+}
 
-    delay(1000);
+bool motor_controller_initialize(HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin)
+{
+    odrive_serial = serial;
+    odrive_serial->begin(BAUD_RATE, SERIAL_8N1, rx_pin, tx_pin);
+    while (!*odrive_serial);
 
-    if (!odrive.runState(ODRIVE_AXIS, AXIS_STATE_FULL_CALIBRATION_SEQUENCE, true, 100.0))
+    set_state(AXIS_STATE_FULL_CALIBRATION_SEQUENCE);
+    do {
+        delay(100);
+    } while (get_state() != AXIS_STATE_IDLE);
+
+    set_state(AXIS_STATE_CLOSED_LOOP_CONTROL);
+    delay(100);
+    if (get_state() != AXIS_STATE_CLOSED_LOOP_CONTROL)
         return false;
 
-    odrive.runState(ODRIVE_AXIS, AXIS_STATE_CLOSED_LOOP_CONTROL, false);
-
-    delay(1000);
-
-    odrive.setVelocity(ODRIVE_AXIS, 0.0);
+    motor_controller_set_velocity(0.0);
     return true;
 }
 
 void motor_controller_set_velocity(float velocity)
 {
-    odrive.setVelocity(ODRIVE_AXIS, velocity);
+    odrive_serial->printf("v 0 %f\n", velocity);
+}
+
+void motor_controller_set_torque(float torque)
+{
+    odrive_serial->printf("c 0 %f\n", torque / GEARBOX_RATIO);
 }
 
 float motor_controller_get_velocity()
 {
-    return odrive.getVelocity(ODRIVE_AXIS);
+    odrive_serial->printf("r axis0.vel_estimate\n");
+    return odrive_serial->readStringUntil('\n').toFloat();
 }
 
 float motor_controller_get_position()
 {
-    return odrive.getPosition(ODRIVE_AXIS);
+    odrive_serial->printf("r axis0.pos_estimate\n");
+    return odrive_serial->readStringUntil('\n').toFloat();
 }
 
-float motor_controller_get_current()
+float motor_controller_get_torque()
 {
-    Serial1.printf("r axis%i.motor.current_control.Iq_setpoint\n", ODRIVE_AXIS);
-    return odrive.readFloat();
+    odrive_serial->printf("r axis0.motor.foc.Iq_setpoint\n");
+    return odrive_serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * GEARBOX_RATIO;
 }

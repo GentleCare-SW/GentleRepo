@@ -31,7 +31,7 @@ static ace_button::AceButton button2(BUTTON2_PIN);
 static int64_t last_knob1_position = 0;
 static int64_t last_knob2_position = 0;
 
-static float dimmer_level = 0.0;
+static float valve_percentage = 0.0;
 static float motor_velocity = 0.0;
 static int32_t chamber = 0;
 
@@ -47,9 +47,9 @@ static void on_button_event(ace_button::AceButton *button, uint8_t event_type, u
         write_message(&SerialBT, COMMAND_CODE_SET_CHAMBER, chamber);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
     } else if (button->getPin() == BUTTON2_PIN) {
-        dimmer_level = 0.0;
+        valve_percentage = 0.0;
         motor_velocity = 0.0;
-        write_message(&SerialBT, COMMAND_CODE_SET_DIMMER_LEVEL, dimmer_level);
+        write_message(&SerialBT, COMMAND_CODE_SET_VALVE_PERCENTAGE, valve_percentage);
         write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
@@ -75,7 +75,7 @@ void setup()
 void loop()
 {
     while (!SerialBT.connected()) {
-        dimmer_level = 0.0;
+        valve_percentage = 0.0;
         motor_velocity = 0.0;
 
         Serial.printf("Trying to connect to device...\n");
@@ -87,9 +87,9 @@ void loop()
 
     int64_t knob1_position = knob1.getCount();
     if (knob1_position != last_knob1_position) {
-        dimmer_level += (knob1_position - last_knob1_position) * 0.005;
-        dimmer_level = constrain(dimmer_level, 0.0, 1.0);
-        write_message(&SerialBT, COMMAND_CODE_SET_DIMMER_LEVEL, dimmer_level);
+        valve_percentage += (knob1_position - last_knob1_position) * 0.01;
+        valve_percentage = constrain(valve_percentage, 0.0, 1.0);
+        write_message(&SerialBT, COMMAND_CODE_SET_VALVE_PERCENTAGE, valve_percentage);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
 
         last_knob1_position = knob1_position;
@@ -108,21 +108,32 @@ void loop()
     button1.check();
     button2.check();
 
-#if ENABLE_MONITOR
     if (millis() - monitor_timer >= 100) {
         int response_code = 0;
         float value = 0.0;
 
-        write_message(&SerialBT, COMMAND_CODE_GET_DIMMER_LEVEL);
+        write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_TORQUE);
+        wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value);
+        if (abs(value) > MAXIMUM_TORQUE) {
+            motor_velocity = 0.0;
+            valve_percentage = 0.0;
+            write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
+            write_message(&SerialBT, COMMAND_CODE_SET_VALVE_PERCENTAGE, valve_percentage);
+            wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
+            wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
+        }
+
+#if DEBUG_MODE
+        write_message(&SerialBT, COMMAND_CODE_GET_VALVE_PERCENTAGE);
         write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE);
         write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE_REFERENCE);
         write_message(&SerialBT, COMMAND_CODE_GET_SERVO_ANGLE);
         write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_VELOCITY);
         write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_POSITION);
-        write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_CURRENT);
+        write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_TORQUE);
 
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Dimmer Level (%%): %.2f\n", value * 100.0);
+            Serial.printf(">Valve Percentage (%%): %.2f\n", value * 100.0);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
             Serial.printf(">Pressure (PSI): %.2f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
@@ -134,9 +145,9 @@ void loop()
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
             Serial.printf(">Motor Position (rotations): %.2f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Motor Current (A): %.2f\n", value);
+            Serial.printf(">Motor Torqe (Nm): %.2f\n", value);
+#endif
 
         monitor_timer = millis();
     }
-#endif
 }

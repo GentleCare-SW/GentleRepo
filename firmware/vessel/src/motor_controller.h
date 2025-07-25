@@ -20,14 +20,16 @@
 
 #include <Arduino.h>
 
-bool motor_controller_initialize(int32_t rx_pin, int32_t tx_pin);
+bool motor_controller_initialize(HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin);
 
 void motor_controller_set_velocity(float velocity);
+
+void motor_controller_set_torque(float torque);
 
 float motor_controller_get_velocity();
 
 float motor_controller_get_position();
 
-float motor_controller_get_current();
+float motor_controller_get_torque();
 
 #endif

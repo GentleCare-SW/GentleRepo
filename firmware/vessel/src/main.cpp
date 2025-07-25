@@ -17,11 +17,11 @@
 
 #include <Arduino.h>
 #include <BluetoothSerial.h>
-#include "dimmer.h"
 #include "servo.h"
 #include "pressure_sensor.h"
 #include "pressure_controller.h"
 #include "motor_controller.h"
+#include "valve.h"
 #include "common/protocol.h"
 
 static BluetoothSerial SerialBT;
@@ -32,8 +32,8 @@ static void process_commands()
     float value;
     while (read_message(&SerialBT, &command, &value)) {
         switch (command) {
-        case COMMAND_CODE_SET_DIMMER_LEVEL:
-            dimmer_set_power(value);
+        case COMMAND_CODE_SET_VALVE_PERCENTAGE:
+            valve_set_percentage(value);
             write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_SET_CHAMBER:
@@ -48,12 +48,8 @@ static void process_commands()
             pressure_controller_set_reference(value);
             write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
-        case COMMAND_CODE_SET_MOTOR_VELOCITY:
-            motor_controller_set_velocity(value);
-            write_message(&SerialBT, RESPONSE_CODE_OK);
-            break;
-        case COMMAND_CODE_GET_DIMMER_LEVEL:
-            write_message(&SerialBT, RESPONSE_CODE_OK, dimmer_get_power());
+        case COMMAND_CODE_GET_VALVE_PERCENTAGE:
+            write_message(&SerialBT, RESPONSE_CODE_OK, valve_get_percentage());
             break;
         case COMMAND_CODE_GET_SERVO_ANGLE:
             write_message(&SerialBT, RESPONSE_CODE_OK, servo_get_angle());
@@ -64,15 +60,25 @@ static void process_commands()
         case COMMAND_CODE_GET_PRESSURE_REFERENCE:
             write_message(&SerialBT, RESPONSE_CODE_OK, pressure_controller_get_reference());
             break;
+#if ENABLE_MOTOR_CONTROLLER
+        case COMMAND_CODE_SET_MOTOR_VELOCITY:
+            motor_controller_set_velocity(value);
+            write_message(&SerialBT, RESPONSE_CODE_OK);
+            break;
+        case COMMAND_CODE_SET_MOTOR_TORQUE:
+            motor_controller_set_torque(value);
+            write_message(&SerialBT, RESPONSE_CODE_OK);
+            break;
         case COMMAND_CODE_GET_MOTOR_VELOCITY:
             write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_velocity());
             break;
         case COMMAND_CODE_GET_MOTOR_POSITION:
             write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_position());
             break;
-        case COMMAND_CODE_GET_MOTOR_CURRENT:
-            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_current());
+        case COMMAND_CODE_GET_MOTOR_TORQUE:
+            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_torque());
             break;
+#endif
         default:
             write_message(&SerialBT, RESPONSE_CODE_ERROR);
             break;
@@ -89,27 +95,28 @@ void setup()
         Serial.println("Failed to initialize Bluetooth Serial.");
     while (!SerialBT);
 
-    dimmer_initialize(DIMMER_ZC_PIN, DIMMER_PSM_PIN);
-    dimmer_set_power(0.0);
+    valve_initialize(DAC1);
+    valve_set_percentage(0.0);
     
     servo_initialize(SERVO_PWM_PIN);
     servo_set_angle(CHAMBER1_SERVO_ANGLE);
 
     pressure_sensor_initialize(PRESSURE_SENSOR_ADC_PIN);
 
-    if (!motor_controller_initialize(MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN)) {
+#if ENABLE_MOTOR_CONTROLLER
+    if (!motor_controller_initialize(&Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN)) {
         Serial.println("Failed to initialize motor controller.");
         abort();
     }
+#endif
 }
 
 void loop()
 {
     process_commands();
 
-    dimmer_update();
     servo_update();
-    pressure_sensor_update(dimmer_get_power() == 0.0);
+    pressure_sensor_update(valve_get_percentage() == 0.0);
 
     pressure_controller_update(pressure_sensor_get_pressure(), pressure_sensor_get_derivative());
 }

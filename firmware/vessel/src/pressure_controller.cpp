@@ -17,9 +17,9 @@
 
 #include <Arduino.h>
 #include "pressure_controller.h"
-#include "dimmer.h"
+#include "valve.h"
 
-static float dimmer_power = 0.0;
+static float valve_percentage = 0.0;
 static float pressure_reference = 0.0;
 
 static const float Kp = 0.000025;
@@ -29,8 +29,8 @@ void pressure_controller_set_reference(float reference)
 {
     pressure_reference = reference;
     if (reference == 0.0) {
-        dimmer_power = 0.0;
-        dimmer_set_power(0.0);
+        valve_percentage = 0.0;
+        valve_set_percentage(0.0);
     }
 }
 
@@ -42,8 +42,8 @@ float pressure_controller_get_reference()
 void pressure_controller_update(float pressure, float pressure_derivative)
 {
     if (pressure_reference > 0.0) {
-        dimmer_power += (pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-        dimmer_power = constrain(dimmer_power, 0.0, 0.5);
-        dimmer_set_power(dimmer_power);
+        valve_percentage += (pressure_reference - pressure) * Kp - pressure_derivative * Kd;
+        valve_percentage = constrain(valve_percentage, 0.0, 1.0);
+        valve_set_percentage(valve_percentage);
     }
 }
