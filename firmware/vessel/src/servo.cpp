@@ -51,9 +51,10 @@ void servo_update()
 {
     int64_t current_time = micros();
 
-    if (current_time >= pulse_start_time + DUTY_CYCLE)
-        pulse_start_time = current_time;
-    else if (current_time >= pulse_start_time + pulse_length)
+    while (current_time - pulse_start_time >= DUTY_CYCLE)
+        pulse_start_time += DUTY_CYCLE;
+
+    if (current_time - pulse_start_time >= pulse_length)
         digitalWrite(pwm_pin, LOW);
     else
         digitalWrite(pwm_pin, HIGH);
