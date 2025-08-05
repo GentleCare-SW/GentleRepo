@@ -31,7 +31,7 @@ static ace_button::AceButton button2(BUTTON2_PIN);
 static int64_t last_knob1_position = 0;
 static int64_t last_knob2_position = 0;
 
-static float valve_percentage = 0.0;
+static float air_pressure_reference = 0.0;
 static float motor_velocity = 0.0;
 static int32_t chamber = 0;
 
@@ -44,13 +44,13 @@ static void on_button_event(ace_button::AceButton *button, uint8_t event_type, u
 
     if (button->getPin() == BUTTON1_PIN) {
         chamber = 1 - chamber;
-        write_message(&SerialBT, COMMAND_CODE_SET_CHAMBER, chamber);
+        write_message(&SerialBT, COMMAND_CODE_SET_VALVE2_PERCENTAGE, chamber);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
     } else if (button->getPin() == BUTTON2_PIN) {
-        valve_percentage = 0.0;
         motor_velocity = 0.0;
-        write_message(&SerialBT, COMMAND_CODE_SET_VALVE_PERCENTAGE, valve_percentage);
+        air_pressure_reference = 0.0;
         write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
+        write_message(&SerialBT, COMMAND_CODE_SET_PRESSURE_REFERENCE, air_pressure_reference);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
     }
@@ -75,8 +75,8 @@ void setup()
 void loop()
 {
     while (!SerialBT.connected()) {
-        valve_percentage = 0.0;
         motor_velocity = 0.0;
+        air_pressure_reference = 0.0;
 
         Serial.printf("Trying to connect to device...\n");
         if (!SerialBT.connect("GentleWedge"))
@@ -85,11 +85,14 @@ void loop()
             Serial.printf("Connected to device!\n");
     }
 
+    while (SerialBT.available())
+        SerialBT.read();
+
     int64_t knob1_position = knob1.getCount();
     if (knob1_position != last_knob1_position) {
-        valve_percentage += (knob1_position - last_knob1_position) * 0.01;
-        valve_percentage = constrain(valve_percentage, 0.0, 1.0);
-        write_message(&SerialBT, COMMAND_CODE_SET_VALVE_PERCENTAGE, valve_percentage);
+        air_pressure_reference += (knob1_position - last_knob1_position) * 0.1;
+        air_pressure_reference = constrain(air_pressure_reference, 0.0, 10.0);
+        write_message(&SerialBT, COMMAND_CODE_SET_PRESSURE_REFERENCE, air_pressure_reference);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
 
         last_knob1_position = knob1_position;
@@ -97,7 +100,7 @@ void loop()
 
     int64_t knob2_position = knob2.getCount();
     if (knob2_position != last_knob2_position) {
-        motor_velocity += (knob2_position - last_knob2_position) * 0.5;
+        motor_velocity += (knob2_position - last_knob2_position) * -0.5;
         motor_velocity = constrain(motor_velocity, -25.0, 25.0);
         write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
@@ -116,18 +119,18 @@ void loop()
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value);
         if (abs(value) > MAXIMUM_TORQUE) {
             motor_velocity = 0.0;
-            valve_percentage = 0.0;
+            air_pressure_reference = 0.0;
             write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
-            write_message(&SerialBT, COMMAND_CODE_SET_VALVE_PERCENTAGE, valve_percentage);
+            write_message(&SerialBT, COMMAND_CODE_SET_PRESSURE_REFERENCE, air_pressure_reference);
             wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
             wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
         }
 
 #if DEBUG_MODE
-        write_message(&SerialBT, COMMAND_CODE_GET_VALVE_PERCENTAGE);
-        write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE);
+        write_message(&SerialBT, COMMAND_CODE_GET_VALVE1_PERCENTAGE);
+        write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE1);
+        write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE2);
         write_message(&SerialBT, COMMAND_CODE_GET_PRESSURE_REFERENCE);
-        write_message(&SerialBT, COMMAND_CODE_GET_SERVO_ANGLE);
         write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_VELOCITY);
         write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_POSITION);
         write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_TORQUE);
@@ -135,11 +138,11 @@ void loop()
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
             Serial.printf(">Valve Percentage (%%): %.2f\n", value * 100.0);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Pressure (PSI): %.2f\n", value);
+            Serial.printf(">Valve Pressure (PSI): %.2f\n", value);
+        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
+            Serial.printf(">Vessel Pressure (PSI): %.2f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
             Serial.printf(">Pressure Reference (PSI): %.2f\n", value);
-        if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Servo Angle (degrees): %.2f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
             Serial.printf(">Motor Velocity (rotations/s): %.2f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))

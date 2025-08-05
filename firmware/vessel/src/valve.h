@@ -18,10 +18,15 @@
 #ifndef VALVE_H
 #define VALVE_H
 
-void valve_initialize(int32_t dac);
+typedef struct valve {
+    int32_t dac_pin;
+    float percentage;
+} valve_t;
 
-void valve_set_percentage(float percentage);
+void valve_initialize(valve_t *valve, int32_t dac_pin);
 
-float valve_get_percentage();
+void valve_set_percentage(valve_t *valve, float percentage);
+
+float valve_get_percentage(valve_t *valve);
 
 #endif

@@ -17,33 +17,39 @@
 
 #include <Arduino.h>
 #include "pressure_controller.h"
-#include "valve.h"
-
-static float valve_percentage = 0.0;
-static float pressure_reference = 0.0;
 
 static const float Kp = 0.000025;
 static const float Kd = 0.00003;
 
-void pressure_controller_set_reference(float reference)
+void pressure_controller_initialize(pressure_controller_t *controller, valve_t *valve, pressure_sensor_t *sensor)
 {
-    pressure_reference = reference;
+    controller->valve = valve;
+    controller->sensor = sensor;
+    controller->valve_percentage = 0.0;
+    controller->pressure_reference = 0.0;
+}
+
+void pressure_controller_set_reference(pressure_controller_t *controller, float reference)
+{
+    controller->pressure_reference = reference;
     if (reference == 0.0) {
-        valve_percentage = 0.0;
-        valve_set_percentage(0.0);
+        controller->valve_percentage = 0.0;
+        valve_set_percentage(controller->valve, 0.0);
     }
 }
 
-float pressure_controller_get_reference()
+float pressure_controller_get_reference(pressure_controller_t *controller)
 {
-    return pressure_reference;
+    return controller->pressure_reference;
 }
 
-void pressure_controller_update(float pressure, float pressure_derivative)
+void pressure_controller_update(pressure_controller_t *controller)
 {
-    if (pressure_reference > 0.0) {
-        valve_percentage += (pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-        valve_percentage = constrain(valve_percentage, 0.0, 1.0);
-        valve_set_percentage(valve_percentage);
+    if (controller->pressure_reference > 0.0) {
+        float pressure = pressure_sensor_get_pressure(controller->sensor);
+        float pressure_derivative = pressure_sensor_get_derivative(controller->sensor);
+        controller->valve_percentage += (controller->pressure_reference - pressure) * Kp - pressure_derivative * Kd;
+        controller->valve_percentage = constrain(controller->valve_percentage, 0.0, 1.0);
+        valve_set_percentage(controller->valve, controller->valve_percentage);
     }
 }

@@ -18,22 +18,19 @@
 #include <Arduino.h>
 #include "valve.h"
 
-static int32_t dac_pin = -1;
-
-static float valve_percentage = 0.0;
-
-void valve_initialize(int32_t dac)
+void valve_initialize(valve_t *valve, int32_t dac_pin)
 {
-    dac_pin = dac;
+    valve->dac_pin = dac_pin;
+    valve->percentage = 0.0;
 }
 
-void valve_set_percentage(float percentage)
+void valve_set_percentage(valve_t *valve, float percentage)
 {
-    valve_percentage = constrain(percentage, 0.0, 1.0);
-    dacWrite(dac_pin, (uint8_t)(valve_percentage * 255.0));
+    valve->percentage = constrain(percentage, 0.0, 1.0);
+    dacWrite(valve->dac_pin, (uint8_t)(valve->percentage * 255.0));
 }
 
-float valve_get_percentage()
+float valve_get_percentage(valve_t *valve)
 {
-    return valve_percentage;
+    return valve->percentage;
 }

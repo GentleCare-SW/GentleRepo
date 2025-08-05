@@ -18,10 +18,22 @@
 #ifndef PRESSURE_CONTROLLER_H
 #define PRESSURE_CONTROLLER_H
 
-void pressure_controller_set_reference(float reference);
+#include "valve.h"
+#include "pressure_sensor.h"
 
-float pressure_controller_get_reference();
+typedef struct pressure_controller {
+    float valve_percentage;
+    float pressure_reference;
+    pressure_sensor_t *sensor;
+    valve_t *valve;
+} pressure_controller_t;
 
-void pressure_controller_update(float pressure, float pressure_derivative);
+void pressure_controller_initialize(pressure_controller_t *controller, valve_t *valve, pressure_sensor_t *sensor);
+
+void pressure_controller_set_reference(pressure_controller_t *controller, float reference);
+
+float pressure_controller_get_reference(pressure_controller_t *controller);
+
+void pressure_controller_update(pressure_controller_t *controller);
 
 #endif
