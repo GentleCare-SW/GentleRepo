@@ -34,6 +34,8 @@ static pressure_sensor_t wedge_sensor;
 
 static pressure_controller_t pressure_controller;
 
+static motor_controller_t motor_controller;
+
 static void process_commands()
 {
     int command;
@@ -62,21 +64,21 @@ static void process_commands()
             break;
 #if ENABLE_MOTOR_CONTROLLER
         case COMMAND_CODE_SET_MOTOR_VELOCITY:
-            motor_controller_set_velocity(value);
+            motor_controller_set_velocity(&motor_controller, value);
             write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_SET_MOTOR_TORQUE:
-            motor_controller_set_torque(value);
+            motor_controller_set_torque(&motor_controller, value);
             write_message(&SerialBT, RESPONSE_CODE_OK);
             break;
         case COMMAND_CODE_GET_MOTOR_VELOCITY:
-            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_velocity());
+            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_velocity(&motor_controller));
             break;
         case COMMAND_CODE_GET_MOTOR_POSITION:
-            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_position());
+            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_position(&motor_controller));
             break;
         case COMMAND_CODE_GET_MOTOR_TORQUE:
-            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_torque());
+            write_message(&SerialBT, RESPONSE_CODE_OK, motor_controller_get_torque(&motor_controller));
             break;
 #endif
         default:
@@ -104,7 +106,7 @@ void setup()
     pressure_controller_initialize(&pressure_controller, &pressure_valve, &valve_sensor);
 
 #if ENABLE_MOTOR_CONTROLLER
-    if (!motor_controller_initialize(&Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN)) {
+    if (!motor_controller_initialize(&motor_controller, &Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN)) {
         Serial.println("Failed to initialize motor controller.");
         abort();
     }

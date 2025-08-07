@@ -24,63 +24,66 @@ typedef enum AxisState {
     AXIS_STATE_CLOSED_LOOP_CONTROL = 8,
 } axis_state_t;
 
-static HardwareSerial *odrive_serial;
+static const float TORQUE_EMA_ALPHA = 0.5;
 
-static void set_state(axis_state_t state)
+static void set_state(motor_controller_t *controller, axis_state_t state)
 {
-    odrive_serial->printf("w axis0.requested_state %i\n", state);
+    controller->serial->printf("w axis0.requested_state %i\n", state);
 }
 
-static axis_state_t get_state()
+static axis_state_t get_state(motor_controller_t *controller)
 {
-    odrive_serial->printf("r axis0.current_state\n");
-    return (axis_state_t)odrive_serial->readStringUntil('\n').toInt();
+    controller->serial->printf("r axis0.current_state\n");
+    return (axis_state_t)controller->serial->readStringUntil('\n').toInt();
 }
 
-bool motor_controller_initialize(HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin)
+bool motor_controller_initialize(motor_controller_t *controller, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin)
 {
-    odrive_serial = serial;
-    odrive_serial->begin(BAUD_RATE, SERIAL_8N1, rx_pin, tx_pin);
-    while (!*odrive_serial);
+    controller->moving_torque = 0.0;
+    controller->serial = serial;
+    controller->serial->begin(BAUD_RATE, SERIAL_8N1, rx_pin, tx_pin);
+    while (!controller->serial);
 
-    set_state(AXIS_STATE_FULL_CALIBRATION_SEQUENCE);
+    set_state(controller, AXIS_STATE_FULL_CALIBRATION_SEQUENCE);
     do {
         delay(100);
-    } while (get_state() != AXIS_STATE_IDLE);
+    } while (get_state(controller) != AXIS_STATE_IDLE);
 
-    set_state(AXIS_STATE_CLOSED_LOOP_CONTROL);
+    set_state(controller, AXIS_STATE_CLOSED_LOOP_CONTROL);
     delay(100);
-    if (get_state() != AXIS_STATE_CLOSED_LOOP_CONTROL)
+    if (get_state(controller) != AXIS_STATE_CLOSED_LOOP_CONTROL)
         return false;
 
-    motor_controller_set_velocity(0.0);
+    motor_controller_set_velocity(controller, 0.0);
     return true;
 }
 
-void motor_controller_set_velocity(float velocity)
+void motor_controller_set_velocity(motor_controller_t *controller, float velocity)
 {
-    odrive_serial->printf("v 0 %f\n", velocity);
+    controller->serial->printf("v 0 %f\n", velocity);
 }
 
-void motor_controller_set_torque(float torque)
+void motor_controller_set_torque(motor_controller_t *controller, float torque)
 {
-    odrive_serial->printf("c 0 %f\n", torque / GEARBOX_RATIO);
+    controller->serial->printf("c 0 %f\n", torque / GEARBOX_RATIO);
 }
 
-float motor_controller_get_velocity()
+float motor_controller_get_velocity(motor_controller_t *controller)
 {
-    odrive_serial->printf("r axis0.vel_estimate\n");
-    return odrive_serial->readStringUntil('\n').toFloat();
+    controller->serial->printf("r axis0.vel_estimate\n");
+    return controller->serial->readStringUntil('\n').toFloat();
 }
 
-float motor_controller_get_position()
+float motor_controller_get_position(motor_controller_t *controller)
 {
-    odrive_serial->printf("r axis0.pos_estimate\n");
-    return odrive_serial->readStringUntil('\n').toFloat();
+    controller->serial->printf("r axis0.pos_estimate\n");
+    return controller->serial->readStringUntil('\n').toFloat();
 }
 
-float motor_controller_get_torque()
+float motor_controller_get_torque(motor_controller_t *controller)
 {
-    odrive_serial->printf("r axis0.motor.foc.Iq_setpoint\n");
-    return odrive_serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * GEARBOX_RATIO;
+    controller->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
+    float torque = controller->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * GEARBOX_RATIO;
+    controller->moving_torque = controller->moving_torque * (1.0 - TORQUE_EMA_ALPHA) + torque * TORQUE_EMA_ALPHA;
+    return controller->moving_torque;
 }
