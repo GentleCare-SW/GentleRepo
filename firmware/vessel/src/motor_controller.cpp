@@ -60,30 +60,30 @@ bool motor_controller_initialize(motor_controller_t *controller, HardwareSerial 
 
 void motor_controller_set_velocity(motor_controller_t *controller, float velocity)
 {
-    controller->serial->printf("v 0 %f\n", velocity);
+    controller->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / TWO_PI);
 }
 
 void motor_controller_set_torque(motor_controller_t *controller, float torque)
 {
-    controller->serial->printf("c 0 %f\n", torque / GEARBOX_RATIO);
+    controller->serial->printf("c 0 %f\n", torque / -GEARBOX_RATIO);
 }
 
 float motor_controller_get_velocity(motor_controller_t *controller)
 {
     controller->serial->printf("r axis0.vel_estimate\n");
-    return controller->serial->readStringUntil('\n').toFloat();
+    return controller->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
 }
 
 float motor_controller_get_position(motor_controller_t *controller)
 {
     controller->serial->printf("r axis0.pos_estimate\n");
-    return controller->serial->readStringUntil('\n').toFloat();
+    return controller->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
 }
 
 float motor_controller_get_torque(motor_controller_t *controller)
 {
     controller->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
-    float torque = controller->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * GEARBOX_RATIO;
+    float torque = controller->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * -GEARBOX_RATIO;
     controller->moving_torque = controller->moving_torque * (1.0 - TORQUE_EMA_ALPHA) + torque * TORQUE_EMA_ALPHA;
     return controller->moving_torque;
 }

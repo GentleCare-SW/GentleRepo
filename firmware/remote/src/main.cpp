@@ -100,8 +100,8 @@ void loop()
 
     int64_t knob2_position = knob2.getCount();
     if (knob2_position != last_knob2_position) {
-        motor_velocity += (knob2_position - last_knob2_position) * -0.5;
-        motor_velocity = constrain(motor_velocity, -25.0, 25.0);
+        motor_velocity += (knob2_position - last_knob2_position) * 0.05;
+        motor_velocity = constrain(motor_velocity, -2.0, 2.0);
         write_message(&SerialBT, COMMAND_CODE_SET_MOTOR_VELOCITY, motor_velocity);
         wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS);
 
@@ -136,19 +136,19 @@ void loop()
         write_message(&SerialBT, COMMAND_CODE_GET_MOTOR_TORQUE);
 
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Valve Percentage (%%): %.2f\n", value * 100.0);
+            Serial.printf(">Valve Percentage (%%): %f\n", value * 100.0);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Valve Pressure (PSI): %.2f\n", value);
+            Serial.printf(">Valve Pressure (PSI): %f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Vessel Pressure (PSI): %.2f\n", value);
+            Serial.printf(">Vessel Pressure (PSI): %f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Pressure Reference (PSI): %.2f\n", value);
+            Serial.printf(">Pressure Reference (PSI): %f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Motor Velocity (rotations/s): %.2f\n", value);
+            Serial.printf(">Motor Velocity (rotations/s): %f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Motor Position (rotations): %.2f\n", value);
+            Serial.printf(">Motor Position (rotations): %f\n", value);
         if (wait_for_response(&SerialBT, RESPONSE_TIMEOUT_MS, &response_code, &value))
-            Serial.printf(">Motor Torqe (Nm): %.2f\n", value);
+            Serial.printf(">Motor Torqe (Nm): %f\n", value);
 #endif
 
         monitor_timer = millis();
