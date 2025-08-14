@@ -21,35 +21,35 @@
 static const float Kp = 0.000025;
 static const float Kd = 0.00003;
 
-void pressure_controller_initialize(pressure_controller_t *controller, valve_t *valve, pressure_sensor_t *sensor)
+PressureController::PressureController(Valve *valve, PressureSensor *sensor)
 {
-    controller->valve = valve;
-    controller->sensor = sensor;
-    controller->valve_percentage = 0.0;
-    controller->pressure_reference = 0.0;
+    this->valve = valve;
+    this->sensor = sensor;
+    this->valve_percentage = 0.0;
+    this->pressure_reference = 0.0;
 }
 
-void pressure_controller_set_reference(pressure_controller_t *controller, float reference)
+void PressureController::update(float dt)
 {
-    controller->pressure_reference = reference;
+    if (this->pressure_reference > 0.0) {
+        float pressure = this->sensor->get_pressure();
+        float pressure_derivative = this->sensor->get_derivative();
+        this->valve_percentage += (this->pressure_reference - pressure) * Kp - pressure_derivative * Kd;
+        this->valve_percentage = constrain(this->valve_percentage, 0.0, 1.0);
+        this->valve->set_percentage(this->valve_percentage);
+    }
+}
+
+void PressureController::set_reference(float reference)
+{
+    this->pressure_reference = reference;
     if (reference == 0.0) {
-        controller->valve_percentage = 0.0;
-        valve_set_percentage(controller->valve, 0.0);
+        this->valve_percentage = 0.0;
+        this->valve->set_percentage(this->valve_percentage);
     }
 }
 
-float pressure_controller_get_reference(pressure_controller_t *controller)
+float PressureController::get_reference()
 {
-    return controller->pressure_reference;
-}
-
-void pressure_controller_update(pressure_controller_t *controller)
-{
-    if (controller->pressure_reference > 0.0) {
-        float pressure = pressure_sensor_get_pressure(controller->sensor);
-        float pressure_derivative = pressure_sensor_get_derivative(controller->sensor);
-        controller->valve_percentage += (controller->pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-        controller->valve_percentage = constrain(controller->valve_percentage, 0.0, 1.0);
-        valve_set_percentage(controller->valve, controller->valve_percentage);
-    }
+    return this->pressure_reference;
 }

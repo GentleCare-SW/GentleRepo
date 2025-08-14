@@ -15,26 +15,28 @@
  * SOFTWARE.
  */
 
-#ifndef MOTOR_CONTROLLER_H
-#define MOTOR_CONTROLLER_H
-
+#pragma once
 #include <Arduino.h>
+#include "peripheral.h"
 
-typedef struct motor_controller {
+class MotorController: public Peripheral {
+public:
+    MotorController(const char *position_uuid, const char *velocity_uuid, const char *torque_uuid, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin);
+
+    void start() override;
+
+    void set_velocity(float velocity);
+
+    void set_torque(float torque);
+
+    float get_velocity();
+
+    float get_position();
+
+    float get_torque();
+
+private:
     HardwareSerial *serial;
-    float moving_torque;
-} motor_controller_t;
-
-bool motor_controller_initialize(motor_controller_t *controller, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin);
-
-void motor_controller_set_velocity(motor_controller_t *controller, float velocity);
-
-void motor_controller_set_torque(motor_controller_t *controller, float torque);
-
-float motor_controller_get_velocity(motor_controller_t *controller);
-
-float motor_controller_get_position(motor_controller_t *controller);
-
-float motor_controller_get_torque(motor_controller_t *controller);
-
-#endif
+    int32_t rx_pin;
+    int32_t tx_pin;
+};

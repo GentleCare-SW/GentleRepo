@@ -18,72 +18,79 @@
 #include <Arduino.h>
 #include "motor_controller.h"
 
-typedef enum AxisState {
-    AXIS_STATE_IDLE = 1,
-    AXIS_STATE_FULL_CALIBRATION_SEQUENCE = 3,
-    AXIS_STATE_CLOSED_LOOP_CONTROL = 8,
-} axis_state_t;
+enum class AxisState {
+    IDLE = 1,
+    FULL_CALIBRATION_SEQUENCE = 3,
+    CLOSED_LOOP_CONTROL = 8,
+};
 
-static const float TORQUE_EMA_ALPHA = 0.5;
-
-static void set_state(motor_controller_t *controller, axis_state_t state)
+static void set_state(HardwareSerial *serial, AxisState state)
 {
-    controller->serial->printf("w axis0.requested_state %i\n", state);
+    serial->printf("w axis0.requested_state %i\n", state);
 }
 
-static axis_state_t get_state(motor_controller_t *controller)
+static AxisState get_state(HardwareSerial *serial)
 {
-    controller->serial->printf("r axis0.current_state\n");
-    return (axis_state_t)controller->serial->readStringUntil('\n').toInt();
+    serial->printf("r axis0.current_state\n");
+    return (AxisState)serial->readStringUntil('\n').toInt();
 }
 
-bool motor_controller_initialize(motor_controller_t *controller, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin)
+MotorController::MotorController(const char *position_uuid, const char *velocity_uuid, const char *torque_uuid, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin)
 {
-    controller->moving_torque = 0.0;
-    controller->serial = serial;
-    controller->serial->begin(BAUD_RATE, SERIAL_8N1, rx_pin, tx_pin);
-    while (!controller->serial);
+    this->serial = serial;
+    this->rx_pin = rx_pin;
+    this->tx_pin = tx_pin;
+    this->add_characteristic(position_uuid, nullptr, std::bind(&MotorController::get_position, this));
+    this->add_characteristic(velocity_uuid, std::bind(&MotorController::set_velocity, this, std::placeholders::_1), std::bind(&MotorController::get_velocity, this));
+    this->add_characteristic(torque_uuid, std::bind(&MotorController::set_torque, this, std::placeholders::_1), std::bind(&MotorController::get_torque, this));
+}
 
-    set_state(controller, AXIS_STATE_FULL_CALIBRATION_SEQUENCE);
+void MotorController::start()
+{
+    delay(2000);
+
+    this->serial->begin(BAUD_RATE, SERIAL_8N1, this->rx_pin, this->tx_pin);
+    while (!this->serial);
+    
+    set_state(this->serial, AxisState::FULL_CALIBRATION_SEQUENCE);
     do {
         delay(100);
-    } while (get_state(controller) != AXIS_STATE_IDLE);
+    } while (get_state(this->serial) != AxisState::IDLE);
 
-    set_state(controller, AXIS_STATE_CLOSED_LOOP_CONTROL);
+    set_state(this->serial, AxisState::CLOSED_LOOP_CONTROL);
     delay(100);
-    if (get_state(controller) != AXIS_STATE_CLOSED_LOOP_CONTROL)
-        return false;
+    if (get_state(this->serial) != AxisState::CLOSED_LOOP_CONTROL) {
+        Serial.printf("Failed to set motor controller to CLOSED_LOOP_CONTROL state\n");
+        return;
+    }
 
-    motor_controller_set_velocity(controller, 0.0);
-    return true;
+    this->set_velocity(0.0);
 }
 
-void motor_controller_set_velocity(motor_controller_t *controller, float velocity)
+void MotorController::set_velocity(float velocity)
 {
-    controller->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / TWO_PI);
+    this->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / TWO_PI);
 }
 
-void motor_controller_set_torque(motor_controller_t *controller, float torque)
+void MotorController::set_torque(float torque)
 {
-    controller->serial->printf("c 0 %f\n", torque / -GEARBOX_RATIO);
+    this->serial->printf("c 0 %f\n", torque / -GEARBOX_RATIO);
 }
 
-float motor_controller_get_velocity(motor_controller_t *controller)
+float MotorController::get_velocity()
 {
-    controller->serial->printf("r axis0.vel_estimate\n");
-    return controller->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+    this->serial->printf("r axis0.vel_estimate\n");
+    return this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
 }
 
-float motor_controller_get_position(motor_controller_t *controller)
+float MotorController::get_position()
 {
-    controller->serial->printf("r axis0.pos_estimate\n");
-    return controller->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+    this->serial->printf("r axis0.encoder.pos_estimate\n");
+    return this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
 }
 
-float motor_controller_get_torque(motor_controller_t *controller)
+float MotorController::get_torque()
 {
-    controller->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
-    float torque = controller->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * -GEARBOX_RATIO;
-    controller->moving_torque = controller->moving_torque * (1.0 - TORQUE_EMA_ALPHA) + torque * TORQUE_EMA_ALPHA;
-    return controller->moving_torque;
+    this->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
+    return this->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * -GEARBOX_RATIO;
 }

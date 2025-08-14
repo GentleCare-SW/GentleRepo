@@ -26,42 +26,44 @@ static const float MIN_PSI = 0.0;
 static const float MAX_PSI = 100.0; 
 static const float EMA_ALPHA = 0.001;
 
-void pressure_sensor_initialize(pressure_sensor_t *sensor, int32_t adc_pin, float pressure_constant)
+PressureSensor::PressureSensor(const char *uuid, int32_t adc_pin, float pressure_constant)
 {
-    sensor->adc_pin = adc_pin;
-    sensor->moving_pressure = 0.0;
-    sensor->previous_read_time = micros();
-    sensor->pressure_derivative = 0.0;
-    sensor->pressure_offset = 0.0;
-    sensor->pressure_constant = pressure_constant;
-    pinMode(sensor->adc_pin, INPUT);
+    this->adc_pin = adc_pin;
+    this->pressure_constant = pressure_constant;
+    this->moving_pressure = 0.0;
+    this->pressure_derivative = 0.0;
+    this->pressure_offset = 0.0;
+    this->calibrating = false;
+
+    this->add_characteristic(uuid, nullptr, std::bind(&PressureSensor::get_pressure, this));
 }
 
-void pressure_sensor_update(pressure_sensor_t *sensor, bool calibrate)
+void PressureSensor::start()
 {
-    int32_t adc_value = analogRead(sensor->adc_pin);
+    pinMode(this->adc_pin, INPUT);
+}
+
+void PressureSensor::update(float dt)
+{
+    int32_t adc_value = analogRead(this->adc_pin);
     float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
     float psi = (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
 
-    float previous_moving_pressure = sensor->moving_pressure;
-    sensor->moving_pressure = sensor->moving_pressure * (1.0 - EMA_ALPHA) + psi * EMA_ALPHA;
+    float previous_moving_pressure = this->moving_pressure;
+    this->moving_pressure = this->moving_pressure * (1.0 - EMA_ALPHA) + psi * EMA_ALPHA;
 
-    int64_t current_time = micros();
-    float dt = (float)(current_time - sensor->previous_read_time) / 1e6;
-    sensor->previous_read_time = current_time;
+    this->pressure_derivative = (this->moving_pressure - previous_moving_pressure) / dt;
 
-    sensor->pressure_derivative = (sensor->moving_pressure - previous_moving_pressure) / dt;
-
-    if (calibrate)
-        sensor->pressure_offset = sensor->pressure_offset * (1.0 - EMA_ALPHA) + sensor->moving_pressure * EMA_ALPHA;
+    if (this->calibrating)
+        this->pressure_offset = this->pressure_offset * (1.0 - EMA_ALPHA) + this->moving_pressure * EMA_ALPHA;
 }
 
-float pressure_sensor_get_pressure(pressure_sensor_t *sensor)
+float PressureSensor::get_pressure()
 {
-    return (sensor->moving_pressure - sensor->pressure_offset) * sensor->pressure_constant;
+    return (this->moving_pressure - this->pressure_offset) * this->pressure_constant;
 }
 
-float pressure_sensor_get_derivative(pressure_sensor_t *sensor)
+float PressureSensor::get_derivative()
 {
-    return sensor->pressure_derivative * sensor->pressure_constant;
+    return this->pressure_derivative * this->pressure_constant;
 }

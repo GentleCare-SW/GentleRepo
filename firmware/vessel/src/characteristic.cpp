@@ -15,24 +15,39 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
-#include "valve.h"
+#include "characteristic.h"
 
-Valve::Valve(const char *uuid, int32_t dac_pin)
+Characteristic::Characteristic()
 {
-    this->dac_pin = dac_pin;
-    this->percentage = 0.0;
-
-    this->add_characteristic(uuid, std::bind(&Valve::set_percentage, this, std::placeholders::_1), std::bind(&Valve::get_percentage, this));
+    this->characteristic = nullptr;
+    this->setter = nullptr;
+    this->getter = nullptr;
+    this->uuid = nullptr;
 }
 
-void Valve::set_percentage(float percentage)
+Characteristic::Characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter)
 {
-    this->percentage = constrain(percentage, 0.0, 1.0);
-    dacWrite(this->dac_pin, (uint8_t)(this->percentage * 255.0));
+    this->uuid = uuid;
+    this->setter = setter;
+    this->getter = getter;
+    this->characteristic = nullptr;
 }
 
-float Valve::get_percentage()
+void Characteristic::onRead(BLECharacteristic* characteristic)
 {
-    return this->percentage;
+    if (this->getter == nullptr)
+        return;
+
+    float value = this->getter();
+    characteristic->setValue(value);
+}
+
+void Characteristic::onWrite(BLECharacteristic* characteristic)
+{
+    if (this->setter == nullptr || characteristic->getLength() != sizeof(float))
+        return;
+
+    float value;
+    memcpy(&value, characteristic->getData(), sizeof(float));
+    this->setter(value);
 }

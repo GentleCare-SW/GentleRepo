@@ -15,24 +15,26 @@
  * SOFTWARE.
  */
 
-#ifndef PRESSURE_SENSOR_H
-#define PRESSURE_SENSOR_H
+#pragma once
+#include "peripheral.h"
 
-typedef struct pressure_sensor {
+class PressureSensor: public Peripheral {
+public:
+    PressureSensor(const char *uuid, int32_t adc_pin, float pressure_constant);
+
+    void start() override;
+
+    void update(float dt) override;
+
+    float get_pressure();
+
+    float get_derivative();
+
+private:
     int32_t adc_pin;
     float moving_pressure;
-    int64_t previous_read_time;
     float pressure_derivative;
     float pressure_offset;
     float pressure_constant;
-} pressure_sensor_t;
-
-void pressure_sensor_initialize(pressure_sensor_t *sensor, int32_t adc_pin, float pressure_constant);
-
-void pressure_sensor_update(pressure_sensor_t *sensor, bool calibrate = false);
-
-float pressure_sensor_get_pressure(pressure_sensor_t *sensor);
-
-float pressure_sensor_get_derivative(pressure_sensor_t *sensor);
-
-#endif
+    bool calibrating;
+};

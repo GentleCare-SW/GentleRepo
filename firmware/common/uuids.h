@@ -15,24 +15,14 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
-#include "valve.h"
+#ifndef UUIDS_H
+#define UUIDS_H
 
-Valve::Valve(const char *uuid, int32_t dac_pin)
-{
-    this->dac_pin = dac_pin;
-    this->percentage = 0.0;
+#define VESSEL_UUID "8e349df3-4f3a-40b7-92e7-e5fe3db9cbb7"
+#define PRESSURE_SENSOR_UUID "f7ec0786-e220-48d6-a837-8b4cc1762ed9"
+#define VOLTAGE_PERCENTAGE_UUID "3c50614b-4652-4a59-9076-9bbab527b26d"
+#define MOTOR_POSITION_UUID "e4e96eae-241e-4c78-b2be-d4f537978069"
+#define MOTOR_VELOCITY_UUID "39c5eef9-c193-45a6-ba01-ecba49c22f1b"
+#define MOTOR_TORQUE_UUID "3f1f1c14-0875-4aa3-861e-4f7f696be74c"
 
-    this->add_characteristic(uuid, std::bind(&Valve::set_percentage, this, std::placeholders::_1), std::bind(&Valve::get_percentage, this));
-}
-
-void Valve::set_percentage(float percentage)
-{
-    this->percentage = constrain(percentage, 0.0, 1.0);
-    dacWrite(this->dac_pin, (uint8_t)(this->percentage * 255.0));
-}
-
-float Valve::get_percentage()
-{
-    return this->percentage;
-}
+#endif

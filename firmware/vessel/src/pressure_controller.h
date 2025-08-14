@@ -15,25 +15,24 @@
  * SOFTWARE.
  */
 
-#ifndef PRESSURE_CONTROLLER_H
-#define PRESSURE_CONTROLLER_H
-
+#pragma once
+#include "peripheral.h"
 #include "valve.h"
 #include "pressure_sensor.h"
 
-typedef struct pressure_controller {
+class PressureController: public Peripheral {
+public:
+    PressureController(Valve *valve, PressureSensor *sensor);
+
+    void update(float dt);
+
+    void set_reference(float reference);
+
+    float get_reference();
+
+private:
     float valve_percentage;
     float pressure_reference;
-    pressure_sensor_t *sensor;
-    valve_t *valve;
-} pressure_controller_t;
-
-void pressure_controller_initialize(pressure_controller_t *controller, valve_t *valve, pressure_sensor_t *sensor);
-
-void pressure_controller_set_reference(pressure_controller_t *controller, float reference);
-
-float pressure_controller_get_reference(pressure_controller_t *controller);
-
-void pressure_controller_update(pressure_controller_t *controller);
-
-#endif
+    PressureSensor *sensor;
+    Valve *valve;
+};

@@ -15,24 +15,18 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
-#include "valve.h"
+#include "peripheral.h"
 
-Valve::Valve(const char *uuid, int32_t dac_pin)
+void Peripheral::start()
 {
-    this->dac_pin = dac_pin;
-    this->percentage = 0.0;
-
-    this->add_characteristic(uuid, std::bind(&Valve::set_percentage, this, std::placeholders::_1), std::bind(&Valve::get_percentage, this));
 }
 
-void Valve::set_percentage(float percentage)
+void Peripheral::add_characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter)
 {
-    this->percentage = constrain(percentage, 0.0, 1.0);
-    dacWrite(this->dac_pin, (uint8_t)(this->percentage * 255.0));
+    if (this->characteristic_count < MAX_CHARACTERISTICS)
+        this->characteristics[this->characteristic_count++] = Characteristic(uuid, setter, getter);
 }
 
-float Valve::get_percentage()
+void Peripheral::update(float dt)
 {
-    return this->percentage;
 }

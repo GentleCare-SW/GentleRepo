@@ -15,24 +15,20 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
-#include "valve.h"
+#pragma once
+#include <BLEDevice.h>
 
-Valve::Valve(const char *uuid, int32_t dac_pin)
-{
-    this->dac_pin = dac_pin;
-    this->percentage = 0.0;
+struct Characteristic: public BLECharacteristicCallbacks {
+    const char *uuid;
+    std::function<void(float)> setter;
+    std::function<float()> getter;
+    BLECharacteristic *characteristic;
 
-    this->add_characteristic(uuid, std::bind(&Valve::set_percentage, this, std::placeholders::_1), std::bind(&Valve::get_percentage, this));
-}
+    Characteristic();
+    
+    Characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter);
 
-void Valve::set_percentage(float percentage)
-{
-    this->percentage = constrain(percentage, 0.0, 1.0);
-    dacWrite(this->dac_pin, (uint8_t)(this->percentage * 255.0));
-}
+    void onRead(BLECharacteristic* characteristic);
 
-float Valve::get_percentage()
-{
-    return this->percentage;
-}
+    void onWrite(BLECharacteristic* characteristic);
+};

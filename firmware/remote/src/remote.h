@@ -16,17 +16,44 @@
  */
 
 #pragma once
-#include "peripheral.h"
+#include <BLEDevice.h>
 
-class Valve: public Peripheral {
+class Remote: public BLEAdvertisedDeviceCallbacks {
 public:
-    Valve(const char *uuid, int32_t dac_pin);
+    Remote();
 
-    void set_percentage(float percentage);
+    void start();
 
-    float get_percentage();
+    void update();
+
+    void onResult(BLEAdvertisedDevice device);
+
+    float get_pressure();
+
+    float get_motor_position();
+
+    float get_motor_velocity();
+
+    float get_motor_torque();
+
+    float get_voltage_percentage();
+
+    void set_motor_velocity(float velocity);
+
+    void set_motor_torque(float torque);
+
+    void set_voltage_percentage(float percentage);
 
 private:
-    int32_t dac_pin;
-    float percentage = 0.0;
+    BLEScan *scanner;
+    BLEClient *client;
+    bool found_device;
+    BLEAdvertisedDevice device;
+    BLERemoteService *service;
+
+    BLERemoteCharacteristic *pressure_sensor;
+    BLERemoteCharacteristic *motor_position;
+    BLERemoteCharacteristic *motor_velocity;
+    BLERemoteCharacteristic *motor_torque;
+    BLERemoteCharacteristic *voltage_percentage;
 };
