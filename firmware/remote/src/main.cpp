@@ -101,8 +101,11 @@ void loop()
             remote.set_motor_velocity(motor_velocity);
         }
 
+        float pressure = remote.get_pressure();
+        digitalWrite(BUZZER_PIN, pressure > 3.0 ? HIGH : LOW);
+
 #if DEBUG_MODE
-        Serial.printf(">Pressure (PSI): %f\n", remote.get_pressure());
+        Serial.printf(">Pressure (PSI): %f\n", pressure);
         Serial.printf(">Motor Position (radians): %f\n", remote.get_motor_position());
         Serial.printf(">Motor Velocity (radians/s): %f\n", remote.get_motor_velocity());
         Serial.printf(">Motor Torque (Nm): %f\n", torque);

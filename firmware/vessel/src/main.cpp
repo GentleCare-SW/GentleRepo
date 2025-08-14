@@ -20,12 +20,14 @@
 #include "pressure_sensor.h"
 #include "motor_controller.h"
 #include "voltage_dimmer.h"
+#include "tension_controller.h"
 #include "common/uuids.h"
 
 static Vessel vessel;
 static PressureSensor pressure_sensor(PRESSURE_SENSOR_UUID, PRESSURE_SENSOR_ADC_PIN, PRESSURE_SENSOR_CONSTANT);
 static MotorController motor_controller(MOTOR_POSITION_UUID, MOTOR_VELOCITY_UUID, MOTOR_TORQUE_UUID, &Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN);
 static VoltageDimmer voltage_dimmer(VOLTAGE_PERCENTAGE_UUID, VOLTAGE_DIMMER_PWM_PIN);
+static TensionController tension_controller(&voltage_dimmer, &motor_controller, &pressure_sensor, REFERENCE_TORQUE);
 
 void setup()
 {
