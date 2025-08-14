@@ -38,8 +38,9 @@ void Vessel::start()
     for (int i = 0; i < this->peripheral_count; i++)
         this->peripherals[i]->start();
 
-    BLEDevice::init("GentleBomb");
-    this->server = BLEDevice::createServer();
+    NimBLEDevice::init("GentleBomb");
+    NimBLEDevice::setPowerLevel(ESP_PWR_LVL_P9);
+    this->server = NimBLEDevice::createServer();
     this->server->setCallbacks(this);
     this->service = this->server->createService(VESSEL_UUID);
 
@@ -47,16 +48,15 @@ void Vessel::start()
         Peripheral *peripheral = this->peripherals[i];
         for (int j = 0; j < peripheral->characteristic_count; j++) {
             Characteristic *characteristic = &peripheral->characteristics[j];
-            characteristic->characteristic = this->service->createCharacteristic(characteristic->uuid, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+            characteristic->characteristic = this->service->createCharacteristic(characteristic->uuid, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
             characteristic->characteristic->setCallbacks(characteristic);
         }
     }
 
     this->service->start();
-    BLEAdvertising *advertising = BLEDevice::getAdvertising();
+    NimBLEAdvertising *advertising = NimBLEDevice::getAdvertising();
     advertising->addServiceUUID(this->service->getUUID());
-    advertising->setScanResponse(true);
-    BLEDevice::startAdvertising();
+    NimBLEDevice::startAdvertising();
 
     this->last_update_time = micros();
 }
@@ -72,13 +72,14 @@ void Vessel::update()
     this->last_update_time = current_time;
 }
 
-void Vessel::onConnect(BLEServer *server)
+void Vessel::onConnect(NimBLEServer *server, NimBLEConnInfo& info)
 {
     this->mode = VesselMode::MANUAL_CONTROL;
+    server->updateConnParams(info.getConnHandle(), 6, 12, 0, 100);
 }
 
-void Vessel::onDisconnect(BLEServer *server)
+void Vessel::onDisconnect(NimBLEServer *server, NimBLEConnInfo& info, int reason)
 {
     this->mode = VesselMode::IDLE;
-    BLEDevice::startAdvertising();
+    NimBLEDevice::startAdvertising();
 }

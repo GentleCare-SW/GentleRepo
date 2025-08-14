@@ -26,22 +26,28 @@ Remote::Remote()
 
 void Remote::start()
 {
-    BLEDevice::init("GentleBombDetonator");
-    this->scanner = BLEDevice::getScan();
-    this->scanner->setAdvertisedDeviceCallbacks(this);
+    NimBLEDevice::init("GentleBombDetonator");
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9);
+    this->scanner = NimBLEDevice::getScan();
+    this->scanner->setScanCallbacks(this);
     this->scanner->setActiveScan(true);
+    this->scanner->setMaxResults(0);
 
-    this->client = BLEDevice::createClient();
+    this->client = NimBLEDevice::createClient();
 }
 
 void Remote::update()
 {
     while (!this->client->isConnected()) {
-        this->scanner->start(1);
+        if (!this->scanner->isScanning())
+            this->scanner->start(0);
+
         if (this->found_device) {
             this->found_device = false;
+            this->scanner->stop();
 
-            this->client->connect(&this->device);
+            this->client->connect(this->device);
+            this->client->setConnectionParams(6, 12, 0, 100);
             this->service = this->client->getService(VESSEL_UUID);
             this->pressure_sensor = this->service->getCharacteristic(PRESSURE_SENSOR_UUID);
             this->motor_position = this->service->getCharacteristic(MOTOR_POSITION_UUID);
@@ -52,15 +58,15 @@ void Remote::update()
     }
 }
 
-void Remote::onResult(BLEAdvertisedDevice device)
+void Remote::onResult(const NimBLEAdvertisedDevice *device)
 {
 #if DEBUG_MODE
-    Serial.printf("Device: %s \n", device.toString().c_str());
+    Serial.printf("Device: %s\n", device->toString().c_str());
 #endif
-    if (device.getName() != "GentleBomb")
+    if (device->getServiceUUID().toString() != VESSEL_UUID)
         return;
     
-    this->device = device;
+    this->device = (NimBLEAdvertisedDevice *)device;
     this->found_device = true;
 }
 
@@ -69,7 +75,7 @@ float Remote::get_pressure()
     if (this->pressure_sensor == nullptr)
         return 0.0;
 
-    return this->pressure_sensor->readFloat();
+    return *(float *)this->pressure_sensor->readValue().data();
 }
 
 float Remote::get_motor_position()
@@ -77,7 +83,7 @@ float Remote::get_motor_position()
     if (this->motor_position == nullptr)
         return 0.0;
 
-    return this->motor_position->readFloat();
+    return *(float *)this->motor_position->readValue().data();
 }
 
 float Remote::get_motor_velocity()
@@ -85,7 +91,7 @@ float Remote::get_motor_velocity()
     if (this->motor_velocity == nullptr)
         return 0.0;
 
-    return this->motor_velocity->readFloat();
+    return *(float *)this->motor_velocity->readValue().data();
 }
 
 float Remote::get_motor_torque()
@@ -93,7 +99,7 @@ float Remote::get_motor_torque()
     if (this->motor_torque == nullptr)
         return 0.0;
 
-    return this->motor_torque->readFloat();
+    return *(float *)this->motor_torque->readValue().data();
 }
 
 float Remote::get_voltage_percentage()
@@ -101,7 +107,7 @@ float Remote::get_voltage_percentage()
     if (this->voltage_percentage == nullptr)
         return 0.0;
 
-    return this->voltage_percentage->readFloat();
+    return *(float *)this->voltage_percentage->readValue().data();
 }
 
 void Remote::set_motor_velocity(float velocity)
@@ -125,5 +131,5 @@ void Remote::set_voltage_percentage(float percentage)
     if (this->voltage_percentage == nullptr)
         return;
 
-    this->motor_velocity->writeValue((uint8_t *)&percentage, sizeof(percentage));
+    this->voltage_percentage->writeValue((uint8_t *)&percentage, sizeof(percentage));
 }

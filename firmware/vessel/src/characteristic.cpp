@@ -33,7 +33,7 @@ Characteristic::Characteristic(const char *uuid, std::function<void(float)> sett
     this->characteristic = nullptr;
 }
 
-void Characteristic::onRead(BLECharacteristic* characteristic)
+void Characteristic::onRead(NimBLECharacteristic *characteristic, NimBLEConnInfo& info)
 {
     if (this->getter == nullptr)
         return;
@@ -42,12 +42,13 @@ void Characteristic::onRead(BLECharacteristic* characteristic)
     characteristic->setValue(value);
 }
 
-void Characteristic::onWrite(BLECharacteristic* characteristic)
+void Characteristic::onWrite(NimBLECharacteristic *characteristic, NimBLEConnInfo& info)
 {
-    if (this->setter == nullptr || characteristic->getLength() != sizeof(float))
+    NimBLEAttValue characteristic_value = characteristic->getValue();
+    if (this->setter == nullptr || characteristic_value.length() != sizeof(float))
         return;
 
     float value;
-    memcpy(&value, characteristic->getData(), sizeof(float));
+    memcpy(&value, characteristic_value.data(), sizeof(float));
     this->setter(value);
 }

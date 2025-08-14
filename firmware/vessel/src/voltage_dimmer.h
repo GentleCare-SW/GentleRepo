@@ -16,44 +16,19 @@
  */
 
 #pragma once
-#include <NimBLEDevice.h>
+#include "peripheral.h"
 
-class Remote: public NimBLEScanCallbacks {
+class VoltageDimmer: public Peripheral {
 public:
-    Remote();
+    VoltageDimmer(const char *uuid, int32_t pwm_pin);
 
-    void start();
+    void start() override;
 
-    void update();
+    void set_percentage(float percentage);
 
-    void onResult(const NimBLEAdvertisedDevice *device) override;
-
-    float get_pressure();
-
-    float get_motor_position();
-
-    float get_motor_velocity();
-
-    float get_motor_torque();
-
-    float get_voltage_percentage();
-
-    void set_motor_velocity(float velocity);
-
-    void set_motor_torque(float torque);
-
-    void set_voltage_percentage(float percentage);
+    float get_percentage();
 
 private:
-    NimBLEScan *scanner;
-    NimBLEClient *client;
-    bool found_device;
-    NimBLEAdvertisedDevice *device;
-    NimBLERemoteService *service;
-
-    NimBLERemoteCharacteristic *pressure_sensor;
-    NimBLERemoteCharacteristic *motor_position;
-    NimBLERemoteCharacteristic *motor_velocity;
-    NimBLERemoteCharacteristic *motor_torque;
-    NimBLERemoteCharacteristic *voltage_percentage;
+    int32_t pwm_pin;
+    float percentage = 0.0;
 };

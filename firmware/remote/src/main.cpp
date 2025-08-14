@@ -105,8 +105,9 @@ void loop()
         Serial.printf(">Pressure (PSI): %f\n", remote.get_pressure());
         Serial.printf(">Motor Position (radians): %f\n", remote.get_motor_position());
         Serial.printf(">Motor Velocity (radians/s): %f\n", remote.get_motor_velocity());
-        Serial.printf(">Motor Torque (Nm): %f\n", remote.get_motor_torque());
+        Serial.printf(">Motor Torque (Nm): %f\n", torque);
         Serial.printf(">Voltage Percentage (%%): %f\n", remote.get_voltage_percentage());
+        Serial.printf(">Time (ms): %lu\n", millis() - monitor_timer);
 #endif
 
         monitor_timer = millis();

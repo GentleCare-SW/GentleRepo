@@ -15,18 +15,32 @@
  * SOFTWARE.
  */
 
-#pragma once
-#include <NimBLEDevice.h>
-#include <functional>
-#include "characteristic.h"
+#include <Arduino.h>
+#include "voltage_dimmer.h"
 
-struct Peripheral {
-    Characteristic characteristics[MAX_CHARACTERISTICS];
-    int characteristic_count = 0;
+VoltageDimmer::VoltageDimmer(const char *uuid, int32_t pwm_pin)
+{
+    this->pwm_pin = pwm_pin;
+    this->percentage = 0.0;
 
-    void add_characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter);
+    this->add_characteristic(uuid, std::bind(&VoltageDimmer::set_percentage, this, std::placeholders::_1), std::bind(&VoltageDimmer::get_percentage, this));
+}
 
-    virtual void start();
+void VoltageDimmer::start()
+{
+    pinMode(this->pwm_pin, OUTPUT);
+    analogWriteFrequency(1000);
+    analogWriteResolution(16);
+    analogWrite(this->pwm_pin, 0);
+}
 
-    virtual void update(float dt);
-};
+void VoltageDimmer::set_percentage(float percentage)
+{
+    this->percentage = constrain(percentage, 0.0, 1.0);
+    analogWrite(this->pwm_pin, (uint32_t)(this->percentage * 0xffff));
+}
+
+float VoltageDimmer::get_percentage()
+{
+    return this->percentage;
+}

@@ -67,3 +67,8 @@ float PressureSensor::get_derivative()
 {
     return this->pressure_derivative * this->pressure_constant;
 }
+
+void PressureSensor::set_calibrating(bool calibrating)
+{
+    this->calibrating = calibrating;
+}

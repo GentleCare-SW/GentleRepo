@@ -30,6 +30,8 @@ public:
 
     float get_derivative();
 
+    void set_calibrating(bool calibrating);
+
 private:
     int32_t adc_pin;
     float moving_pressure;

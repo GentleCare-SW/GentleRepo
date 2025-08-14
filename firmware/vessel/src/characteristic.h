@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include <BLEDevice.h>
+#include <NimBLEDevice.h>
 
 struct Characteristic: public BLECharacteristicCallbacks {
     const char *uuid;
@@ -28,7 +28,7 @@ struct Characteristic: public BLECharacteristicCallbacks {
     
     Characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter);
 
-    void onRead(BLECharacteristic* characteristic);
+    void onRead(NimBLECharacteristic *characteristic, NimBLEConnInfo& info) override;
 
-    void onWrite(BLECharacteristic* characteristic);
+    void onWrite(NimBLECharacteristic *characteristic, NimBLEConnInfo& info) override;
 };

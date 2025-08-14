@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include <BLEDevice.h>
+#include <NimBLEDevice.h>
 #include "peripheral.h"
 #include "characteristic.h"
 
@@ -26,7 +26,7 @@ enum class VesselMode {
     AUTOMATIC_CONTROL
 };
 
-class Vessel: public BLEServerCallbacks {
+class Vessel: public NimBLEServerCallbacks {
 public:
     Vessel();
 
@@ -36,14 +36,14 @@ public:
 
     void update();
 
-    void onConnect(BLEServer *server);
+    void onConnect(NimBLEServer *server, NimBLEConnInfo& info) override;
 
-    void onDisconnect(BLEServer *server);
+    void onDisconnect(NimBLEServer *server, NimBLEConnInfo& info, int reason) override;
 
 private:
     VesselMode mode;
-    BLEServer *server;
-    BLEService *service;
+    NimBLEServer *server;
+    NimBLEService *service;
     Peripheral *peripherals[MAX_PERIPHERALS];
     int peripheral_count;
     int64_t last_update_time;
