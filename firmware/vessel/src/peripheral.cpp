@@ -16,6 +16,7 @@
  */
 
 #include "peripheral.h"
+#include "vessel.h"
 
 void Peripheral::start()
 {
@@ -28,5 +29,9 @@ void Peripheral::add_characteristic(const char *uuid, std::function<void(float)>
 }
 
 void Peripheral::update(float dt)
+{
+}
+
+void Peripheral::mode_changed(VesselMode mode)
 {
 }

@@ -74,12 +74,19 @@ void Vessel::update()
 
 void Vessel::onConnect(NimBLEServer *server, NimBLEConnInfo& info)
 {
-    this->mode = VesselMode::MANUAL_CONTROL;
+    this->set_mode(VesselMode::MANUAL_CONTROL);
     server->updateConnParams(info.getConnHandle(), 6, 12, 0, 100);
 }
 
 void Vessel::onDisconnect(NimBLEServer *server, NimBLEConnInfo& info, int reason)
 {
-    this->mode = VesselMode::IDLE;
+    this->set_mode(VesselMode::IDLE);
     NimBLEDevice::startAdvertising();
+}
+
+void Vessel::set_mode(VesselMode mode)
+{
+    this->mode = mode;
+    for (int i = 0; i < this->peripheral_count; i++)
+        this->peripherals[i]->mode_changed(mode);
 }

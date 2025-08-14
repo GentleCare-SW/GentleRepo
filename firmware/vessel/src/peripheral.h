@@ -20,6 +20,8 @@
 #include <functional>
 #include "characteristic.h"
 
+enum class VesselMode;
+
 struct Peripheral {
     Characteristic characteristics[MAX_CHARACTERISTICS];
     int characteristic_count = 0;
@@ -29,4 +31,6 @@ struct Peripheral {
     virtual void start();
 
     virtual void update(float dt);
+
+    virtual void mode_changed(VesselMode mode);
 };

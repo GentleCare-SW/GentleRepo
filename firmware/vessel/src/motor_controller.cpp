@@ -88,6 +88,11 @@ void MotorController::update(float dt)
     }
 }
 
+void MotorController::mode_changed(VesselMode mode)
+{
+    this->set_velocity(0.0);
+}
+
 void MotorController::set_velocity(float velocity)
 {
     this->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / TWO_PI);

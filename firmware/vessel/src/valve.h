@@ -26,6 +26,8 @@ public:
 
     float get_percentage();
 
+    void mode_changed(VesselMode mode) override;
+
 private:
     int32_t dac_pin;
     float percentage = 0.0;

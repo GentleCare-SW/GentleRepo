@@ -44,3 +44,8 @@ float VoltageDimmer::get_percentage()
 {
     return this->percentage;
 }
+
+void VoltageDimmer::mode_changed(VesselMode mode)
+{
+    this->set_percentage(0.0);
+}

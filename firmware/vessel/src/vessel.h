@@ -41,6 +41,8 @@ public:
     void onDisconnect(NimBLEServer *server, NimBLEConnInfo& info, int reason) override;
 
 private:
+    void set_mode(VesselMode mode);
+
     VesselMode mode;
     NimBLEServer *server;
     NimBLEService *service;

@@ -36,3 +36,8 @@ float Valve::get_percentage()
 {
     return this->percentage;
 }
+
+void Valve::mode_changed(VesselMode mode)
+{
+    this->set_percentage(0.0);
+}

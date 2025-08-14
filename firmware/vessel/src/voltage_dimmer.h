@@ -24,6 +24,8 @@ public:
 
     void start() override;
 
+    void mode_changed(VesselMode mode) override;
+
     void set_percentage(float percentage);
 
     float get_percentage();
