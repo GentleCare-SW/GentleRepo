@@ -75,7 +75,9 @@ void MotorController::update(float dt)
 {
     int64_t current_time = micros();
     if (current_time - this->last_update_time > MOTOR_UPDATE_INTERVAL * 1e6) {
+        dt = (current_time - this->last_update_time) / 1e6;
         this->last_update_time = current_time;
+
         this->serial->printf("r axis0.encoder.pos_estimate\n");
         this->position = this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
         this->serial->printf("r axis0.vel_estimate\n");
@@ -83,7 +85,7 @@ void MotorController::update(float dt)
         this->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
         float torque = this->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * -GEARBOX_RATIO;
 
-        float alpha = exp(-3.0 * MOTOR_UPDATE_INTERVAL);
+        float alpha = exp(-6.0 * dt);
         this->torque = (1.0 - alpha) * torque + alpha * this->torque;
     }
 }
