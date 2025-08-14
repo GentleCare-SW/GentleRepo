@@ -25,6 +25,8 @@ public:
 
     void start() override;
 
+    void update(float dt) override;
+
     void set_velocity(float velocity);
 
     void set_torque(float torque);
@@ -39,4 +41,8 @@ private:
     HardwareSerial *serial;
     int32_t rx_pin;
     int32_t tx_pin;
+    float position;
+    float velocity;
+    float torque;
+    int64_t last_update_time;
 };

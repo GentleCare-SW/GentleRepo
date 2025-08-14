@@ -40,6 +40,9 @@ MotorController::MotorController(const char *position_uuid, const char *velocity
     this->serial = serial;
     this->rx_pin = rx_pin;
     this->tx_pin = tx_pin;
+    this->position = 0.0;
+    this->velocity = 0.0;
+    this->torque = 0.0;
     this->add_characteristic(position_uuid, nullptr, std::bind(&MotorController::get_position, this));
     this->add_characteristic(velocity_uuid, std::bind(&MotorController::set_velocity, this, std::placeholders::_1), std::bind(&MotorController::get_velocity, this));
     this->add_characteristic(torque_uuid, std::bind(&MotorController::set_torque, this, std::placeholders::_1), std::bind(&MotorController::get_torque, this));
@@ -65,6 +68,21 @@ void MotorController::start()
     }
 
     this->set_velocity(0.0);
+    this->last_update_time = micros();
+}
+
+void MotorController::update(float dt)
+{
+    int64_t current_time = micros();
+    if (current_time - this->last_update_time > 2000) {
+        this->last_update_time = current_time;
+        this->serial->printf("r axis0.encoder.pos_estimate\n");
+        this->position = this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+        this->serial->printf("r axis0.vel_estimate\n");
+        this->velocity = this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+        this->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
+        this->torque = this->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * -GEARBOX_RATIO;
+    }
 }
 
 void MotorController::set_velocity(float velocity)
@@ -79,18 +97,15 @@ void MotorController::set_torque(float torque)
 
 float MotorController::get_velocity()
 {
-    this->serial->printf("r axis0.vel_estimate\n");
-    return this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+    return this->velocity;
 }
 
 float MotorController::get_position()
 {
-    this->serial->printf("r axis0.encoder.pos_estimate\n");
-    return this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+    return this->position;
 }
 
 float MotorController::get_torque()
 {
-    this->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
-    return this->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * -GEARBOX_RATIO;
+    return this->torque;
 }

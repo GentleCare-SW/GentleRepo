@@ -23,8 +23,7 @@ static const float ADC_VOLTAGE_REF = 5.0;
 static const float MIN_VOLTAGE = 0.5; 
 static const float MAX_VOLTAGE = 4.5;
 static const float MIN_PSI = 0.0;
-static const float MAX_PSI = 100.0; 
-static const float EMA_ALPHA = 0.001;
+static const float MAX_PSI = 100.0;
 
 PressureSensor::PressureSensor(const char *uuid, int32_t adc_pin, float pressure_constant)
 {
@@ -49,13 +48,17 @@ void PressureSensor::update(float dt)
     float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
     float psi = (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
 
+    if (abs(psi - this->moving_pressure) > 2.0)
+        psi = (psi - this->moving_pressure) * 0.1 + this->moving_pressure;
+
     float previous_moving_pressure = this->moving_pressure;
-    this->moving_pressure = this->moving_pressure * (1.0 - EMA_ALPHA) + psi * EMA_ALPHA;
+    float alpha = exp(-3.0 * dt);
+    this->moving_pressure = this->moving_pressure * alpha + psi * (1.0 - alpha);
 
     this->pressure_derivative = (this->moving_pressure - previous_moving_pressure) / dt;
 
     if (this->calibrating)
-        this->pressure_offset = this->pressure_offset * (1.0 - EMA_ALPHA) + this->moving_pressure * EMA_ALPHA;
+        this->pressure_offset = this->pressure_offset * alpha + this->moving_pressure * (1.0 - alpha);
 }
 
 float PressureSensor::get_pressure()
