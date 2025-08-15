@@ -38,11 +38,15 @@ public:
 
     float get_voltage_percentage();
 
+    float get_pressure_reference();
+
     void set_motor_velocity(float velocity);
 
     void set_motor_torque(float torque);
 
     void set_voltage_percentage(float percentage);
+
+    void set_pressure_reference(float pressure);
 
 private:
     NimBLEScan *scanner;
@@ -56,4 +60,5 @@ private:
     NimBLERemoteCharacteristic *motor_velocity;
     NimBLERemoteCharacteristic *motor_torque;
     NimBLERemoteCharacteristic *voltage_percentage;
+    NimBLERemoteCharacteristic *pressure_reference;
 };

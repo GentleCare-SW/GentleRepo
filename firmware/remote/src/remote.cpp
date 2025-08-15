@@ -110,6 +110,14 @@ float Remote::get_voltage_percentage()
     return *(float *)this->voltage_percentage->readValue().data();
 }
 
+float Remote::get_pressure_reference()
+{
+    if (this->pressure_reference == nullptr)
+        return 0.0;
+
+    return *(float *)this->pressure_reference->readValue().data();
+}
+
 void Remote::set_motor_velocity(float velocity)
 {
     if (this->motor_velocity == nullptr)
@@ -132,4 +140,12 @@ void Remote::set_voltage_percentage(float percentage)
         return;
 
     this->voltage_percentage->writeValue((uint8_t *)&percentage, sizeof(percentage));
+}
+
+void Remote::set_pressure_reference(float pressure)
+{
+    if (this->pressure_reference == nullptr)
+        return;
+
+    this->pressure_reference->writeValue((uint8_t *)&pressure, sizeof(pressure));
 }

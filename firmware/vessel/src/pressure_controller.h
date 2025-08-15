@@ -17,22 +17,26 @@
 
 #pragma once
 #include "peripheral.h"
-#include "valve.h"
+#include "voltage_dimmer.h"
 #include "pressure_sensor.h"
 
 class PressureController: public Peripheral {
 public:
-    PressureController(Valve *valve, PressureSensor *sensor);
+    PressureController(VoltageDimmer *dimmer, PressureSensor *sensor);
 
-    void update(float dt);
+    PressureController(const char *uuid, VoltageDimmer *dimmer, PressureSensor *sensor);
+
+    void update(float dt) override;
+
+    void mode_changed(VesselMode mode) override;
 
     void set_reference(float reference);
 
     float get_reference();
 
 private:
-    float valve_percentage;
+    float percentage;
     float pressure_reference;
     PressureSensor *sensor;
-    Valve *valve;
+    VoltageDimmer *dimmer;
 };

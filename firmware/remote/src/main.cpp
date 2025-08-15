@@ -42,6 +42,8 @@ static void on_button_event(ace_button::AceButton *button, uint8_t event_type, u
         return;
 
     if (button->getPin() == BUTTON1_PIN) {
+        air_pressure_reference = 0.0;
+        remote.set_pressure_reference(air_pressure_reference);
         voltage_percentage = 0.0;
         remote.set_voltage_percentage(voltage_percentage);
     } else if (button->getPin() == BUTTON2_PIN) {
@@ -79,6 +81,9 @@ void loop()
         voltage_percentage = constrain(voltage_percentage, 0.0, 1.0);
         remote.set_voltage_percentage(voltage_percentage);
 #else
+        air_pressure_reference += (knob1_position - last_knob1_position) * 0.04;
+        air_pressure_reference = constrain(air_pressure_reference, 0.0, 4.0);
+        remote.set_pressure_reference(air_pressure_reference);
 #endif
         last_knob1_position = knob1_position;
     }
