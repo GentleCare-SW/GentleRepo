@@ -54,6 +54,8 @@ void Remote::update()
             this->motor_velocity = this->service->getCharacteristic(MOTOR_VELOCITY_UUID);
             this->motor_torque = this->service->getCharacteristic(MOTOR_TORQUE_UUID);
             this->voltage_percentage = this->service->getCharacteristic(VOLTAGE_PERCENTAGE_UUID);
+            this->servo_angle = this->service->getCharacteristic(SERVO_ANGLE_UUID);
+            this->servo_chamber = this->service->getCharacteristic(SERVO_CHAMBER_UUID);
         }
     }
 }
@@ -110,6 +112,14 @@ float Remote::get_voltage_percentage()
     return *(float *)this->voltage_percentage->readValue().data();
 }
 
+float Remote::get_servo_angle()
+{
+    if (this->servo_angle == nullptr)
+        return 0.0;
+
+    return *(float *)this->servo_angle->readValue().data();
+}
+
 float Remote::get_pressure_reference()
 {
     if (this->pressure_reference == nullptr)
@@ -140,6 +150,22 @@ void Remote::set_voltage_percentage(float percentage)
         return;
 
     this->voltage_percentage->writeValue((uint8_t *)&percentage, sizeof(percentage));
+}
+
+void Remote::set_servo_angle(float angle)
+{
+    if (this->servo_angle == nullptr)
+        return;
+
+    this->servo_angle->writeValue((uint8_t *)&angle, sizeof(angle));
+}
+
+void Remote::set_servo_chamber(float chamber)
+{
+    if (this->servo_chamber == nullptr)
+        return;
+
+    this->servo_chamber->writeValue((uint8_t *)&chamber, sizeof(chamber));
 }
 
 void Remote::set_pressure_reference(float pressure)

@@ -20,7 +20,7 @@
 
 class VoltageDimmer: public Peripheral {
 public:
-    VoltageDimmer(const char *uuid, int32_t pwm_pin);
+    VoltageDimmer(const char *uuid, int32_t pwm_pin, int32_t ledc_channel);
 
     void start() override;
 
@@ -32,5 +32,6 @@ public:
 
 private:
     int32_t pwm_pin;
+    int32_t ledc_channel;
     float percentage = 0.0;
 };

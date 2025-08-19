@@ -33,6 +33,7 @@ static int64_t last_knob2_position = 0;
 static float voltage_percentage = 0.0;
 static float air_pressure_reference = 0.0;
 static float motor_velocity = 0.0;
+static int chamber = 0;
 
 static int64_t monitor_timer = 0;
 
@@ -42,10 +43,8 @@ static void on_button_event(ace_button::AceButton *button, uint8_t event_type, u
         return;
 
     if (button->getPin() == BUTTON1_PIN) {
-        air_pressure_reference = 0.0;
-        remote.set_pressure_reference(air_pressure_reference);
-        voltage_percentage = 0.0;
-        remote.set_voltage_percentage(voltage_percentage);
+        chamber = 1 - chamber;
+        remote.set_servo_chamber(chamber);
     } else if (button->getPin() == BUTTON2_PIN) {
         motor_velocity = 0.0;
         remote.set_motor_velocity(motor_velocity);
@@ -115,6 +114,7 @@ void loop()
         Serial.printf(">Motor Velocity (radians/s): %f\n", remote.get_motor_velocity());
         Serial.printf(">Motor Torque (Nm): %f\n", torque);
         Serial.printf(">Voltage Percentage (%%): %f\n", remote.get_voltage_percentage());
+        Serial.printf(">Servo Angle (degrees): %f\n", remote.get_servo_angle());
         Serial.printf(">Time (ms): %lu\n", millis() - monitor_timer);
 #endif
 

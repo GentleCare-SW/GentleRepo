@@ -38,6 +38,8 @@ public:
 
     float get_voltage_percentage();
 
+    float get_servo_angle();
+
     float get_pressure_reference();
 
     void set_motor_velocity(float velocity);
@@ -45,6 +47,10 @@ public:
     void set_motor_torque(float torque);
 
     void set_voltage_percentage(float percentage);
+
+    void set_servo_angle(float angle);
+
+    void set_servo_chamber(float chamber);
 
     void set_pressure_reference(float pressure);
 
@@ -60,5 +66,7 @@ private:
     NimBLERemoteCharacteristic *motor_velocity;
     NimBLERemoteCharacteristic *motor_torque;
     NimBLERemoteCharacteristic *voltage_percentage;
+    NimBLERemoteCharacteristic *servo_angle;
+    NimBLERemoteCharacteristic *servo_chamber;
     NimBLERemoteCharacteristic *pressure_reference;
 };

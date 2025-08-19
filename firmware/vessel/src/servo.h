@@ -15,17 +15,23 @@
  * SOFTWARE.
  */
 
-#ifndef UUIDS_H
-#define UUIDS_H
+#pragma once
+#include "peripheral.h"
 
-#define VESSEL_UUID "8e349df3-4f3a-40b7-92e7-e5fe3db9cbb7"
-#define PRESSURE_SENSOR_UUID "f7ec0786-e220-48d6-a837-8b4cc1762ed9"
-#define VOLTAGE_PERCENTAGE_UUID "3c50614b-4652-4a59-9076-9bbab527b26d"
-#define MOTOR_POSITION_UUID "e4e96eae-241e-4c78-b2be-d4f537978069"
-#define MOTOR_VELOCITY_UUID "39c5eef9-c193-45a6-ba01-ecba49c22f1b"
-#define MOTOR_TORQUE_UUID "3f1f1c14-0875-4aa3-861e-4f7f696be74c"
-#define SERVO_ANGLE_UUID "1b3c1525-6532-436a-88e8-ed2a15593e89"
-#define SERVO_CHAMBER_UUID "d15562cd-5a4b-4fda-a505-492c7b9c07dc"
-#define PRESSURE_CONTROLLER_UUID "6252787b-cb91-412b-8a11-7b0cbfc59e3e"
+class Servo: public Peripheral {
+public:
+    Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, int32_t ledc_channel);
 
-#endif
+    void start() override;
+
+    void set_angle(float angle);
+
+    float get_angle();
+
+    void set_chamber(float chamber);
+
+private:
+    int32_t pwm_pin;
+    int32_t ledc_channel;
+    float angle;
+};

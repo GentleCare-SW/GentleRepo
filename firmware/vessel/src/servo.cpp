@@ -15,38 +15,43 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
-#include "voltage_dimmer.h"
+#include "servo.h"
 
-VoltageDimmer::VoltageDimmer(const char *uuid, int32_t pwm_pin, int32_t ledc_channel)
+static const float MAX_MICROSECONDS = 2500.0;
+static const float MIN_MICROSECONDS = 500.0;
+
+Servo::Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, int32_t ledc_channel)
 {
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
-    this->percentage = 0.0;
+    this->angle = 0.0;
 
-    this->add_characteristic(uuid, std::bind(&VoltageDimmer::set_percentage, this, std::placeholders::_1), std::bind(&VoltageDimmer::get_percentage, this));
+    this->add_characteristic(angle_uuid, std::bind(&Servo::set_angle, this, std::placeholders::_1), std::bind(&Servo::get_angle, this));
+    this->add_characteristic(chamber_uuid, std::bind(&Servo::set_chamber, this, std::placeholders::_1), nullptr);
 }
 
-void VoltageDimmer::start()
+void Servo::start()
 {
     pinMode(this->pwm_pin, OUTPUT);
-    ledcSetup(this->ledc_channel, 1000, 16);
+    ledcSetup(this->ledc_channel, 400, 16);
     ledcAttachPin(this->pwm_pin, this->ledc_channel);
-    this->set_percentage(this->percentage);
+    this->set_chamber(0.0);
 }
 
-void VoltageDimmer::set_percentage(float percentage)
+void Servo::set_angle(float angle)
 {
-    this->percentage = constrain(percentage, 0.0, 1.0);
-    ledcWrite(this->ledc_channel, (uint32_t)(this->percentage * 0xffff));
+    this->angle = constrain(angle, 0.0, 180.0);
+    uint32_t duty_cycle = (this->angle / 180.0 * (MAX_MICROSECONDS - MIN_MICROSECONDS) + MIN_MICROSECONDS) / MAX_MICROSECONDS * 0xffff;
+    ledcWrite(this->ledc_channel, duty_cycle);
 }
 
-float VoltageDimmer::get_percentage()
+float Servo::get_angle()
 {
-    return this->percentage;
+    return this->angle;
 }
 
-void VoltageDimmer::mode_changed(VesselMode mode)
+void Servo::set_chamber(float chamber)
 {
-    this->set_percentage(0.0);
+    this->angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
+    this->set_angle(this->angle);
 }
