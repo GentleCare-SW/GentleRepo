@@ -20,6 +20,15 @@
 
 static const float Kp = 0.005;
 
+TensionController::TensionController()
+{
+    this->dimmmer = nullptr;
+    this->motor = nullptr;
+    this->pressure_sensor = nullptr;
+    this->voltage_percentage = 0.0;
+    this->torque_reference = 0.0;
+}
+
 TensionController::TensionController(VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, float torque_reference)
 {
     this->dimmmer = dimmer;
@@ -44,7 +53,7 @@ void TensionController::update(float dt)
     if (pressure > 3.0)
         pid += min(0.0f, pid);
 
-    this->voltage_percentage = constrain(this->voltage_percentage + pid, 0.0, 1.0);
+    this->voltage_percentage = constrain(this->voltage_percentage + pid * (this->voltage_percentage < 0.2 ? 10.0 : 1.0), 0.0, 1.0);
     this->dimmmer->set_percentage(this->voltage_percentage);
 }
 

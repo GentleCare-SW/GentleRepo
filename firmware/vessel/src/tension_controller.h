@@ -23,6 +23,8 @@
 
 class TensionController: public Peripheral {
 public:
+    TensionController();
+
     TensionController(VoltageDimmer *voltage_dimmer, MotorController *motor_controller, PressureSensor *pressure_sensor, float torque_reference);
 
     void update(float dt) override;

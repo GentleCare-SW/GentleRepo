@@ -74,7 +74,7 @@ void Vessel::update()
 
 void Vessel::onConnect(NimBLEServer *server, NimBLEConnInfo& info)
 {
-    this->set_mode(VesselMode::MANUAL_CONTROL);
+    this->set_mode(VesselMode::CONNECTED);
     server->updateConnParams(info.getConnHandle(), 6, 12, 0, 100);
 }
 

@@ -56,6 +56,7 @@ void Remote::update()
             this->voltage_percentage = this->service->getCharacteristic(VOLTAGE_PERCENTAGE_UUID);
             this->servo_angle = this->service->getCharacteristic(SERVO_ANGLE_UUID);
             this->servo_chamber = this->service->getCharacteristic(SERVO_CHAMBER_UUID);
+            this->auto_control_mode = this->service->getCharacteristic(AUTO_CONTROL_MODE_UUID);
         }
     }
 }
@@ -174,4 +175,12 @@ void Remote::set_pressure_reference(float pressure)
         return;
 
     this->pressure_reference->writeValue((uint8_t *)&pressure, sizeof(pressure));
+}
+
+void Remote::set_auto_control_mode(float mode)
+{
+    if (this->auto_control_mode == nullptr)
+        return;
+
+    this->auto_control_mode->writeValue((uint8_t *)&mode, sizeof(mode));
 }

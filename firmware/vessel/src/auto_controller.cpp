@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ *
+ * This source code and the accompanying materials are the confidential and
+ * proprietary information of GentleCare Corporation. Unauthorized copying or
+ * distribution of this file, via any medium, is strictly prohibited without
+ * the prior written permission of GentleCare Corporation.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include "auto_controller.h"
+#include "vessel.h"
+#include "common/uuids.h"
+
+AutoController::AutoController(const char *uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor)
+{
+    this->dimmer = dimmer;
+    this->motor = motor;
+    this->pressure_sensor = pressure_sensor;
+    this->tension_controller = TensionController(dimmer, motor, pressure_sensor, -0.25);
+    this->set_mode((float)AutoControlMode::IDLE);
+
+    this->add_characteristic(uuid, std::bind(&AutoController::set_mode, this, std::placeholders::_1), std::bind(&AutoController::get_mode, this));
+}
+
+void AutoController::update(float dt)
+{
+    float position = this->motor->get_position();
+    if (this->mode == AutoControlMode::EVERSION && position > SHEET_LENGTH)
+        this->set_mode((float)AutoControlMode::IDLE);
+    
+    if (this->mode == AutoControlMode::INVERSION && position < 0.0)
+        this->set_mode((float)AutoControlMode::IDLE);
+    
+    if (this->mode == AutoControlMode::EVERSION)
+        this->tension_controller.update(dt);
+}
+
+void AutoController::mode_changed(VesselMode mode)
+{
+    this->set_mode((float)AutoControlMode::IDLE);
+}
+
+void AutoController::set_mode(float mode)
+{
+    this->mode = (AutoControlMode)mode;
+    if (this->mode == AutoControlMode::IDLE) {
+        this->motor->set_velocity(0.0);
+        this->dimmer->set_percentage(0.0);
+    } else if (this->mode == AutoControlMode::EVERSION) {
+        this->motor->set_velocity(0.5);
+        this->dimmer->set_percentage(0.0);
+    } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
+        this->motor->set_velocity(0.0);
+        this->dimmer->set_percentage(0.25);
+    } else if (this->mode == AutoControlMode::INVERSION) {
+        this->motor->set_velocity(-2.0);
+        this->dimmer->set_percentage(0.3);
+    } else if (this->mode == AutoControlMode::INVERSION_PAUSED) {
+        this->motor->set_velocity(0.0);
+        this->dimmer->set_percentage(0.25);
+    }
+}
+
+float AutoController::get_mode()
+{
+    return (float)this->mode;
+}

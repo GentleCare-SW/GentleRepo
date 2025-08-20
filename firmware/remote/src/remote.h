@@ -54,6 +54,8 @@ public:
 
     void set_pressure_reference(float pressure);
 
+    void set_auto_control_mode(float mode);
+
 private:
     NimBLEScan *scanner;
     NimBLEClient *client;
@@ -69,4 +71,5 @@ private:
     NimBLERemoteCharacteristic *servo_angle;
     NimBLERemoteCharacteristic *servo_chamber;
     NimBLERemoteCharacteristic *pressure_reference;
+    NimBLERemoteCharacteristic *auto_control_mode;
 };

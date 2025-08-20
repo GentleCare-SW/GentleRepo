@@ -22,8 +22,7 @@
 
 enum class VesselMode {
     IDLE,
-    MANUAL_CONTROL,
-    AUTOMATIC_CONTROL
+    CONNECTED,
 };
 
 class Vessel: public NimBLEServerCallbacks {
