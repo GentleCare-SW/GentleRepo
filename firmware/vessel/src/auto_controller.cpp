@@ -55,7 +55,7 @@ void AutoController::set_mode(float mode)
         this->motor->set_velocity(0.0);
         this->dimmer->set_percentage(0.0);
     } else if (this->mode == AutoControlMode::EVERSION) {
-        this->motor->set_velocity(0.5);
+        this->motor->set_velocity(2.0);
         this->dimmer->set_percentage(0.0);
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
         this->motor->set_velocity(0.0);

@@ -122,6 +122,9 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         bluetoothStatus = "Connected to device."
         isConnected = true
+        for uuid in CHARACTERISTIC_UUIDS {
+            waitingResponse[uuid] = false
+        }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
@@ -145,7 +148,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         }
         
         for uuid in CHARACTERISTIC_UUIDS {
-            if characteristics[uuid] == nil || (waitingResponse[uuid] ?? false) {
+            if characteristics[uuid] == nil || waitingResponse[uuid]! {
                 continue
             }
             

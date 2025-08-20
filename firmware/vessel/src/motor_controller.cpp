@@ -78,7 +78,7 @@ void MotorController::update(float dt)
         dt = (current_time - this->last_update_time) / 1e6;
         this->last_update_time = current_time;
 
-        this->serial->printf("r axis0.encoder.pos_estimate\n");
+        this->serial->printf("r axis0.pos_estimate\n");
         this->position = this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
         this->serial->printf("r axis0.vel_estimate\n");
         this->velocity = this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
