@@ -35,6 +35,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var motorTorque: Float?
     @Published var servoChamber: Float?
     @Published var mode: VesselMode?
+    @Published var progress: Float?
     
     private var pollTimer: Timer!
     private var central: CBCentralManager!
@@ -162,9 +163,8 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         motorVelocity = values[MOTOR_VELOCITY_UUID]
         motorTorque = values[MOTOR_TORQUE_UUID]
         servoChamber = values[SERVO_CHAMBER_UUID]
-        if values[AUTO_CONTROL_MODE_UUID] != nil {
-            mode = VesselMode(rawValue: values[AUTO_CONTROL_MODE_UUID]!)
-        }
+        mode = values[AUTO_CONTROL_MODE_UUID] == nil ? nil : VesselMode(rawValue: values[AUTO_CONTROL_MODE_UUID]!)
+        progress = values[AUTO_CONTROL_PROGRESS_UUID]
     }
     
     private func writeValue(_ value: Float, for uuid: CBUUID) {

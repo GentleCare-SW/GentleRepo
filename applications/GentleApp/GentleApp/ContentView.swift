@@ -36,6 +36,7 @@ struct ContentView: View {
         Button("Invert Paused", action: { vessel.setMode(.inversionPaused) })
         Button("Chamber 0", action: { vessel.setChamber(0) })
         Button("Chamber 1", action: { vessel.setChamber(1) })
+        ProgressView(value: vessel.progress ?? 0.0, total: 1.0)
     }
 }
 

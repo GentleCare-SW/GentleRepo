@@ -33,7 +33,7 @@ enum class AutoControlMode {
 
 class AutoController: public Peripheral {
 public:
-    AutoController(const char *uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor);
+    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor);
 
     void update(float dt) override;
 
@@ -42,6 +42,8 @@ public:
     void set_mode(float mode);
 
     float get_mode();
+
+    float get_progress();
 
 private:
     VoltageDimmer *dimmer;

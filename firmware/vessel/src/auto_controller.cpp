@@ -19,7 +19,7 @@
 #include "vessel.h"
 #include "common/uuids.h"
 
-AutoController::AutoController(const char *uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor)
+AutoController::AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor)
 {
     this->dimmer = dimmer;
     this->motor = motor;
@@ -27,7 +27,8 @@ AutoController::AutoController(const char *uuid, VoltageDimmer *dimmer, MotorCon
     this->tension_controller = TensionController(dimmer, motor, pressure_sensor, -0.25);
     this->set_mode((float)AutoControlMode::IDLE);
 
-    this->add_characteristic(uuid, std::bind(&AutoController::set_mode, this, std::placeholders::_1), std::bind(&AutoController::get_mode, this));
+    this->add_characteristic(mode_uuid, std::bind(&AutoController::set_mode, this, std::placeholders::_1), std::bind(&AutoController::get_mode, this));
+    this->add_characteristic(progress_uuid, nullptr, std::bind(&AutoController::get_progress, this));
 }
 
 void AutoController::update(float dt)
@@ -72,4 +73,9 @@ void AutoController::set_mode(float mode)
 float AutoController::get_mode()
 {
     return (float)this->mode;
+}
+
+float AutoController::get_progress()
+{
+    return constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0);
 }
