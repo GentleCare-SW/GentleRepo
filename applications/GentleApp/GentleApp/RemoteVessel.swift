@@ -17,17 +17,31 @@
 
 import CoreBluetooth
 
+enum VesselMode: Float {
+    case idle = 0.0
+    case eversion = 1.0
+    case eversionPaused = 2.0
+    case inversion = 3.0
+    case inversionPaused = 4.0
+}
+
 class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var bluetoothStatus: String = "Starting..."
     @Published var isConnected: Bool = false
     @Published var airPressure: Float?
+    @Published var voltagePercentage: Float?
+    @Published var motorPosition: Float?
+    @Published var motorVelocity: Float?
     @Published var motorTorque: Float?
+    @Published var servoChamber: Float?
+    @Published var mode: VesselMode?
     
     private var pollTimer: Timer!
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
     private var characteristics: [CBUUID: CBCharacteristic] = [:]
     private var values: [CBUUID: Float] = [:]
+    private var waitingResponse: [CBUUID: Bool] = [:]
     
     override init() {
         super.init()
@@ -122,6 +136,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         let value = Float(bitPattern: UInt32(littleEndian: characteristic.value!.withUnsafeBytes { $0.load(as: UInt32.self) }))
         values[characteristic.uuid] = value
+        waitingResponse[characteristic.uuid] = false
     }
     
     private func poll() {
@@ -130,14 +145,40 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         }
         
         for uuid in CHARACTERISTIC_UUIDS {
-            if characteristics[uuid] == nil {
+            if characteristics[uuid] == nil || (waitingResponse[uuid] ?? false) {
                 continue
             }
             
+            waitingResponse[uuid] = true
             peripheral!.readValue(for: characteristics[uuid]!)
         }
         
         airPressure = values[PRESSURE_SENSOR_UUID]
+        voltagePercentage = values[VOLTAGE_PERCENTAGE_UUID]
+        motorPosition = values[MOTOR_POSITION_UUID]
+        motorVelocity = values[MOTOR_VELOCITY_UUID]
         motorTorque = values[MOTOR_TORQUE_UUID]
+        servoChamber = values[SERVO_CHAMBER_UUID]
+        if values[AUTO_CONTROL_MODE_UUID] != nil {
+            mode = VesselMode(rawValue: values[AUTO_CONTROL_MODE_UUID]!)
+        }
+    }
+    
+    private func writeValue(_ value: Float, for uuid: CBUUID) {
+        if peripheral == nil || characteristics[uuid] == nil {
+            return
+        }
+        
+        var bitPattern = value.bitPattern.littleEndian
+        let data = withUnsafeBytes(of: &bitPattern) { Data($0) }
+        peripheral!.writeValue(data, for: characteristics[uuid]!, type: .withResponse)
+    }
+    
+    public func setMode(_ mode: VesselMode) {
+        writeValue(mode.rawValue, for: AUTO_CONTROL_MODE_UUID)
+    }
+    
+    public func setChamber(_ chamber: Int) {
+        writeValue(Float(chamber), for: SERVO_CHAMBER_UUID)
     }
 }

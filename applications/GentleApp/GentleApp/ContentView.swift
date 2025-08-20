@@ -23,7 +23,19 @@ struct ContentView: View {
     var body: some View {
         Text("\(vessel.bluetoothStatus)")
         Text("Air Pressure (PSI): " + (vessel.airPressure == nil ? "N/A" : String(vessel.airPressure!)))
+        Text("Voltage Percentage (%): " + (vessel.voltagePercentage == nil ? "N/A" : String(vessel.voltagePercentage!)))
+        Text("Motor Position (rad): " + (vessel.motorPosition == nil ? "N/A" : String(vessel.motorPosition!)))
+        Text("Motor Velocity (rad/s): " + (vessel.motorVelocity == nil ? "N/A" : String(vessel.motorVelocity!)))
         Text("Motor Torque (Nm): " + (vessel.motorTorque == nil ? "N/A" : String(vessel.motorTorque!)))
+        Text("Servo Chamber: " + (vessel.servoChamber == nil ? "N/A" : String(vessel.servoChamber!)))
+        Text("Vessel Mode: " + (vessel.mode == nil ? "N/A" : String(vessel.mode!.rawValue)))
+        Button("Idle", action: { vessel.setMode(.idle) })
+        Button("Evert", action: { vessel.setMode(.eversion) })
+        Button("Evert Paused", action: { vessel.setMode(.eversionPaused) })
+        Button("Invert", action: { vessel.setMode(.inversion) })
+        Button("Invert Paused", action: { vessel.setMode(.inversionPaused) })
+        Button("Chamber 0", action: { vessel.setChamber(0) })
+        Button("Chamber 1", action: { vessel.setChamber(1) })
     }
 }
 
