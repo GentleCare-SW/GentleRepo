@@ -22,6 +22,8 @@ struct ContentView: View {
 
     var body: some View {
         Text("\(vessel.bluetoothStatus)")
+        Text("Air Pressure (PSI): " + (vessel.airPressure == nil ? "N/A" : String(vessel.airPressure!)))
+        Text("Motor Torque (Nm): " + (vessel.motorTorque == nil ? "N/A" : String(vessel.motorTorque!)))
     }
 }
 

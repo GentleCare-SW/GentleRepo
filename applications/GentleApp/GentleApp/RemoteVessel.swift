@@ -17,29 +17,22 @@
 
 import CoreBluetooth
 
-enum VesselMode: Float {
-    case idle = 0.0
-    case eversion = 1.0
-    case eversionPaused = 2.0
-    case inversion = 3.0
-    case inversionPaused = 4.0
-}
-
 class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var bluetoothStatus: String = "Starting..."
     @Published var isConnected: Bool = false
-    @Published var mode: VesselMode?
-    @Published var chamber: Float?
-    @Published var progress: Float?
     @Published var airPressure: Float?
     @Published var motorTorque: Float?
     
+    private var pollTimer: Timer!
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
+    private var characteristics: [CBUUID: CBCharacteristic] = [:]
+    private var values: [CBUUID: Float] = [:]
     
     override init() {
         super.init()
         central = CBCentralManager(delegate: self, queue: nil)
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { [weak self] _ in self?.poll() })
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -79,7 +72,6 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         bluetoothStatus = "Connected to device. Discovering services..."
-        isConnected = true
         peripheral.discoverServices([VESSEL_UUID])
     }
     
@@ -92,5 +84,60 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         bluetoothStatus = "Disconnected from device. Starting scan..."
         isConnected = false
         startScan()
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
+        if error != nil || peripheral.services == nil {
+            bluetoothStatus = "Service discovery error."
+            return
+        }
+        
+        bluetoothStatus = "Discovered services. Discovering characteristics..."
+        peripheral.discoverCharacteristics(CHARACTERISTIC_UUIDS, for: peripheral.services![0])
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
+        if error != nil || peripheral.services![0].characteristics == nil {
+            bluetoothStatus = "Characteristic discovery error."
+            return
+        }
+        
+        for characteristic in peripheral.services![0].characteristics! {
+            characteristics[characteristic.uuid] = characteristic
+        }
+        
+        bluetoothStatus = "Connected to device."
+        isConnected = true
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
+        if error != nil || characteristic.value == nil {
+            bluetoothStatus = "Failed to read value."
+            return
+        }
+        
+        if characteristic.value!.count != 4 {
+            return
+        }
+        
+        let value = Float(bitPattern: UInt32(littleEndian: characteristic.value!.withUnsafeBytes { $0.load(as: UInt32.self) }))
+        values[characteristic.uuid] = value
+    }
+    
+    private func poll() {
+        if !isConnected {
+            return
+        }
+        
+        for uuid in CHARACTERISTIC_UUIDS {
+            if characteristics[uuid] == nil {
+                continue
+            }
+            
+            peripheral!.readValue(for: characteristics[uuid]!)
+        }
+        
+        airPressure = values[PRESSURE_SENSOR_UUID]
+        motorTorque = values[MOTOR_TORQUE_UUID]
     }
 }
