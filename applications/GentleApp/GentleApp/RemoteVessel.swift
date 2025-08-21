@@ -53,10 +53,10 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
-            bluetoothStatus = "Bluetooth ON. Scanning..."
+            bluetoothStatus = "Searching for device..."
             startScan()
         case .poweredOff:
-            bluetoothStatus = "Bluetooth is OFF. Please enable it in Settings."
+            bluetoothStatus = "Bluetooth is off. Please enable it in Settings."
         case .unauthorized:
             bluetoothStatus = "No Bluetooth permission. Grant it in Settings."
         case .unsupported:
@@ -64,7 +64,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         case .resetting:
             bluetoothStatus = "Bluetooth resetting..."
         default:
-            bluetoothStatus = "Bluetooth state unknown."
+            bluetoothStatus = "Unknown error."
         }
     }
     
@@ -96,7 +96,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
-        bluetoothStatus = "Disconnected from device. Starting scan..."
+        bluetoothStatus = "Disconnected from device. Searching..."
         isConnected = false
         startScan()
     }
