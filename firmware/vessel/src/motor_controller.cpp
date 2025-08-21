@@ -42,6 +42,7 @@ MotorController::MotorController(const char *position_uuid, const char *velocity
     this->tx_pin = tx_pin;
     this->position = 0.0;
     this->velocity = 0.0;
+    this->target_velocity = 0.0;
     this->torque = 0.0;
     this->add_characteristic(position_uuid, nullptr, std::bind(&MotorController::get_position, this));
     this->add_characteristic(velocity_uuid, std::bind(&MotorController::set_velocity, this, std::placeholders::_1), std::bind(&MotorController::get_velocity, this));
@@ -87,6 +88,9 @@ void MotorController::update(float dt)
 
         float alpha = exp(-6.0 * dt);
         this->torque = (1.0 - alpha) * torque + alpha * this->torque;
+
+        float velocity = abs(velocity - this->target_velocity) > 0.01 ? this->velocity * 0.9 + this->target_velocity * 0.1 : this->target_velocity;
+        this->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / TWO_PI);
     }
 }
 
@@ -97,7 +101,7 @@ void MotorController::mode_changed(VesselMode mode)
 
 void MotorController::set_velocity(float velocity)
 {
-    this->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / TWO_PI);
+    this->target_velocity = velocity;
 }
 
 void MotorController::set_torque(float torque)

@@ -45,6 +45,7 @@ private:
     int32_t tx_pin;
     float position;
     float velocity;
+    float target_velocity;
     float torque;
     int64_t last_update_time;
 };
