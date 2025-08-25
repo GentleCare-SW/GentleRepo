@@ -17,6 +17,9 @@
 
 #include <Arduino.h>
 #include "motor_controller.h"
+#include "config.h"
+
+static const float MOTOR_UPDATE_INTERVAL = 0.002;
 
 enum class AxisState {
     IDLE = 1,
@@ -42,7 +45,6 @@ MotorController::MotorController(const char *position_uuid, const char *velocity
     this->tx_pin = tx_pin;
     this->position = 0.0;
     this->velocity = 0.0;
-    this->target_velocity = 0.0;
     this->torque = 0.0;
     this->add_characteristic(position_uuid, nullptr, std::bind(&MotorController::get_position, this));
     this->add_characteristic(velocity_uuid, std::bind(&MotorController::set_velocity, this, std::placeholders::_1), std::bind(&MotorController::get_velocity, this));
@@ -80,17 +82,14 @@ void MotorController::update(float dt)
         this->last_update_time = current_time;
 
         this->serial->printf("r axis0.pos_estimate\n");
-        this->position = this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+        this->position = this->serial->readStringUntil('\n').toFloat() * -1.0 / GEARBOX_RATIO;
         this->serial->printf("r axis0.vel_estimate\n");
-        this->velocity = this->serial->readStringUntil('\n').toFloat() * -TWO_PI / GEARBOX_RATIO;
+        this->velocity = this->serial->readStringUntil('\n').toFloat() * -60.0 / GEARBOX_RATIO;
         this->serial->printf("r axis0.motor.foc.Iq_setpoint\n");
-        float torque = this->serial->readStringUntil('\n').toFloat() * TORQUE_CONSTANT * -GEARBOX_RATIO;
+        float torque = this->serial->readStringUntil('\n').toFloat() * -TORQUE_CONSTANT;
 
         float alpha = exp(-6.0 * dt);
         this->torque = (1.0 - alpha) * torque + alpha * this->torque;
-
-        float velocity = abs(velocity - this->target_velocity) > 0.01 ? this->velocity * 0.9 + this->target_velocity * 0.1 : this->target_velocity;
-        this->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / TWO_PI);
     }
 }
 
@@ -101,12 +100,12 @@ void MotorController::mode_changed(VesselMode mode)
 
 void MotorController::set_velocity(float velocity)
 {
-    this->target_velocity = velocity;
+    this->serial->printf("v 0 %f\n", velocity * -GEARBOX_RATIO / 60.0);
 }
 
 void MotorController::set_torque(float torque)
 {
-    this->serial->printf("c 0 %f\n", torque / -GEARBOX_RATIO);
+    this->serial->printf("c 0 %f\n", -torque);
 }
 
 float MotorController::get_velocity()

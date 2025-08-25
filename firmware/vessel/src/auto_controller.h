@@ -21,6 +21,7 @@
 #include "voltage_dimmer.h"
 #include "motor_controller.h"
 #include "pressure_sensor.h"
+#include "servo.h"
 #include "tension_controller.h"
 
 enum class AutoControlMode {
@@ -33,7 +34,7 @@ enum class AutoControlMode {
 
 class AutoController: public Peripheral {
 public:
-    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor);
+    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo);
 
     void update(float dt) override;
 
@@ -49,6 +50,7 @@ private:
     VoltageDimmer *dimmer;
     MotorController *motor;
     PressureSensor *pressure_sensor;
+    Servo *servo;
     AutoControlMode mode;
     TensionController tension_controller;
 };

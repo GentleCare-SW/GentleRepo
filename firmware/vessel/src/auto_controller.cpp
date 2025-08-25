@@ -17,13 +17,15 @@
 
 #include "auto_controller.h"
 #include "vessel.h"
+#include "config.h"
 #include "common/uuids.h"
 
-AutoController::AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor)
+AutoController::AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo)
 {
     this->dimmer = dimmer;
     this->motor = motor;
     this->pressure_sensor = pressure_sensor;
+    this->servo = servo;
     this->tension_controller = TensionController(dimmer, motor, pressure_sensor, -0.25);
     this->set_mode((float)AutoControlMode::IDLE);
 
@@ -51,22 +53,24 @@ void AutoController::mode_changed(VesselMode mode)
 
 void AutoController::set_mode(float mode)
 {
+    int chamber = this->servo->get_chamber();
+
     this->mode = (AutoControlMode)mode;
     if (this->mode == AutoControlMode::IDLE) {
         this->motor->set_velocity(0.0);
         this->dimmer->set_percentage(0.0);
     } else if (this->mode == AutoControlMode::EVERSION) {
-        this->motor->set_velocity(2.0);
-        this->dimmer->set_percentage(0.0);
+        this->motor->set_velocity(chamber == 0 ? 20.0 : 0.0);
+        this->dimmer->set_percentage(chamber == 0 ? 0.0 : 0.3);
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
         this->motor->set_velocity(0.0);
         this->dimmer->set_percentage(0.25);
     } else if (this->mode == AutoControlMode::INVERSION) {
-        this->motor->set_velocity(-2.0);
-        this->dimmer->set_percentage(0.3);
+        this->motor->set_velocity(chamber == 0 ? -20.0 : 0.0);
+        this->dimmer->set_percentage(chamber == 0 ? 0.3 : 0.0);
     } else if (this->mode == AutoControlMode::INVERSION_PAUSED) {
         this->motor->set_velocity(0.0);
-        this->dimmer->set_percentage(0.25);
+        this->dimmer->set_percentage(chamber == 0 ? 0.25 : 0.0);
     }
 }
 

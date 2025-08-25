@@ -89,8 +89,8 @@ void loop()
 
     int64_t knob2_position = knob2.getCount();
     if (knob2_position != last_knob2_position) {
-        motor_velocity += (knob2_position - last_knob2_position) * 0.05;
-        motor_velocity = constrain(motor_velocity, -2.0, 2.0);
+        motor_velocity += (knob2_position - last_knob2_position) * 0.5;
+        motor_velocity = constrain(motor_velocity, -30.0, 30.0);
         remote.set_motor_velocity(motor_velocity);
         last_knob2_position = knob2_position;
     }
@@ -110,8 +110,8 @@ void loop()
 
 #if DEBUG_MODE
         Serial.printf(">Pressure (PSI): %f\n", pressure);
-        Serial.printf(">Motor Position (radians): %f\n", remote.get_motor_position());
-        Serial.printf(">Motor Velocity (radians/s): %f\n", remote.get_motor_velocity());
+        Serial.printf(">Motor Position (revolutions): %f\n", remote.get_motor_position());
+        Serial.printf(">Motor Velocity (rpm): %f\n", remote.get_motor_velocity());
         Serial.printf(">Motor Torque (Nm): %f\n", torque);
         Serial.printf(">Voltage Percentage (%%): %f\n", remote.get_voltage_percentage());
         Serial.printf(">Servo Angle (degrees): %f\n", remote.get_servo_angle());

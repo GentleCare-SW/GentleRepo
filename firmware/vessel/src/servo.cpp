@@ -16,6 +16,7 @@
  */
 
 #include "servo.h"
+#include "config.h"
 
 static const float MAX_MICROSECONDS = 2500.0;
 static const float MIN_MICROSECONDS = 500.0;

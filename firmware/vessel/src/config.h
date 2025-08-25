@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ *
+ * This source code and the accompanying materials are the confidential and
+ * proprietary information of GentleCare Corporation. Unauthorized copying or
+ * distribution of this file, via any medium, is strictly prohibited without
+ * the prior written permission of GentleCare Corporation.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#pragma once
+
+#if PLATFORM_TYPE == 0
+
+#define PRESSURE_SENSOR_ADC_PIN 4
+#define PRESSURE_SENSOR_CONSTANT 1.4
+
+#define ENABLE_MOTOR_CONTROLLER 1
+#define MOTOR_CONTROLLER_RX_PIN 16
+#define MOTOR_CONTROLLER_TX_PIN 17
+#define TORQUE_CONSTANT 3.975
+#define GEARBOX_RATIO 53.0
+
+#define VOLTAGE_DIMMER_PWM_PIN 18
+#define VOLTAGE_DIMMER_LEDC_CHANNEL 0
+
+#define SERVO_PWM_PIN 19
+#define SERVO_LEDC_CHANNEL 1
+#define SERVO_ANGLE1 4.0
+#define SERVO_ANGLE2 64.0
+
+#define REFERENCE_TORQUE -0.25
+
+#define SHEET_LENGTH 20.0
+
+#elif PLATFORM_TYPE == 1
+
+#define PRESSURE_SENSOR_ADC_PIN 4
+#define PRESSURE_SENSOR_CONSTANT 0.7
+
+#define ENABLE_MOTOR_CONTROLLER 1
+#define MOTOR_CONTROLLER_RX_PIN 16
+#define MOTOR_CONTROLLER_TX_PIN 17
+#define TORQUE_CONSTANT 7.4439
+#define GEARBOX_RATIO 81.0
+
+#define VOLTAGE_DIMMER_PWM_PIN 18
+#define VOLTAGE_DIMMER_LEDC_CHANNEL 0
+
+#define ENABLE_SERVO 0
+#define SERVO_PWM_PIN -1
+#define SERVO_LEDC_CHANNEL -1
+#define SERVO_ANGLE1 -1.0
+#define SERVO_ANGLE2 -1.0
+
+#define REFERENCE_TORQUE -0.25
+
+#define SHEET_LENGTH 20.0
+
+#else
+
+#error "Unknown platform type"
+
+#endif
