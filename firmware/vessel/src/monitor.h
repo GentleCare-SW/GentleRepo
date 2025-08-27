@@ -16,38 +16,28 @@
  */
 
 #pragma once
-#include "peripheral.h"
 
-enum PressureSensorError {
-    NONE,
-    NOT_CONNECTED
+#include "peripheral.h"
+#include "pressure_sensor.h"
+#include "motor_controller.h"
+
+enum class MonitorStatus {
+    OK,
+    HIGH_PRESSURE,
+    HIGH_TORQUE
 };
 
-class PressureSensor: public Peripheral {
+class Monitor: public Peripheral {
 public:
-    PressureSensor(const char *pressure_uuid, const char *error_uuid, int32_t adc_pin, float pressure_constant);
-
-    void start() override;
+    Monitor(const char *status_uuid, PressureSensor *pressure_sensor, MotorController *motor_controller);
 
     void update(float dt) override;
 
-    float get_pressure();
-
-    float get_derivative();
-
-    bool is_connected();
-
-    void set_calibrating(bool calibrating);
-
-    float get_error();
+    float get_status();
 
 private:
-    int32_t adc_pin;
-    float moving_pressure;
-    float moving_squared_pressure;
-    float pressure_derivative;
-    float pressure_offset;
-    float pressure_constant;
-    bool calibrating;
-    PressureSensorError error;
+    MonitorStatus status;
+    PressureSensor *pressure_sensor;
+    MotorController *motor_controller;
+    int64_t last_update_time;
 };
