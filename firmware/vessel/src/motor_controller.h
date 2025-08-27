@@ -19,9 +19,16 @@
 #include <Arduino.h>
 #include "peripheral.h"
 
+enum class MotorControllerError {
+    NONE,
+    NOT_RESPONDING,
+    CALIBRATION_FAILED,
+    CONTROL_ERROR,
+};
+
 class MotorController: public Peripheral {
 public:
-    MotorController(const char *position_uuid, const char *velocity_uuid, const char *torque_uuid, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin);
+    MotorController(const char *position_uuid, const char *velocity_uuid, const char *torque_uuid, const char *error_uuid, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin);
 
     void start() override;
 
@@ -39,6 +46,8 @@ public:
 
     float get_torque();
 
+    float get_error();
+
 private:
     HardwareSerial *serial;
     int32_t rx_pin;
@@ -47,4 +56,25 @@ private:
     float velocity;
     float torque;
     int64_t last_update_time;
+    MotorControllerError error;
+
+    void set_error(MotorControllerError error);
+
+    String wait_for_response();
+
+    void write_state(int state);
+
+    int read_state();
+
+    void write_torque(float torque);
+
+    float read_torque();
+
+    void write_velocity(float velocity);
+
+    float read_velocity();
+
+    float read_position();
+
+    int read_error();
 };

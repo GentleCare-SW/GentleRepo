@@ -33,6 +33,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var motorPosition: Float?
     @Published var motorVelocity: Float?
     @Published var motorTorque: Float?
+    @Published var motorError: Float?
     @Published var servoChamber: Float?
     @Published var mode: VesselMode?
     @Published var progress: Float?
@@ -162,6 +163,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         motorPosition = values[MOTOR_POSITION_UUID]
         motorVelocity = values[MOTOR_VELOCITY_UUID]
         motorTorque = values[MOTOR_TORQUE_UUID]
+        motorError = values[MOTOR_ERROR_UUID]
         servoChamber = values[SERVO_CHAMBER_UUID]
         mode = values[AUTO_CONTROL_MODE_UUID] == nil ? nil : VesselMode(rawValue: values[AUTO_CONTROL_MODE_UUID]!)
         progress = values[AUTO_CONTROL_PROGRESS_UUID]

@@ -56,11 +56,6 @@ private struct StatusHeader: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(vessel.isConnected ? "Connected" : "Not Connected")
                         .font(.headline)
-                    if vessel.isConnected {
-                        Text("Mode: \(vessel.modeDisplay)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
                 }
                 Spacer(minLength: 12)
                 
@@ -220,6 +215,7 @@ private struct DeveloperInfoSection: View {
                     DevRow("Motor Position (rad)", vessel.motorPosition, suffix: nil, formatting: .number)
                     DevRow("Motor Velocity (rad/s)", vessel.motorVelocity, suffix: nil, formatting: .number)
                     DevRow("Motor Torque (Nm)", vessel.motorTorque, suffix: nil, formatting: .number)
+                    DevRow("Motor Error", vessel.motorError, suffix: nil, formatting: .integer)
                     DevRow("Servo Chamber", vessel.servoChamber, suffix: nil, formatting: .integer)
                     DevRow("Mode", vessel.mode?.rawValue, suffix: nil, formatting: .string)
                     DevRow("Bluetooth Status", vessel.bluetoothStatus, suffix: nil, formatting: .string)
