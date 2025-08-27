@@ -18,9 +18,14 @@
 #pragma once
 #include "peripheral.h"
 
+enum PressureSensorError {
+    NONE,
+    NOT_CONNECTED
+};
+
 class PressureSensor: public Peripheral {
 public:
-    PressureSensor(const char *uuid, int32_t adc_pin, float pressure_constant);
+    PressureSensor(const char *pressure_uuid, const char *error_uuid, int32_t adc_pin, float pressure_constant);
 
     void start() override;
 
@@ -32,11 +37,15 @@ public:
 
     void set_calibrating(bool calibrating);
 
+    float get_error();
+
 private:
     int32_t adc_pin;
     float moving_pressure;
+    float moving_squared_pressure;
     float pressure_derivative;
     float pressure_offset;
     float pressure_constant;
     bool calibrating;
+    PressureSensorError error;
 };

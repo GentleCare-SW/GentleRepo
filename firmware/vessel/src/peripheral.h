@@ -20,6 +20,8 @@
 #include <functional>
 #include "characteristic.h"
 
+#define MAX_CHARACTERISTICS 16
+
 enum class VesselMode;
 
 struct Peripheral {

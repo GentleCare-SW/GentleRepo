@@ -29,6 +29,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var bluetoothStatus: String = "Starting..."
     @Published var isConnected: Bool = false
     @Published var airPressure: Float?
+    @Published var pressureSensorError: Float?
     @Published var voltagePercentage: Float?
     @Published var motorPosition: Float?
     @Published var motorVelocity: Float?
@@ -159,6 +160,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         }
         
         airPressure = values[PRESSURE_SENSOR_UUID]
+        pressureSensorError = values[PRESSURE_SENSOR_ERROR_UUID]
         voltagePercentage = values[VOLTAGE_PERCENTAGE_UUID]
         motorPosition = values[MOTOR_POSITION_UUID]
         motorVelocity = values[MOTOR_VELOCITY_UUID]

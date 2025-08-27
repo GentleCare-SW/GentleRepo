@@ -211,6 +211,7 @@ private struct DeveloperInfoSection: View {
             DisclosureGroup(isExpanded: $expanded) {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
                     DevRow("Air Pressure (PSI)", vessel.airPressure, suffix: nil, formatting: .number)
+                    DevRow("Pressure Sensor Error", vessel.pressureSensorError, suffix: nil, formatting: .integer)
                     DevRow("Voltage (%)", vessel.voltagePercentage != nil ? vessel.voltagePercentage! * 100.0 : nil, suffix: "%", formatting: .number)
                     DevRow("Motor Position (rad)", vessel.motorPosition, suffix: nil, formatting: .number)
                     DevRow("Motor Velocity (rad/s)", vessel.motorVelocity, suffix: nil, formatting: .number)

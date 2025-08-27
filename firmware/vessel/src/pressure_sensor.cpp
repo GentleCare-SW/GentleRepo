@@ -25,16 +25,19 @@ static const float MAX_VOLTAGE = 4.5;
 static const float MIN_PSI = 0.0;
 static const float MAX_PSI = 100.0;
 
-PressureSensor::PressureSensor(const char *uuid, int32_t adc_pin, float pressure_constant)
+PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid, int32_t adc_pin, float pressure_constant)
 {
     this->adc_pin = adc_pin;
     this->pressure_constant = pressure_constant;
     this->moving_pressure = 0.0;
+    this->moving_squared_pressure = 0.0;
     this->pressure_derivative = 0.0;
     this->pressure_offset = 0.0;
     this->calibrating = false;
+    this->error = PressureSensorError::NONE;
 
-    this->add_characteristic(uuid, nullptr, std::bind(&PressureSensor::get_pressure, this));
+    this->add_characteristic(pressure_uuid, nullptr, std::bind(&PressureSensor::get_pressure, this));
+    this->add_characteristic(error_uuid, nullptr, std::bind(&PressureSensor::get_error, this));
 }
 
 void PressureSensor::start()
@@ -48,17 +51,25 @@ void PressureSensor::update(float dt)
     float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
     float psi = (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
 
-    if (abs(psi - this->moving_pressure) > 2.0)
-        psi = (psi - this->moving_pressure) * 0.1 + this->moving_pressure;
+    float std = sqrt(this->moving_squared_pressure - this->moving_pressure * this->moving_pressure);
+    if (abs(psi - this->moving_pressure) > 4.0 * std && std > 0.0)
+        psi = this->moving_pressure + (psi > this->moving_pressure ? 1.0 : -1.0) * 4.0 * std;
+
+    float alpha = exp(-3.0 * dt);
 
     float previous_moving_pressure = this->moving_pressure;
-    float alpha = exp(-3.0 * dt);
     this->moving_pressure = this->moving_pressure * alpha + psi * (1.0 - alpha);
+    this->moving_squared_pressure = this->moving_squared_pressure * alpha + psi * psi * (1.0 - alpha);
 
     this->pressure_derivative = (this->moving_pressure - previous_moving_pressure) / dt;
 
     if (this->calibrating)
         this->pressure_offset = this->pressure_offset * alpha + this->moving_pressure * (1.0 - alpha);
+
+    if (this->error == PressureSensorError::NONE && std > 10.0)
+        this->error = PressureSensorError::NOT_CONNECTED;
+    else if (this->error == PressureSensorError::NOT_CONNECTED && std <= 10.0)
+        this->error = PressureSensorError::NONE;
 }
 
 float PressureSensor::get_pressure()
@@ -74,4 +85,9 @@ float PressureSensor::get_derivative()
 void PressureSensor::set_calibrating(bool calibrating)
 {
     this->calibrating = calibrating;
+}
+
+float PressureSensor::get_error()
+{
+    return (float)this->error;
 }

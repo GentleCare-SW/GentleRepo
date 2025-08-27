@@ -20,6 +20,8 @@
 #include "peripheral.h"
 #include "characteristic.h"
 
+#define MAX_PERIPHERALS 16
+
 enum class VesselMode {
     IDLE,
     CONNECTED,
