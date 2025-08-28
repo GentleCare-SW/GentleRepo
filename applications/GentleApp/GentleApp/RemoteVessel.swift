@@ -40,6 +40,9 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var monitorStatus: Float?
     @Published var progress: Float?
     
+    @Published var showingAlert: Bool = false
+    @Published var alertMessage: String = ""
+    
     private var pollTimer: Timer!
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
@@ -172,7 +175,15 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         progress = values[AUTO_CONTROL_PROGRESS_UUID]
         monitorStatus = values[MONITOR_STATUS_UUID]
         
-        if monitorStatus != 0.0 {
+        if monitorStatus != 0.0 && monitorStatus != nil {
+            if monitorStatus == 1.0 {
+                alertMessage = "Air pressure limit reached."
+            } else if monitorStatus == 2.0 {
+                alertMessage = "Motor torque limit reached."
+            } else {
+                alertMessage = ""
+            }
+            showingAlert = true
             writeValue(0.0, for: AUTO_CONTROL_MODE_UUID)
         }
     }

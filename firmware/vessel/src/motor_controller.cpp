@@ -186,3 +186,8 @@ int MotorController::read_error()
     int result = this->wait_for_response().toInt();
     return result == 1 || result == 0 ? 0 : result;
 }
+
+bool MotorController::is_ok()
+{
+    return this->error == MotorControllerError::NONE;
+}

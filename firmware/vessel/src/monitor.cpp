@@ -18,7 +18,7 @@
 #include "monitor.h"
 
 static const float UPDATE_INTERVAL = 0.05;
-static const float PRESSURE_LIMIT = 4.0;
+static const float PRESSURE_LIMIT = 3.0;
 static const float TORQUE_LIMIT = 7.0;
 
 Monitor::Monitor(const char *status_uuid, PressureSensor *pressure_sensor, MotorController *motor_controller)
@@ -41,9 +41,9 @@ void Monitor::update(float dt)
 
         MonitorStatus status = MonitorStatus::OK;
 
-        if (torque > TORQUE_LIMIT)
+        if (this->motor_controller->is_ok() && torque > TORQUE_LIMIT)
             status = MonitorStatus::HIGH_TORQUE;
-        else if (this->pressure_sensor->is_connected() && pressure > PRESSURE_LIMIT)
+        else if (this->pressure_sensor->is_ok() && pressure > PRESSURE_LIMIT)
             status = MonitorStatus::HIGH_PRESSURE;
 
         this->status = status;

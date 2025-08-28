@@ -82,9 +82,9 @@ float PressureSensor::get_derivative()
     return this->pressure_derivative * this->pressure_constant;
 }
 
-bool PressureSensor::is_connected()
+bool PressureSensor::is_ok()
 {
-    return this->error != PressureSensorError::NOT_CONNECTED;
+    return this->error == PressureSensorError::NONE;
 }
 
 void PressureSensor::set_calibrating(bool calibrating)

@@ -59,5 +59,5 @@ void Servo::set_chamber(float chamber)
 
 float Servo::get_chamber()
 {
-    return this->angle == SERVO_ANGLE1 ? 0.0 : (this->angle == SERVO_ANGLE2 ? 1.0 : -1.0);
+    return this->angle == SERVO_ANGLE2 ? 1.0 : 0.0;
 }

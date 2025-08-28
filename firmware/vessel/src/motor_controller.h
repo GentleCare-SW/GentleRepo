@@ -48,6 +48,8 @@ public:
 
     float get_error();
 
+    bool is_ok();
+
 private:
     HardwareSerial *serial;
     int32_t rx_pin;

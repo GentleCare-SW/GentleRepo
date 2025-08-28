@@ -41,6 +41,9 @@ struct ContentView: View {
                 }
             }
         }
+        .alert(vessel.alertMessage, isPresented: $vessel.showingAlert) {
+            Button("OK") { }
+        }
     }
 }
 
@@ -56,6 +59,16 @@ private struct StatusHeader: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(vessel.isConnected ? "Connected" : "Not Connected")
                         .font(.headline)
+                    if vessel.isConnected && vessel.motorErrorLabel != "" {
+                        Text(vessel.motorErrorLabel)
+                            .font(.subheadline)
+                            .foregroundStyle(.red)
+                    }
+                    if vessel.isConnected && vessel.pressureSensorErrorLabel != "" {
+                        Text(vessel.pressureSensorErrorLabel)
+                            .font(.subheadline)
+                            .foregroundStyle(.red)
+                    }
                 }
                 Spacer(minLength: 12)
                 
@@ -443,6 +456,26 @@ private extension RemoteVessel {
     var progressLabel: String {
         let pct = Int(round((progress ?? 0) * 100))
         return "\(pct)%"
+    }
+    
+    var motorErrorLabel: String {
+        if motorError == 1.0 {
+            return "ERROR: Motor not responding."
+        } else if motorError == 2.0 {
+            return "ERROR: Motor calibration failed."
+        } else if motorError == 3.0 {
+            return "ERROR: Motor control failed."
+        }
+        
+        return ""
+    }
+    
+    var pressureSensorErrorLabel: String {
+        if pressureSensorError == 1.0 {
+            return "ERROR: Pressure sensor disconnected."
+        }
+        
+        return ""
     }
     
     func resumeIfPaused() {

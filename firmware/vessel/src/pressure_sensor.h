@@ -35,7 +35,7 @@ public:
 
     float get_derivative();
 
-    bool is_connected();
+    bool is_ok();
 
     void set_calibrating(bool calibrating);
 
