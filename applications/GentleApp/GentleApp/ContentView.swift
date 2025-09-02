@@ -27,7 +27,9 @@ struct ContentView: View {
                 VStack(spacing: 16) {
                     StatusHeader(vessel: vessel)
                     ControlCard(vessel: vessel)
-                    ChamberSelector(vessel: vessel)
+                    if vessel.servoChamber != nil {
+                        ChamberSelector(vessel: vessel)
+                    }
                     ProgressSection(vessel: vessel)
                     DeveloperInfoSection(vessel: vessel, expanded: $showDevInfo)
                 }

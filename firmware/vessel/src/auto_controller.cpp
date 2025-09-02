@@ -26,7 +26,7 @@ AutoController::AutoController(const char *mode_uuid, const char *progress_uuid,
     this->motor = motor;
     this->pressure_sensor = pressure_sensor;
     this->servo = servo;
-    this->tension_controller = TensionController(dimmer, motor, pressure_sensor, -0.25);
+    this->tension_controller = TensionController(dimmer, motor, pressure_sensor, REFERENCE_TORQUE);
     this->set_mode((float)AutoControlMode::IDLE);
 
     this->add_characteristic(mode_uuid, std::bind(&AutoController::set_mode, this, std::placeholders::_1), std::bind(&AutoController::get_mode, this));
@@ -35,15 +35,22 @@ AutoController::AutoController(const char *mode_uuid, const char *progress_uuid,
 
 void AutoController::update(float dt)
 {
-    float position = this->motor->get_position();
-    if (this->mode == AutoControlMode::EVERSION && position > SHEET_LENGTH)
-        this->set_mode((float)AutoControlMode::IDLE);
-    
-    if (this->mode == AutoControlMode::INVERSION && position < 0.0)
-        this->set_mode((float)AutoControlMode::IDLE);
-    
-    if (this->mode == AutoControlMode::EVERSION)
+    float progress = this->get_progress();
+    float max_speed = constrain(progress / 0.15, 0.0, 1.0) * 16.0 + 4.0;
+
+    if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);
+
+        if (progress >= 1.0)
+            this->set_mode((float)AutoControlMode::IDLE);
+        else
+            this->motor->set_velocity(max_speed);
+    } else if (this->mode == AutoControlMode::INVERSION) {
+        if (progress <= 0.0)
+            this->set_mode((float)AutoControlMode::IDLE);
+        else
+            this->motor->set_velocity(-max_speed);
+    }
 }
 
 void AutoController::mode_changed(VesselMode mode)
@@ -57,21 +64,18 @@ void AutoController::set_mode(float mode)
 
     this->mode = (AutoControlMode)mode;
     if (this->mode == AutoControlMode::IDLE) {
-        this->motor->set_velocity(0.0);
         this->dimmer->set_percentage(0.0);
     } else if (this->mode == AutoControlMode::EVERSION) {
-        this->motor->set_velocity(chamber == 0 ? 20.0 : 0.0);
         this->dimmer->set_percentage(chamber == 0 ? 0.0 : 0.3);
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
-        this->motor->set_velocity(0.0);
-        this->dimmer->set_percentage(0.25);
+        this->dimmer->set_percentage(0.22);
     } else if (this->mode == AutoControlMode::INVERSION) {
-        this->motor->set_velocity(chamber == 0 ? -20.0 : 0.0);
-        this->dimmer->set_percentage(chamber == 0 ? 0.3 : 0.0);
+        this->dimmer->set_percentage(chamber == 0 ? 0.22 : 0.0);
     } else if (this->mode == AutoControlMode::INVERSION_PAUSED) {
-        this->motor->set_velocity(0.0);
-        this->dimmer->set_percentage(chamber == 0 ? 0.25 : 0.0);
+        this->dimmer->set_percentage(chamber == 0 ? 0.22 : 0.0);
     }
+
+    this->motor->set_velocity(0.0);
 }
 
 float AutoController::get_mode()

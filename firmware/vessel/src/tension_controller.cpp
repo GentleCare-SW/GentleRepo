@@ -47,13 +47,9 @@ void TensionController::update(float dt)
     }
     
     float torque = this->motor->get_torque();
-    float pressure = this->pressure_sensor->get_pressure();
-
     float pid = -(torque - this->torque_reference) * Kp;
-    if (pressure > 3.0)
-        pid += min(0.0f, pid);
 
-    this->voltage_percentage = constrain(this->voltage_percentage + pid * (this->voltage_percentage < 0.2 ? 10.0 : 1.0), 0.0, 0.35);
+    this->voltage_percentage = constrain(this->voltage_percentage + pid, 0.2, 0.32);
     this->dimmmer->set_percentage(this->voltage_percentage);
 }
 

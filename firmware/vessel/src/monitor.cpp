@@ -16,10 +16,9 @@
  */
 
 #include "monitor.h"
+#include "config.h"
 
 static const float UPDATE_INTERVAL = 0.05;
-static const float PRESSURE_LIMIT = 3.0;
-static const float TORQUE_LIMIT = 7.0;
 
 Monitor::Monitor(const char *status_uuid, PressureSensor *pressure_sensor, MotorController *motor_controller)
 {
