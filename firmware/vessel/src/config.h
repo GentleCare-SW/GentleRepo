@@ -60,10 +60,10 @@
 #define SERVO_ANGLE1 -1.0
 #define SERVO_ANGLE2 -1.0
 
-#define REFERENCE_TORQUE -0.95
-#define SHEET_LENGTH 32.0
-#define PRESSURE_LIMIT 0.25
-#define TORQUE_LIMIT 5.0
+#define REFERENCE_TORQUE -0.75
+#define SHEET_LENGTH 31.5
+#define PRESSURE_LIMIT 0.75
+#define TORQUE_LIMIT 5.5
 
 #else
 

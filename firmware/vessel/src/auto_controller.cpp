@@ -44,7 +44,7 @@ void AutoController::update(float dt)
         if (progress >= 1.0)
             this->set_mode((float)AutoControlMode::IDLE);
         else
-            this->motor->set_velocity(max_speed);
+            this->tension_controller.set_max_velocity(max_speed);
     } else if (this->mode == AutoControlMode::INVERSION) {
         if (progress <= 0.0)
             this->set_mode((float)AutoControlMode::IDLE);

@@ -18,8 +18,6 @@
 #include <Arduino.h>
 #include "tension_controller.h"
 
-static const float Kp = 0.005;
-
 TensionController::TensionController()
 {
     this->dimmmer = nullptr;
@@ -35,22 +33,22 @@ TensionController::TensionController(VoltageDimmer *dimmer, MotorController *mot
     this->motor = motor;
     this->pressure_sensor = pressure_sensor;
     this->voltage_percentage = 0.0;
+    this->velocity = 0.0;
+    this->min_velocity = 4.0;
+    this->max_velocity = 4.0;
     this->torque_reference = torque_reference;
 }
 
 void TensionController::update(float dt)
 {
-    float velocity = this->motor->get_velocity();
-    if (velocity < 0.05) {
-        this->voltage_percentage = 0.0;
-        return;
-    }
-    
     float torque = this->motor->get_torque();
-    float pid = -(torque - this->torque_reference) * Kp;
+    float pid = -(torque - this->torque_reference) * 0.005;
+    float velocity_pid = (torque - (this->torque_reference - 0.05)) * 1.0;
 
-    this->voltage_percentage = constrain(this->voltage_percentage + pid, 0.2, 0.32);
+    this->voltage_percentage = constrain(this->voltage_percentage + pid, 0.2, 0.4);
+    this->velocity = constrain(this->velocity + velocity_pid, this->min_velocity, this->max_velocity);
     this->dimmmer->set_percentage(this->voltage_percentage);
+    this->motor->set_velocity(this->velocity);
 }
 
 void TensionController::set_reference(float reference)
@@ -61,4 +59,9 @@ void TensionController::set_reference(float reference)
 float TensionController::get_reference()
 {
     return this->torque_reference;
+}
+
+void TensionController::set_max_velocity(float max_velocity)
+{
+    this->max_velocity = max_velocity;
 }

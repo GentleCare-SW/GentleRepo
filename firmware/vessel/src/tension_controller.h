@@ -33,8 +33,13 @@ public:
 
     float get_reference();
 
+    void set_max_velocity(float max_velocity);
+
 private:
     float voltage_percentage;
+    float velocity;
+    float min_velocity;
+    float max_velocity;
     float torque_reference;
     VoltageDimmer *dimmmer;
     MotorController *motor;
