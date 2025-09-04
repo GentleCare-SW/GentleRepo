@@ -37,12 +37,14 @@ struct ContentView: View {
             }
             .background(.appBackground)
             .navigationTitle("Control Panel")
+            .toolbarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     ConnectivityPill(statusText: vessel.bluetoothStatus, isConnected: vessel.isConnected)
                 }
             }
         }
+        .largeDisplayBoost()
         .alert(vessel.alertMessage, isPresented: $vessel.showingAlert) {
             Button("OK") { }
         }
@@ -311,17 +313,39 @@ private struct DeveloperInfoSection: View {
     }
 }
 
+private struct LargeDisplayBoost: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var hSize
+
+    func body(content: Content) -> some View {
+        if hSize == .regular {
+            content
+                .controlSize(.extraLarge)
+                .dynamicTypeSize(.xxLarge)
+        } else {
+            content
+        }
+    }
+}
+
+private extension View {
+    func largeDisplayBoost() -> some View { modifier(LargeDisplayBoost()) }
+}
+
 private struct Card<Content: View>: View {
     @ViewBuilder var content: Content
+
+    @ScaledMetric(relativeTo: .title3) private var cardPadding: CGFloat = 16
+    @ScaledMetric(relativeTo: .title3) private var cornerRadius: CGFloat = 16
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             content
         }
-        .padding(16)
+        .padding(cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(.thickMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .strokeBorder(.quaternary, lineWidth: 0.5)
         )
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
@@ -343,10 +367,12 @@ private struct ModeTag: View {
 
 private struct StatusDot: View {
     let isOK: Bool
+    @ScaledMetric(relativeTo: .body) private var dotSize: CGFloat = 14
+
     var body: some View {
         Circle()
             .fill(isOK ? .green : .red)
-            .frame(width: 14, height: 14)
+            .frame(width: dotSize, height: dotSize)
             .overlay(Circle().stroke(.white, lineWidth: 2))
             .shadow(radius: 1, x: 0, y: 1)
     }
@@ -355,10 +381,12 @@ private struct StatusDot: View {
 private struct ConnectivityPill: View {
     var statusText: String
     var isConnected: Bool
+    @ScaledMetric(relativeTo: .footnote) private var dotSize: CGFloat = 8
+
     var body: some View {
         HStack(spacing: 6) {
             Circle().fill(isConnected ? .green : .gray)
-                .frame(width: 8, height: 8)
+                .frame(width: dotSize, height: dotSize)
             Text(statusText)
                 .font(.footnote).monospacedDigit()
         }
@@ -391,11 +419,13 @@ private struct SelectablePill: View {
 }
 
 private struct AnimatedDot: View {
+    @ScaledMetric(relativeTo: .body) private var dotSize: CGFloat = 8
     @State private var scale: CGFloat = 1.0
+    
     var body: some View {
         Circle()
             .fill()
-            .frame(width: 8, height: 8)
+            .frame(width: dotSize, height: dotSize)
             .scaleEffect(scale)
             .onAppear {
                 withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
