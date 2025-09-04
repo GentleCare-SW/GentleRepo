@@ -205,4 +205,12 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     public func setChamber(_ chamber: Int) {
         writeValue(Float(chamber), for: SERVO_CHAMBER_UUID)
     }
+    
+    public func setVoltagePercentage(_ percentage: Float) {
+        writeValue(percentage, for: VOLTAGE_PERCENTAGE_UUID)
+    }
+    
+    public func setMotorVelocity(_ velocity: Float) {
+        writeValue(velocity, for: MOTOR_VELOCITY_UUID)
+    }
 }

@@ -123,17 +123,6 @@ private struct ControlCard: View {
                 
                 HStack(spacing: 12) {
                     Button {
-                        vessel.setMode(.eversion)
-                        haptic(.rigid)
-                    } label: {
-                        Label("Evert", systemImage: "arrow.down.left.and.arrow.up.right")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-                    .disabled(!vessel.canEvert)
-                    
-                    Button {
                         vessel.setMode(.inversion)
                         haptic(.rigid)
                     } label: {
@@ -143,6 +132,17 @@ private struct ControlCard: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.purple)
                     .disabled(!vessel.canInvert)
+                    
+                    Button {
+                        vessel.setMode(.eversion)
+                        haptic(.rigid)
+                    } label: {
+                        Label("Evert", systemImage: "arrow.down.left.and.arrow.up.right")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .disabled(!vessel.canEvert)
                 }
                 
                 Button {
@@ -221,6 +221,8 @@ private struct DeveloperInfoSection: View {
     @ObservedObject var vessel: RemoteVessel
     @Binding var expanded: Bool
     
+    @State var sliderValue: Float = 0.0
+    
     var body: some View {
         Card {
             DisclosureGroup(isExpanded: $expanded) {
@@ -238,6 +240,65 @@ private struct DeveloperInfoSection: View {
                     DevRow("Bluetooth Status", vessel.bluetoothStatus, suffix: nil, formatting: .string)
                 }
                 .padding(.top, 8)
+                
+                Divider().padding(.vertical, 8)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Manual Control")
+                        .font(.headline)
+                    
+                    HStack {
+                        Text("Voltage: \(sliderValue, specifier: "%.2f")%")
+                            .font(.subheadline)
+                    }
+                    
+                    let voltagePercentBinding = Binding<Float>(
+                        get: { sliderValue },
+                        set: {
+                            sliderValue = $0
+                            vessel.setVoltagePercentage($0 / 100.0)
+                        }
+                    )
+                    
+                    Slider(value: voltagePercentBinding, in: 0...40.0, step: 0.5) {}
+                    .disabled(!vessel.isConnected)
+                    
+                    HStack(spacing: 12) {
+                        Button {
+                        } label: {
+                            Label("Motor In", systemImage: "arrow.left.circle.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.purple)
+                        .disabled(!vessel.isConnected)
+                        .onLongPressGesture(minimumDuration: 0, maximumDistance: 30, pressing: { isPressing in
+                                if isPressing {
+                                    vessel.setMotorVelocity(-20.0)
+                                } else {
+                                    vessel.setMotorVelocity(0.0)
+                                }
+                            },
+                            perform: {})
+                        
+                        Button {
+                        } label: {
+                            Label("Motor Out", systemImage: "arrow.right.circle.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                        .disabled(!vessel.isConnected)
+                        .onLongPressGesture(minimumDuration: 0, maximumDistance: 30, pressing: { isPressing in
+                                if isPressing {
+                                    vessel.setMotorVelocity(20.0)
+                                } else {
+                                    vessel.setMotorVelocity(0.0)
+                                }
+                            },
+                            perform: {})
+                    }
+                }
             } label: {
                 HStack {
                     Text("Developer Info")

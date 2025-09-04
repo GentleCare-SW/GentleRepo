@@ -42,8 +42,8 @@ TensionController::TensionController(VoltageDimmer *dimmer, MotorController *mot
 void TensionController::update(float dt)
 {
     float torque = this->motor->get_torque();
-    float pid = -(torque - this->torque_reference) * 0.005;
-    float velocity_pid = (torque - (this->torque_reference - 0.05)) * 1.0;
+    float pid = -(torque - this->torque_reference) * 0.0025;
+    float velocity_pid = (torque - (this->torque_reference - 0.1)) * 1.0;
 
     this->voltage_percentage = constrain(this->voltage_percentage + pid, 0.2, 0.4);
     this->velocity = constrain(this->velocity + velocity_pid, this->min_velocity, this->max_velocity);
