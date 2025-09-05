@@ -27,7 +27,7 @@ To achieve this control strategy, we employ the following control loop:
 
 The measured torque $\tau$ is subtracted from the hand-tuned reference torque $\tau_{\text{ref}}$ which produces an error $e$ that is supplied as input to two separate proportional-derivative (PD) blocks.
 
-The first PD block modulates the desired motor velocity $\dot{\theta}_{\text{ref}}$ such that the velocity decreases when the torque is too far below the setpoint, and increases when the torque is at or near the setpoint. Similarly, the second PD block modulates the vacuum's voltage supply $v$ such that the air supply is increased when the torque is below the setpoint and decreases otherwise. Both $\dot{\theta}_{\text{ref}}$ and $v$ are constrained to minimum and maximum values to prevent excessive speed or air supply.
+The first PD block modulates the desired motor velocity $\dot{\theta}_ {\text{ref}}$ such that the velocity decreases when the torque is too far below the setpoint, and increases when the torque is at or near the setpoint. Similarly, the second PD block modulates the vacuum's voltage supply $v$ such that the air supply is increased when the torque is below the setpoint and decreases otherwise. Both $\dot{\theta}_{\text{ref}}$ and $v$ are constrained to minimum and maximum values to prevent excessive speed or air supply.
 
 The reference velocity and voltage supply are then supplied into the velocity controller and vacuum, respectively, which produces an actual motor velocity $\dot{\theta}$ and pressure $P$ inside the vessel. A new torque $\tau$ is then produced and measured, closing the feedback loop.
 
@@ -35,7 +35,7 @@ Because the shaft's radius $r$ is not constant, but depends on the motor's posit
 
 ## Inversion
 
-For inversion, the goal is simply to maintain a defined reference velocity $\dot{\theta}_{\text{ref}}$ and pressure $P_{\text{ref}}$ by commanding the motor current and vacuum's voltage supply.
+For inversion, the goal is simply to maintain a defined reference velocity $\dot{\theta}_ {\text{ref}}$ and pressure $P_{\text{ref}}$ by commanding the motor current and vacuum's voltage supply.
 
 We define $\dot{\theta}_{\text{ref}}$ as a piecewise-linear function of $\theta$ in the following form:
 
