@@ -60,6 +60,9 @@ void AutoController::mode_changed(VesselMode mode)
 
 void AutoController::set_mode(float mode)
 {
+    if ((AutoControlMode)mode == this->mode)
+        return;
+
     int chamber = this->servo->get_chamber();
 
     this->mode = (AutoControlMode)mode;
@@ -86,4 +89,16 @@ float AutoController::get_mode()
 float AutoController::get_progress()
 {
     return constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0);
+}
+
+void AutoController::toggle_paused()
+{
+    if (this->mode == AutoControlMode::EVERSION)
+        this->set_mode((float)AutoControlMode::EVERSION_PAUSED);
+    else if (this->mode == AutoControlMode::EVERSION_PAUSED)
+        this->set_mode((float)AutoControlMode::EVERSION);
+    else if (this->mode == AutoControlMode::INVERSION)
+        this->set_mode((float)AutoControlMode::INVERSION_PAUSED);
+    else if (this->mode == AutoControlMode::INVERSION_PAUSED)
+        this->set_mode((float)AutoControlMode::INVERSION);
 }

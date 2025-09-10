@@ -24,6 +24,7 @@
 #include "auto_controller.h"
 #include "servo.h"
 #include "monitor.h"
+#include "control_panel.h"
 #include "config.h"
 #include "common/uuids.h"
 
@@ -34,6 +35,7 @@ static VoltageDimmer voltage_dimmer(VOLTAGE_PERCENTAGE_UUID, VOLTAGE_DIMMER_PWM_
 static Servo servo(SERVO_ANGLE_UUID, SERVO_CHAMBER_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
 static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer, &pressure_sensor);
 static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer, &motor_controller, &pressure_sensor, &servo);
+static ControlPanel control_panel(CONTROL_PANEL_STOP_PIN, CONTROL_PANEL_PAUSE_PIN, CONTROL_PANEL_INVERT_PIN, CONTROL_PANEL_EVERT_PIN, CONTROL_PANEL_CHAMBER_PIN, &auto_controller);
 static Monitor monitor(MONITOR_STATUS_UUID, &pressure_sensor, &motor_controller);
 
 void setup()
@@ -49,6 +51,9 @@ void setup()
     vessel.add_peripheral(&pressure_controller);
     vessel.add_peripheral(&auto_controller);
     vessel.add_peripheral(&motor_controller);
+#if ENABLE_CONTROL_PANEL
+    vessel.add_peripheral(&control_panel);
+#endif
     vessel.add_peripheral(&monitor);
     vessel.start();
 }

@@ -18,41 +18,29 @@
 #pragma once
 
 #include "peripheral.h"
-#include "voltage_dimmer.h"
-#include "motor_controller.h"
-#include "pressure_sensor.h"
-#include "servo.h"
-#include "tension_controller.h"
+#include "button.h"
+#include "auto_controller.h"
+#include <Adafruit_SSD1306.h>
 
-enum class AutoControlMode {
-    IDLE,
-    EVERSION,
-    EVERSION_PAUSED,
-    INVERSION,
-    INVERSION_PAUSED,
+enum class ButtonType {
+    STOP,
+    PAUSE,
+    INVERT,
+    EVERT,
+    CHAMBER,
+    COUNT,
 };
 
-class AutoController: public Peripheral {
+class ControlPanel : public Peripheral {
 public:
-    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo);
+    ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t invert_pin, uint32_t evert_pin, uint32_t chamber_pin, AutoController *auto_controller);
+
+    void start() override;
 
     void update(float dt) override;
 
-    void mode_changed(VesselMode mode) override;
-
-    void set_mode(float mode);
-
-    float get_mode();
-
-    float get_progress();
-
-    void toggle_paused();
-
 private:
-    VoltageDimmer *dimmer;
-    MotorController *motor;
-    PressureSensor *pressure_sensor;
-    Servo *servo;
-    AutoControlMode mode;
-    TensionController tension_controller;
+    Button buttons[(uint32_t)ButtonType::COUNT];
+    Adafruit_SSD1306 display;
+    AutoController *auto_controller;
 };

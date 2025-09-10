@@ -18,41 +18,23 @@
 #pragma once
 
 #include "peripheral.h"
-#include "voltage_dimmer.h"
-#include "motor_controller.h"
-#include "pressure_sensor.h"
-#include "servo.h"
-#include "tension_controller.h"
 
-enum class AutoControlMode {
-    IDLE,
-    EVERSION,
-    EVERSION_PAUSED,
-    INVERSION,
-    INVERSION_PAUSED,
-};
-
-class AutoController: public Peripheral {
+class Button : public Peripheral {
 public:
-    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo);
+    Button();
+    
+    Button(uint32_t pin);
+
+    void start() override;
 
     void update(float dt) override;
 
-    void mode_changed(VesselMode mode) override;
+    bool on_release();
 
-    void set_mode(float mode);
-
-    float get_mode();
-
-    float get_progress();
-
-    void toggle_paused();
+    bool on_press();
 
 private:
-    VoltageDimmer *dimmer;
-    MotorController *motor;
-    PressureSensor *pressure_sensor;
-    Servo *servo;
-    AutoControlMode mode;
-    TensionController tension_controller;
+    uint32_t pin;
+    bool pressed;
+    bool state_changed;
 };

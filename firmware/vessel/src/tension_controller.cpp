@@ -17,6 +17,7 @@
 
 #include <Arduino.h>
 #include "tension_controller.h"
+#include "config.h"
 
 TensionController::TensionController()
 {
