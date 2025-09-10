@@ -45,7 +45,7 @@ void TensionController::update(float dt)
     float pid = -(torque - this->torque_reference) * 0.0025;
     float velocity_pid = (torque - (this->torque_reference - 0.1)) * 1.0;
 
-    this->voltage_percentage = constrain(this->voltage_percentage + pid, 0.2, 0.4);
+    this->voltage_percentage = constrain(this->voltage_percentage + pid, EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
     this->velocity = constrain(this->velocity + velocity_pid, this->min_velocity, this->max_velocity);
     this->dimmmer->set_percentage(this->voltage_percentage);
     this->motor->set_velocity(this->velocity);

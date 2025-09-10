@@ -17,6 +17,7 @@
 
 #include <Arduino.h>
 #include "vessel.h"
+#include "config.h"
 #include "common/uuids.h"
 
 Vessel::Vessel()
@@ -38,7 +39,7 @@ void Vessel::start()
     for (int i = 0; i < this->peripheral_count; i++)
         this->peripherals[i]->start();
 
-    NimBLEDevice::init("GentleBomb");
+    NimBLEDevice::init(DEVICE_NAME);
     NimBLEDevice::setPowerLevel(ESP_PWR_LVL_P9);
     this->server = NimBLEDevice::createServer();
     this->server->setCallbacks(this);

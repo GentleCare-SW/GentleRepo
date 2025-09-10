@@ -48,6 +48,12 @@ struct ContentView: View {
         .alert(vessel.alertMessage, isPresented: $vessel.showingAlert) {
             Button("OK") { }
         }
+        .onAppear {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+        .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
     }
 }
 
