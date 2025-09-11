@@ -19,7 +19,7 @@
 
 #if PLATFORM_TYPE == 0
 
-#define DEVICE_NAME "GentleBomb"
+#define DEVICE_NAME "GentleWedge"
 
 #define PRESSURE_SENSOR_ADC_PIN 4
 #define PRESSURE_SENSOR_CONSTANT 1.4

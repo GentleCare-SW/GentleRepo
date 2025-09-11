@@ -85,7 +85,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         availableDevices = []
         availablePeripherals = [:]
-        central.scanForPeripherals(withServices: [VESSEL_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+        central.scanForPeripherals(withServices: [VESSEL_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
