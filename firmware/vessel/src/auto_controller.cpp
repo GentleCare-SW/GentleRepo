@@ -88,7 +88,7 @@ float AutoController::get_mode()
 
 float AutoController::get_progress()
 {
-    return constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0);
+    return max(0.0, constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0));
 }
 
 void AutoController::toggle_paused()

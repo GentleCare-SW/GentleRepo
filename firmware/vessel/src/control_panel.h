@@ -33,14 +33,20 @@ enum class ButtonType {
 
 class ControlPanel : public Peripheral {
 public:
-    ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t invert_pin, uint32_t evert_pin, uint32_t chamber_pin, AutoController *auto_controller);
+    ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t invert_pin, uint32_t evert_pin, uint32_t chamber_pin, AutoController *auto_controller, MotorController *motor_controller, PressureSensor *pressure_sensor, VoltageDimmer *dimmer);
 
     void start() override;
 
     void update(float dt) override;
 
 private:
+    void update_display();
+
     Button buttons[(uint32_t)ButtonType::COUNT];
     Adafruit_SSD1306 display;
+    uint64_t last_display_update_time;
     AutoController *auto_controller;
+    MotorController *motor_controller;
+    PressureSensor *pressure_sensor;
+    VoltageDimmer *dimmer;
 };
