@@ -43,6 +43,9 @@ void setup()
     Serial.begin(BAUD_RATE);
     while (!Serial);
 
+#if ENABLE_CONTROL_PANEL
+    vessel.add_peripheral(&control_panel);
+#endif
     vessel.add_peripheral(&pressure_sensor);
     vessel.add_peripheral(&voltage_dimmer);
 #if ENABLE_SERVO
@@ -51,9 +54,6 @@ void setup()
     vessel.add_peripheral(&pressure_controller);
     vessel.add_peripheral(&auto_controller);
     vessel.add_peripheral(&motor_controller);
-#if ENABLE_CONTROL_PANEL
-    vessel.add_peripheral(&control_panel);
-#endif
     vessel.add_peripheral(&monitor);
     vessel.start();
 }

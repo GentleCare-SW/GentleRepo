@@ -28,6 +28,9 @@ enum VesselMode: Float {
 class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var bluetoothStatus: String = "Starting..."
     @Published var isConnected: Bool = false
+    @Published var connectedDeviceName: String = ""
+    @Published var availableDevices: [String] = []
+
     @Published var airPressure: Float?
     @Published var pressureSensorError: Float?
     @Published var voltagePercentage: Float?
@@ -43,6 +46,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var showingAlert: Bool = false
     @Published var alertMessage: String = ""
     
+    private var availablePeripherals: [String:CBPeripheral] = [:]
     private var pollTimer: Timer!
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
@@ -79,16 +83,41 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
             return;
         }
         
+        availableDevices = []
+        availablePeripherals = [:]
         central.scanForPeripherals(withServices: [VESSEL_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        bluetoothStatus = "Discovered device. Connecting..."
-        self.peripheral = peripheral
+        if peripheral.name == nil {
+            return
+        }
         
+        availablePeripherals[peripheral.name!] = peripheral
+        availableDevices = availablePeripherals.keys.sorted()
+    }
+    
+    func connectToDevice(_ deviceName: String) {
+        if availablePeripherals[deviceName] == nil {
+            return
+        }
+        
+        bluetoothStatus = "Connecting..."
         central.stopScan()
-        peripheral.delegate = self
-        central.connect(peripheral)
+        peripheral = availablePeripherals[deviceName]!
+        peripheral!.delegate = self
+        central.connect(availablePeripherals[deviceName]!)
+    }
+    
+    func disconnectFromDevice() {
+        if !isConnected {
+            return
+        }
+        
+        bluetoothStatus = "Disconnected from device. Searching..."
+        isConnected = false
+        central.cancelPeripheralConnection(peripheral!)
+        startScan()
     }
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
@@ -129,6 +158,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         bluetoothStatus = "Connected to device."
         isConnected = true
+        connectedDeviceName = peripheral.name!
         for uuid in CHARACTERISTIC_UUIDS {
             waitingResponse[uuid] = false
         }

@@ -45,6 +45,7 @@ void ControlPanel::start()
     this->display.clearDisplay();
     this->display.setTextSize(1);
     this->display.setTextColor(SSD1306_WHITE);
+    this->display.printf("Starting up...\n");
     this->display.display();
     this->last_display_update_time = millis();
 }

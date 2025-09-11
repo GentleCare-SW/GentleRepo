@@ -25,22 +25,40 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    StatusHeader(vessel: vessel)
-                    ControlCard(vessel: vessel)
-                    if vessel.servoChamber != nil {
-                        ChamberSelector(vessel: vessel)
+                    if vessel.isConnected {
+                        StatusHeader(vessel: vessel)
+                        ControlCard(vessel: vessel)
+                        if vessel.servoChamber != nil {
+                            ChamberSelector(vessel: vessel)
+                        }
+                        ProgressSection(vessel: vessel)
+                        DeveloperInfoSection(vessel: vessel, expanded: $showDevInfo)
+                    } else {
+                        AvailableDevicesSection(vessel: vessel)
                     }
-                    ProgressSection(vessel: vessel)
-                    DeveloperInfoSection(vessel: vessel, expanded: $showDevInfo)
                 }
                 .padding(16)
             }
             .background(.appBackground)
-            .navigationTitle("Control Panel")
+            .navigationTitle(vessel.isConnected ? vessel.connectedDeviceName : "Home Menu")
             .toolbarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     ConnectivityPill(statusText: vessel.bluetoothStatus, isConnected: vessel.isConnected)
+                }
+                if vessel.isConnected {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            vessel.disconnectFromDevice()
+                            haptic(.soft)
+                        } label: {
+                            Label("Disconnect", systemImage: "bolt.slash.fill")
+                                .labelStyle(.titleOnly)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                        .accessibilityHint("Disconnect from the current device")
+                    }
                 }
             }
         }
@@ -222,6 +240,54 @@ private struct ProgressSection: View {
                 .accessibilityValue(vessel.progressLabel)
             }
         }
+    }
+}
+
+private struct AvailableDevicesSection: View {
+    @ObservedObject var vessel: RemoteVessel
+    
+    var body: some View {
+        Card {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Available Devices")
+                    .font(.title3).bold()
+                
+                if vessel.availableDevices.isEmpty {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                        Text("Searching…")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityLabel("Searching for devices")
+                } else {
+                    LazyVStack(spacing: 10) {
+                        ForEach(vessel.availableDevices, id: \.self) { name in
+                            Button {
+                                vessel.connectToDevice(name)
+                                haptic(.light)
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "antenna.radiowaves.left.and.right")
+                                    Text(name)
+                                        .font(.body).bold()
+                                        .lineLimit(1)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.blue)
+                            .accessibilityLabel("Connect to \(name)")
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Available devices list")
     }
 }
 
