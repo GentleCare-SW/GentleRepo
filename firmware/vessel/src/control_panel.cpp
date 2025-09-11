@@ -20,7 +20,7 @@
 
 static const float DISPLAY_UPDATE_INTERVAL = 0.1;
 
-ControlPanel::ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t invert_pin, uint32_t evert_pin, uint32_t chamber_pin, AutoController *auto_controller, MotorController *motor_controller, PressureSensor *pressure_sensor, VoltageDimmer *dimmer)
+ControlPanel::ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t invert_pin, uint32_t evert_pin, uint32_t chamber_pin, AutoController *auto_controller, MotorController *motor_controller, PressureSensor *pressure_sensor, VoltageDimmer *dimmer, Servo *servo)
 {
     this->buttons[(uint32_t)ButtonType::STOP] = Button(stop_pin);
     this->buttons[(uint32_t)ButtonType::PAUSE] = Button(pause_pin);
@@ -31,6 +31,7 @@ ControlPanel::ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t inver
     this->motor_controller = motor_controller;
     this->pressure_sensor = pressure_sensor;
     this->dimmer = dimmer;
+    this->servo = servo;
     this->last_display_update_time = 0;
 }
 
@@ -98,12 +99,17 @@ void ControlPanel::update(float dt)
     
     if (this->buttons[(uint32_t)ButtonType::STOP].on_release())
         this->auto_controller->set_mode((float)AutoControlMode::IDLE);
-    else if (this->buttons[(uint32_t)ButtonType::PAUSE].on_release())
+    if (this->buttons[(uint32_t)ButtonType::PAUSE].on_release())
         this->auto_controller->toggle_paused();
-    else if (this->buttons[(uint32_t)ButtonType::INVERT].on_release())
+    if (this->buttons[(uint32_t)ButtonType::INVERT].on_release())
         this->auto_controller->set_mode((float)AutoControlMode::INVERSION);
-    else if (this->buttons[(uint32_t)ButtonType::EVERT].on_release())
+    if (this->buttons[(uint32_t)ButtonType::EVERT].on_release())
         this->auto_controller->set_mode((float)AutoControlMode::EVERSION);
+
+#if ENABLE_SERVO
+    if (this->buttons[(uint32_t)ButtonType::CHAMBER].on_release())
+        this->servo->set_chamber(1 - this->servo->get_chamber());
+#endif
     
     if (millis() - this->last_display_update_time > DISPLAY_UPDATE_INTERVAL * 1000) {
         this->last_display_update_time = millis();

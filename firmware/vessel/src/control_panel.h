@@ -33,7 +33,7 @@ enum class ButtonType {
 
 class ControlPanel : public Peripheral {
 public:
-    ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t invert_pin, uint32_t evert_pin, uint32_t chamber_pin, AutoController *auto_controller, MotorController *motor_controller, PressureSensor *pressure_sensor, VoltageDimmer *dimmer);
+    ControlPanel(uint32_t stop_pin, uint32_t pause_pin, uint32_t invert_pin, uint32_t evert_pin, uint32_t chamber_pin, AutoController *auto_controller, MotorController *motor_controller, PressureSensor *pressure_sensor, VoltageDimmer *dimmer, Servo *servo);
 
     void start() override;
 
@@ -49,4 +49,5 @@ private:
     MotorController *motor_controller;
     PressureSensor *pressure_sensor;
     VoltageDimmer *dimmer;
+    Servo *servo;
 };
