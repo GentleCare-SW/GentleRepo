@@ -60,7 +60,7 @@ void AutoController::mode_changed(VesselMode mode)
 
 void AutoController::set_mode(float mode)
 {
-    if ((AutoControlMode)mode == this->mode)
+    if ((AutoControlMode)mode == this->mode && mode != (float)AutoControlMode::IDLE)
         return;
 
     int chamber = this->servo->get_chamber();

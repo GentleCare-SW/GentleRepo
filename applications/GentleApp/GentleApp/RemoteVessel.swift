@@ -53,11 +53,13 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     private var characteristics: [CBUUID: CBCharacteristic] = [:]
     private var values: [CBUUID: Float] = [:]
     private var waitingResponse: [CBUUID: Bool] = [:]
+    private var dataLogger: DataLogger!
     
     override init() {
         super.init()
         central = CBCentralManager(delegate: self, queue: nil)
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true, block: { [weak self] _ in self?.poll() })
+        dataLogger = try! DataLogger(columns: CHARACTERISTIC_UUIDS.map { $0.uuidString })
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -192,6 +194,8 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
             waitingResponse[uuid] = true
             peripheral!.readValue(for: characteristics[uuid]!)
         }
+        
+        try! dataLogger.logRow(CHARACTERISTIC_UUIDS.map { values[$0] })
         
         airPressure = values[PRESSURE_SENSOR_UUID]
         pressureSensorError = values[PRESSURE_SENSOR_ERROR_UUID]
