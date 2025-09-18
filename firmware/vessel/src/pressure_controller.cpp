@@ -37,6 +37,8 @@ PressureController::PressureController(const char *uuid, VoltageDimmer *dimmer, 
 
 void PressureController::update(float dt)
 {
+    Peripheral::update(dt);
+
     if (this->pressure_reference == 0.0)
         return;
 

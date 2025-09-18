@@ -47,6 +47,8 @@ void PressureSensor::start()
 
 void PressureSensor::update(float dt)
 {
+    Peripheral::update(dt);
+
     int32_t adc_value = analogRead(this->adc_pin);
     float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
     float psi = (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;

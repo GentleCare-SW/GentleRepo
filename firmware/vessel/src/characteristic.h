@@ -18,17 +18,18 @@
 #pragma once
 #include <NimBLEDevice.h>
 
-struct Characteristic: public BLECharacteristicCallbacks {
+struct Characteristic: public NimBLECharacteristicCallbacks {
     const char *uuid;
     std::function<void(float)> setter;
     std::function<float()> getter;
-    BLECharacteristic *characteristic;
+    NimBLECharacteristic *characteristic;
+    float last_value;
 
     Characteristic();
     
     Characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter);
 
-    void onRead(NimBLECharacteristic *characteristic, NimBLEConnInfo& info) override;
+    void notify();
 
     void onWrite(NimBLECharacteristic *characteristic, NimBLEConnInfo& info) override;
 };

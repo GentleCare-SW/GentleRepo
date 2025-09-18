@@ -16,108 +16,27 @@
  */
 
 #include <Arduino.h>
-#include <ESP32Encoder.h>
-#include <AceButton.h>
-#include "remote.h"
+#include "control_panel.h"
+#include "remote_vessel.h"
 
-static Remote remote;
-
-static ESP32Encoder knob1;
-static ESP32Encoder knob2;
-static ace_button::AceButton button1(BUTTON1_PIN);
-static ace_button::AceButton button2(BUTTON2_PIN);
-
-static int64_t last_knob1_position = 0;
-static int64_t last_knob2_position = 0;
-
-static float voltage_percentage = 0.0;
-static float air_pressure_reference = 0.0;
-static float motor_velocity = 0.0;
-static int chamber = 0;
-
-static int64_t monitor_timer = 0;
-
-static void on_button_event(ace_button::AceButton *button, uint8_t event_type, uint8_t button_state)
-{
-    if (event_type != ace_button::AceButton::kEventReleased)
-        return;
-
-    if (button->getPin() == BUTTON1_PIN) {
-        chamber = 1 - chamber;
-        remote.set_servo_chamber(chamber);
-    } else if (button->getPin() == BUTTON2_PIN) {
-        motor_velocity = 0.0;
-        remote.set_motor_velocity(motor_velocity);
-    }
-}
+static RemoteVessel vessel;
+static ControlPanel panel(&vessel);
 
 void setup()
 {
     Serial.begin(BAUD_RATE);
     while (!Serial);
+    
+    static uint32_t buttons[] = { BUTTON_STOP_PIN, BUTTON_INVERT_PIN, BUTTON_EVERT_PIN, BUTTON_PAUSE_PIN, BUTTON_CHAMBER_PIN, BUTTON_STOP_AIR_PIN, BUTTON_STOP_MOTOR_PIN };
+    static uint32_t knob_dt_pins[] = { KNOB_AIR_DT_PIN, KNOB_MOTOR_DT_PIN };
+    static uint32_t knob_clk_pins[] = { KNOB_AIR_CLK_PIN, KNOB_MOTOR_CLK_PIN };
+    panel.start(buttons, knob_dt_pins, knob_clk_pins);
 
-    knob1.attachFullQuad(KNOB1_DT_PIN, KNOB1_CLK_PIN);
-    knob1.setCount(0);
-    knob2.attachFullQuad(KNOB2_DT_PIN, KNOB2_CLK_PIN);
-    knob2.setCount(0);
-    button1.getButtonConfig()->setEventHandler(on_button_event);
-    button2.getButtonConfig()->setEventHandler(on_button_event);
-
-    pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(BUZZER_PIN, LOW);
-
-    remote.start();
+    vessel.start();
 }
 
 void loop()
 {
-    remote.update();
-
-    int64_t knob1_position = knob1.getCount();
-    if (knob1_position != last_knob1_position) {
-#if OPEN_LOOP_PRESSURE_CONTROL
-        voltage_percentage += (knob1_position - last_knob1_position) * 0.01;
-        voltage_percentage = constrain(voltage_percentage, 0.0, 1.0);
-        remote.set_voltage_percentage(voltage_percentage);
-#else
-        air_pressure_reference += (knob1_position - last_knob1_position) * 0.04;
-        air_pressure_reference = constrain(air_pressure_reference, 0.0, 4.0);
-        remote.set_pressure_reference(air_pressure_reference);
-#endif
-        last_knob1_position = knob1_position;
-    }
-
-    int64_t knob2_position = knob2.getCount();
-    if (knob2_position != last_knob2_position) {
-        motor_velocity += (knob2_position - last_knob2_position) * 0.5;
-        motor_velocity = constrain(motor_velocity, -30.0, 30.0);
-        remote.set_motor_velocity(motor_velocity);
-        last_knob2_position = knob2_position;
-    }
-    
-    button1.check();
-    button2.check();
-
-    if (millis() - monitor_timer >= 100) {
-        float torque = remote.get_motor_torque();
-        if (abs(torque) > MAXIMUM_TORQUE) {
-            motor_velocity = 0.0;
-            remote.set_motor_velocity(motor_velocity);
-        }
-
-        float pressure = remote.get_pressure();
-        digitalWrite(BUZZER_PIN, pressure > 3.0 ? HIGH : LOW);
-
-#if DEBUG_MODE
-        Serial.printf(">Pressure (PSI): %f\n", pressure);
-        Serial.printf(">Motor Position (revolutions): %f\n", remote.get_motor_position());
-        Serial.printf(">Motor Velocity (rpm): %f\n", remote.get_motor_velocity());
-        Serial.printf(">Motor Torque (Nm): %f\n", torque);
-        Serial.printf(">Voltage Percentage (%%): %f\n", remote.get_voltage_percentage());
-        Serial.printf(">Servo Angle (degrees): %f\n", remote.get_servo_angle());
-        Serial.printf(">Time (ms): %lu\n", millis() - monitor_timer);
-#endif
-
-        monitor_timer = millis();
-    }
+    vessel.update();
+    panel.update();
 }

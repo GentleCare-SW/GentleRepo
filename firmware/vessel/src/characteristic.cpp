@@ -23,6 +23,7 @@ Characteristic::Characteristic()
     this->setter = nullptr;
     this->getter = nullptr;
     this->uuid = nullptr;
+    this->last_value = 0.0;
 }
 
 Characteristic::Characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter)
@@ -31,15 +32,21 @@ Characteristic::Characteristic(const char *uuid, std::function<void(float)> sett
     this->setter = setter;
     this->getter = getter;
     this->characteristic = nullptr;
+    this->last_value = 0.0;
 }
 
-void Characteristic::onRead(NimBLECharacteristic *characteristic, NimBLEConnInfo& info)
+void Characteristic::notify()
 {
     if (this->getter == nullptr)
         return;
-
+    
     float value = this->getter();
-    characteristic->setValue(value);
+    if (value == this->last_value)
+        return;
+
+    this->characteristic->setValue(value);
+    this->characteristic->notify();
+    this->last_value = value;
 }
 
 void Characteristic::onWrite(NimBLECharacteristic *characteristic, NimBLEConnInfo& info)

@@ -15,29 +15,41 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
-#include "valve.h"
+#pragma once
+#include <ESP32Encoder.h>
+#include <Adafruit_SSD1306.h>
+#include "remote_vessel.h"
 
-Valve::Valve(const char *uuid, int32_t dac_pin)
-{
-    this->dac_pin = dac_pin;
-    this->percentage = 0.0;
+enum class ButtonType {
+    STOP,
+    INVERT,
+    EVERT,
+    PAUSE,
+    CHAMBER,
+    STOP_AIR,
+    STOP_MOTOR,
+    COUNT
+};
 
-    this->add_characteristic(uuid, std::bind(&Valve::set_percentage, this, std::placeholders::_1), std::bind(&Valve::get_percentage, this));
-}
+enum class KnobType {
+    AIR,
+    MOTOR,
+    COUNT
+};
 
-void Valve::set_percentage(float percentage)
-{
-    this->percentage = constrain(percentage, 0.0, 1.0);
-    dacWrite(this->dac_pin, (uint8_t)(this->percentage * 255.0));
-}
+class ControlPanel {
+public:
+    ControlPanel(RemoteVessel *vessel);
 
-float Valve::get_percentage()
-{
-    return this->percentage;
-}
+    void start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], uint32_t knob_clk_pins[(int)KnobType::COUNT]);
 
-void Valve::mode_changed(VesselMode mode)
-{
-    this->set_percentage(0.0);
-}
+    void update();
+
+private:
+    RemoteVessel *vessel;
+    uint32_t button_pins[(int)ButtonType::COUNT];
+    bool button_pressed[(int)ButtonType::COUNT];
+    ESP32Encoder knobs[(int)KnobType::COUNT];
+    int64_t last_knob_positions[(int)KnobType::COUNT]; 
+    Adafruit_SSD1306 display;
+};

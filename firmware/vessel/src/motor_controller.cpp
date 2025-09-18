@@ -68,6 +68,8 @@ void MotorController::start()
 
 void MotorController::update(float dt)
 {
+    Peripheral::update(dt);
+
     int64_t current_time = micros();
     if (current_time - this->last_update_time > MOTOR_UPDATE_INTERVAL * 1e6) {
         dt = (current_time - this->last_update_time) / 1e6;

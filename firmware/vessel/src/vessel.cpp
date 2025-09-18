@@ -49,7 +49,7 @@ void Vessel::start()
         Peripheral *peripheral = this->peripherals[i];
         for (int j = 0; j < peripheral->characteristic_count; j++) {
             Characteristic *characteristic = &peripheral->characteristics[j];
-            characteristic->characteristic = this->service->createCharacteristic(characteristic->uuid, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
+            characteristic->characteristic = this->service->createCharacteristic(characteristic->uuid, NIMBLE_PROPERTY::NOTIFY | NIMBLE_PROPERTY::WRITE);
             characteristic->characteristic->setCallbacks(characteristic);
         }
     }

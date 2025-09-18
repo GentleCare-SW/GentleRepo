@@ -30,6 +30,8 @@ void Peripheral::add_characteristic(const char *uuid, std::function<void(float)>
 
 void Peripheral::update(float dt)
 {
+    for (int i = 0; i < this->characteristic_count; i++)
+        this->characteristics[i].notify();
 }
 
 void Peripheral::mode_changed(VesselMode mode)

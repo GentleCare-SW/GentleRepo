@@ -18,7 +18,6 @@
 #include "auto_controller.h"
 #include "vessel.h"
 #include "config.h"
-#include "common/uuids.h"
 
 AutoController::AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo)
 {
@@ -35,6 +34,8 @@ AutoController::AutoController(const char *mode_uuid, const char *progress_uuid,
 
 void AutoController::update(float dt)
 {
+    Peripheral::update(dt);
+    
     float progress = this->get_progress();
     float max_speed = constrain(progress / 0.15, 0.0, 1.0) * 16.0 + 4.0;
 

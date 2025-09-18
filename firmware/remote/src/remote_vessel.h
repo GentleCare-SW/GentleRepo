@@ -16,11 +16,12 @@
  */
 
 #pragma once
+#include "common/uuids.h"
 #include <NimBLEDevice.h>
 
-class Remote: public NimBLEScanCallbacks {
+class RemoteVessel: public NimBLEScanCallbacks {
 public:
-    Remote();
+    RemoteVessel();
 
     void start();
 
@@ -28,48 +29,21 @@ public:
 
     void onResult(const NimBLEAdvertisedDevice *device) override;
 
-    float get_pressure();
+    void on_notification(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify);
 
-    float get_motor_position();
+    float get(const char *uuid);
 
-    float get_motor_velocity();
-
-    float get_motor_torque();
-
-    float get_voltage_percentage();
-
-    float get_servo_angle();
-
-    float get_pressure_reference();
-
-    void set_motor_velocity(float velocity);
-
-    void set_motor_torque(float torque);
-
-    void set_voltage_percentage(float percentage);
-
-    void set_servo_angle(float angle);
-
-    void set_servo_chamber(float chamber);
-
-    void set_pressure_reference(float pressure);
-
-    void set_auto_control_mode(float mode);
+    void set(const char *uuid, float velocity);
 
 private:
+    NimBLERemoteCharacteristic *get_characteristic(const char *uuid);
+
+    float values[CHARACTERISTIC_UUID_COUNT];
+
     NimBLEScan *scanner;
     NimBLEClient *client;
     bool found_device;
     NimBLEAdvertisedDevice *device;
     NimBLERemoteService *service;
-
-    NimBLERemoteCharacteristic *pressure_sensor;
-    NimBLERemoteCharacteristic *motor_position;
-    NimBLERemoteCharacteristic *motor_velocity;
-    NimBLERemoteCharacteristic *motor_torque;
-    NimBLERemoteCharacteristic *voltage_percentage;
-    NimBLERemoteCharacteristic *servo_angle;
-    NimBLERemoteCharacteristic *servo_chamber;
-    NimBLERemoteCharacteristic *pressure_reference;
-    NimBLERemoteCharacteristic *auto_control_mode;
+    NimBLERemoteCharacteristic *characteristics[CHARACTERISTIC_UUID_COUNT];
 };
