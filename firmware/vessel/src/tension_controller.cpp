@@ -66,3 +66,11 @@ void TensionController::set_max_velocity(float max_velocity)
 {
     this->max_velocity = max_velocity;
 }
+
+void TensionController::reset()
+{
+    this->voltage_percentage = 0.0;
+    this->velocity = 0.0;
+    this->dimmmer->set_percentage(0.0);
+    this->motor->set_velocity(0.0);
+}

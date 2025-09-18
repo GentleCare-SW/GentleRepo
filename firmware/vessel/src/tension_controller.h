@@ -35,6 +35,8 @@ public:
 
     void set_max_velocity(float max_velocity);
 
+    void reset();
+
 private:
     float voltage_percentage;
     float velocity;

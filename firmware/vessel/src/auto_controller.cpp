@@ -69,6 +69,7 @@ void AutoController::set_mode(float mode)
     if (this->mode == AutoControlMode::IDLE) {
         this->dimmer->set_percentage(0.0);
     } else if (this->mode == AutoControlMode::EVERSION) {
+        this->tension_controller.reset();
         this->dimmer->set_percentage(chamber == 0 ? 0.0 : 0.3);
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
         this->dimmer->set_percentage(EVERSION_PAUSED_VOLTAGE);
