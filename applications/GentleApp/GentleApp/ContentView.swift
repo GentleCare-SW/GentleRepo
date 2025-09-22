@@ -16,6 +16,7 @@
  */
 
 import SwiftUI
+import Charts
 
 struct ContentView: View {
     @StateObject private var vessel = RemoteVessel()
@@ -291,12 +292,66 @@ private struct AvailableDevicesSection: View {
     }
 }
 
+private struct MetricPoint: Identifiable {
+    let id = UUID()
+    let time: Date
+    let value: Double
+}
+
+private struct LiveMetricChart: View {
+    let title: String
+    let unit: String
+    let series: [MetricPoint]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(title).font(.headline)
+                Spacer()
+                if let last = series.last?.value {
+                    Text(String(format: "%.2f%@", last, unit))
+                        .font(.subheadline).monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("\(title) latest")
+                        .accessibilityValue("\(last) \(unit)")
+                }
+            }
+
+            Chart(series) {
+                LineMark(
+                    x: .value("Time", $0.time),
+                    y: .value(title, $0.value)
+                )
+                .interpolationMethod(.monotone)
+            }
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 3)) { _ in
+                    AxisGridLine()
+                }
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }
+            .chartYScale()
+            .frame(height: 160)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(title) chart")
+        }
+    }
+}
+
 private struct DeveloperInfoSection: View {
     @ObservedObject var vessel: RemoteVessel
     @Binding var expanded: Bool
     
     @State var sliderValue: Float = 0.0
-    
+
+    @State var chart1Series: [MetricPoint] = []
+    @State var chart2Series: [MetricPoint] = []
+    let sampleInterval = 0.1
+    let maxSamples = 150
+    @State var isPlotPaused = false
+
     var body: some View {
         Card {
             DisclosureGroup(isExpanded: $expanded) {
@@ -314,6 +369,30 @@ private struct DeveloperInfoSection: View {
                     DevRow("Bluetooth Status", vessel.bluetoothStatus, suffix: nil, formatting: .string)
                 }
                 .padding(.top, 8)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Live Plots").font(.title3).bold()
+                        Spacer()
+                        Button(isPlotPaused ? "Resume" : "Pause") { isPlotPaused.toggle() }
+                            .buttonStyle(.bordered)
+                            .disabled(!vessel.isConnected)
+                            .accessibilityHint("Pause or resume live chart updates")
+                    }
+
+                    LiveMetricChart(
+                        title: "Air Pressure",
+                        unit: " PSI",
+                        series: chart1Series,
+                    )
+
+                    LiveMetricChart(
+                        title: "Motor Torque",
+                        unit: " Nm",
+                        series: chart2Series,
+                    )
+                }
+                .padding(.top, 4)
                 
                 Divider().padding(.vertical, 8)
                 
@@ -382,6 +461,36 @@ private struct DeveloperInfoSection: View {
             }
         }
         .accessibilityElement(children: .contain)
+        .task(id: vessel.isConnected) {
+            guard vessel.isConnected else { return }
+            while vessel.isConnected {
+                if !isPlotPaused {
+                    let now = Date()
+                    await MainActor.run {
+                        if let pressure = vessel.airPressure {
+                            append(.init(time: now, value: Double(pressure)), to: &chart1Series)
+                        }
+                        if let torque = vessel.motorTorque {
+                            append(.init(time: now, value: Double(torque)), to: &chart2Series)
+                        }
+                    }
+                }
+                try? await Task.sleep(nanoseconds: UInt64(sampleInterval * 1_000_000_000))
+            }
+        }
+        .onChange(of: vessel.isConnected) { wasConnected, connected in
+            if !connected {
+                chart1Series.removeAll()
+                chart2Series.removeAll()
+            }
+        }
+    }
+
+    private func append(_ point: MetricPoint, to array: inout [MetricPoint]) {
+        array.append(point)
+        if array.count > maxSamples {
+            array.removeFirst(array.count - maxSamples)
+        }
     }
 }
 

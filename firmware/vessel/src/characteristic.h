@@ -29,7 +29,9 @@ struct Characteristic: public NimBLECharacteristicCallbacks {
     
     Characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter);
 
-    void notify();
+    void notify(bool force = false);
 
     void onWrite(NimBLECharacteristic *characteristic, NimBLEConnInfo& info) override;
+
+    void onSubscribe(NimBLECharacteristic *characteristic, NimBLEConnInfo& info, uint16_t subValue) override;
 };

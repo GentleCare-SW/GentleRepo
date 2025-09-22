@@ -35,12 +35,15 @@ Characteristic::Characteristic(const char *uuid, std::function<void(float)> sett
     this->last_value = 0.0;
 }
 
-void Characteristic::notify()
+void Characteristic::notify(bool force)
 {
     if (this->getter == nullptr)
         return;
     
     float value = this->getter();
+    if (value == this->last_value && !force)
+        return;
+
     this->characteristic->setValue(value);
     this->characteristic->notify();
     this->last_value = value;
@@ -55,4 +58,9 @@ void Characteristic::onWrite(NimBLECharacteristic *characteristic, NimBLEConnInf
     float value;
     memcpy(&value, characteristic_value.data(), sizeof(float));
     this->setter(value);
+}
+
+void Characteristic::onSubscribe(NimBLECharacteristic *characteristic, NimBLEConnInfo& info, uint16_t subValue)
+{
+    this->notify(true);
 }
