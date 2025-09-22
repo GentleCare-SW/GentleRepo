@@ -123,16 +123,23 @@ void ControlPanel::update()
     else if (this->vessel->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
         this->display.printf("PRESSURE ERROR: %i\n", (int)this->vessel->get(PRESSURE_SENSOR_ERROR_UUID));
 
+#if DEVELOPER_SCREEN
+    this->display.setCursor(0, 16);
+    this->display.printf("Chamber: %i\n", (int)this->vessel->get(SERVO_CHAMBER_UUID));
+    this->display.printf("Position: %.1f rev\n", this->vessel->get(MOTOR_POSITION_UUID));
+    this->display.printf("Velocity: %.1f RPM\n", this->vessel->get(MOTOR_VELOCITY_UUID));
+#else
     this->display.setCursor(0, 16);
     float progress = this->vessel->get(AUTO_CONTROL_PROGRESS_UUID);
     this->display.printf("Progress: %.1f%%\n", progress * 100.0);
     this->display.fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
     this->display.drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
+#endif
 
     this->display.setCursor(0, 40);
+    this->display.printf("Torque: %.2f Nm\n", this->vessel->get(MOTOR_TORQUE_UUID));
     this->display.printf("Voltage: %.1f%%\n", this->vessel->get(VOLTAGE_PERCENTAGE_UUID) * 100.0);
     this->display.printf("Pressure: %.1f PSI\n", this->vessel->get(PRESSURE_SENSOR_UUID));
-    this->display.printf("Torque: %.2f Nm\n", this->vessel->get(MOTOR_TORQUE_UUID));
 
     this->display.display();
 }
