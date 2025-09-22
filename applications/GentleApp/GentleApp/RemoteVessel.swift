@@ -52,7 +52,6 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     private var peripheral: CBPeripheral?
     private var characteristics: [CBUUID: CBCharacteristic] = [:]
     private var values: [CBUUID: Float] = [:]
-    private var waitingResponse: [CBUUID: Bool] = [:]
     private var dataLogger: DataLogger!
     
     override init() {
@@ -156,14 +155,14 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         for characteristic in peripheral.services![0].characteristics! {
             characteristics[characteristic.uuid] = characteristic
+            if characteristic.properties.contains(.notify) {
+                peripheral.setNotifyValue(true, for: characteristic)
+            }
         }
         
         bluetoothStatus = "Connected to device."
         isConnected = true
         connectedDeviceName = peripheral.name!
-        for uuid in CHARACTERISTIC_UUIDS {
-            waitingResponse[uuid] = false
-        }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
@@ -178,21 +177,11 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         let value = Float(bitPattern: UInt32(littleEndian: characteristic.value!.withUnsafeBytes { $0.load(as: UInt32.self) }))
         values[characteristic.uuid] = value
-        waitingResponse[characteristic.uuid] = false
     }
     
     private func poll() {
         if !isConnected {
             return
-        }
-        
-        for uuid in CHARACTERISTIC_UUIDS {
-            if characteristics[uuid] == nil || waitingResponse[uuid]! {
-                continue
-            }
-            
-            waitingResponse[uuid] = true
-            peripheral!.readValue(for: characteristics[uuid]!)
         }
         
         try! dataLogger.logRow(CHARACTERISTIC_UUIDS.map { values[$0] })

@@ -41,9 +41,6 @@ void Characteristic::notify()
         return;
     
     float value = this->getter();
-    if (value == this->last_value)
-        return;
-
     this->characteristic->setValue(value);
     this->characteristic->notify();
     this->last_value = value;
