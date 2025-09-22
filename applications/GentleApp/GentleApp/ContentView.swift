@@ -358,7 +358,7 @@ private struct DeveloperInfoSection: View {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
                     DevRow("Air Pressure (PSI)", vessel.airPressure, suffix: nil, formatting: .number)
                     DevRow("Pressure Sensor Error", vessel.pressureSensorError, suffix: nil, formatting: .integer)
-                    DevRow("Voltage (%)", vessel.voltagePercentage != nil ? vessel.voltagePercentage! * 100.0 : nil, suffix: "%", formatting: .number)
+                    DevRow("Voltage (V)", vessel.voltage != nil ? vessel.voltage! : nil, suffix: nil, formatting: .number)
                     DevRow("Motor Position (rad)", vessel.motorPosition, suffix: nil, formatting: .number)
                     DevRow("Motor Velocity (rad/s)", vessel.motorVelocity, suffix: nil, formatting: .number)
                     DevRow("Motor Torque (Nm)", vessel.motorTorque, suffix: nil, formatting: .number)
@@ -401,19 +401,19 @@ private struct DeveloperInfoSection: View {
                         .font(.headline)
                     
                     HStack {
-                        Text("Voltage: \(sliderValue, specifier: "%.2f")%")
+                        Text("Voltage: \(sliderValue, specifier: "%.1f") V")
                             .font(.subheadline)
                     }
                     
-                    let voltagePercentBinding = Binding<Float>(
+                    let voltageBinding = Binding<Float>(
                         get: { sliderValue },
                         set: {
                             sliderValue = $0
-                            vessel.setVoltagePercentage($0 / 100.0)
+                            vessel.setVoltage($0)
                         }
                     )
                     
-                    Slider(value: voltagePercentBinding, in: 0...40.0, step: 0.5) {}
+                    Slider(value: voltageBinding, in: 0...72.0, step: 2.0) {}
                     .disabled(!vessel.isConnected)
                     
                     HStack(spacing: 12) {

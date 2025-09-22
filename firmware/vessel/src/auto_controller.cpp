@@ -68,16 +68,16 @@ void AutoController::set_mode(float mode)
 
     this->mode = (AutoControlMode)mode;
     if (this->mode == AutoControlMode::IDLE) {
-        this->dimmer->set_percentage(0.0);
+        this->dimmer->set_voltage(0.0);
     } else if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.reset();
-        this->dimmer->set_percentage(chamber == 0 ? 0.0 : 0.3);
+        this->dimmer->set_voltage(chamber == 0 ? 0.0 : 36.0);
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
-        this->dimmer->set_percentage(EVERSION_PAUSED_VOLTAGE);
+        this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);
     } else if (this->mode == AutoControlMode::INVERSION) {
-        this->dimmer->set_percentage(chamber == 0 ? INVERSION_VOLTAGE : 0.0);
+        this->dimmer->set_voltage(chamber == 0 ? INVERSION_VOLTAGE : 0.0);
     } else if (this->mode == AutoControlMode::INVERSION_PAUSED) {
-        this->dimmer->set_percentage(chamber == 0 ? INVERSION_PAUSED_VOLTAGE : 0.0);
+        this->dimmer->set_voltage(chamber == 0 ? INVERSION_PAUSED_VOLTAGE : 0.0);
     }
 
     this->motor->set_velocity(0.0);

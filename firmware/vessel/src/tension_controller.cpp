@@ -24,7 +24,7 @@ TensionController::TensionController()
     this->dimmmer = nullptr;
     this->motor = nullptr;
     this->pressure_sensor = nullptr;
-    this->voltage_percentage = 0.0;
+    this->voltage = 0.0;
     this->torque_reference = 0.0;
 }
 
@@ -33,7 +33,7 @@ TensionController::TensionController(VoltageDimmer *dimmer, MotorController *mot
     this->dimmmer = dimmer;
     this->motor = motor;
     this->pressure_sensor = pressure_sensor;
-    this->voltage_percentage = 0.0;
+    this->voltage = 0.0;
     this->velocity = 0.0;
     this->min_velocity = 4.0;
     this->max_velocity = 4.0;
@@ -43,12 +43,12 @@ TensionController::TensionController(VoltageDimmer *dimmer, MotorController *mot
 void TensionController::update(float dt)
 {
     float torque = this->motor->get_torque();
-    float pid = -(torque - this->torque_reference) * 0.0025;
+    float voltage_pid = -(torque - this->torque_reference) * 0.3;
     float velocity_pid = (torque - (this->torque_reference - 0.1)) * 1.0;
 
-    this->voltage_percentage = constrain(this->voltage_percentage + pid, EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
+    this->voltage = constrain(this->voltage + voltage_pid, EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
     this->velocity = constrain(this->velocity + velocity_pid, this->min_velocity, this->max_velocity);
-    this->dimmmer->set_percentage(this->voltage_percentage);
+    this->dimmmer->set_voltage(this->voltage);
     this->motor->set_velocity(this->velocity);
 }
 
@@ -69,8 +69,8 @@ void TensionController::set_max_velocity(float max_velocity)
 
 void TensionController::reset()
 {
-    this->voltage_percentage = 0.0;
+    this->voltage = 0.0;
     this->velocity = 0.0;
-    this->dimmmer->set_percentage(0.0);
+    this->dimmmer->set_voltage(0.0);
     this->motor->set_velocity(0.0);
 }

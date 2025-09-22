@@ -86,7 +86,7 @@ void ControlPanel::update_display()
     this->display.drawRect(0, 24 + 1, CONTROL_PANEL_DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
 
     this->display.setCursor(0, 40);
-    this->display.printf("Voltage: %.1f%%\n", this->dimmer->get_percentage() * 100.0);
+    this->display.printf("Voltage: %.1f V\n", this->dimmer->get_voltage() * 100.0);
     this->display.printf("Pressure: %.1f PSI\n", this->pressure_sensor->get_pressure());
     this->display.printf("Torque: %.2f Nm\n", this->motor_controller->get_torque());
 

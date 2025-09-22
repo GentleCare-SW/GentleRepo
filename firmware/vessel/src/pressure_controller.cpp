@@ -17,15 +17,16 @@
 
 #include <Arduino.h>
 #include "pressure_controller.h"
+#include "config.h"
 
-static const float Kp = 0.000025;
+static const float Kp = 0.003;
 static const float Kd = 0.00003;
 
 PressureController::PressureController(VoltageDimmer *dimmer, PressureSensor *sensor)
 {
     this->dimmer = dimmer;
     this->sensor = sensor;
-    this->percentage = 0.0;
+    this->voltage = 0.0;
     this->pressure_reference = 0.0;
 }
 
@@ -44,9 +45,9 @@ void PressureController::update(float dt)
 
     float pressure = this->sensor->get_pressure();
     float pressure_derivative = this->sensor->get_derivative();
-    this->percentage += (this->pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-    this->percentage = constrain(this->percentage, 0.0, 1.0);
-    this->dimmer->set_percentage(this->percentage);
+    this->voltage += (this->pressure_reference - pressure) * Kp - pressure_derivative * Kd;
+    this->voltage = constrain(this->voltage, 0.0, MAX_DIMMER_VOLTAGE);
+    this->dimmer->set_voltage(this->voltage);
 }
 
 void PressureController::mode_changed(VesselMode mode)
@@ -58,8 +59,8 @@ void PressureController::set_reference(float reference)
 {
     this->pressure_reference = reference;
     if (reference == 0.0) {
-        this->percentage = 0.0;
-        this->dimmer->set_percentage(this->percentage);
+        this->voltage = 0.0;
+        this->dimmer->set_voltage(this->voltage);
     }
 }
 

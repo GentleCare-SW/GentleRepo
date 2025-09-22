@@ -26,12 +26,16 @@ public:
 
     void mode_changed(VesselMode mode) override;
 
-    void set_percentage(float percentage);
+    void set_voltage(float voltage);
 
-    float get_percentage();
+    float get_voltage();
 
 private:
+    float pwm_percentage_to_voltage(float percentage);
+
+    float voltage_to_pwm_percentage(float voltage);
+
     int32_t pwm_pin;
     int32_t ledc_channel;
-    float percentage = 0.0;
+    float voltage;
 };

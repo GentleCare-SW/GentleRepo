@@ -17,14 +17,15 @@
 
 #include <Arduino.h>
 #include "voltage_dimmer.h"
+#include "config.h"
 
 VoltageDimmer::VoltageDimmer(const char *uuid, int32_t pwm_pin, int32_t ledc_channel)
 {
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
-    this->percentage = 0.0;
+    this->voltage = 0.0;
 
-    this->add_characteristic(uuid, std::bind(&VoltageDimmer::set_percentage, this, std::placeholders::_1), std::bind(&VoltageDimmer::get_percentage, this));
+    this->add_characteristic(uuid, std::bind(&VoltageDimmer::set_voltage, this, std::placeholders::_1), std::bind(&VoltageDimmer::get_voltage, this));
 }
 
 void VoltageDimmer::start()
@@ -32,21 +33,44 @@ void VoltageDimmer::start()
     pinMode(this->pwm_pin, OUTPUT);
     ledcSetup(this->ledc_channel, 1000, 16);
     ledcAttachPin(this->pwm_pin, this->ledc_channel);
-    this->set_percentage(this->percentage);
+    this->set_voltage(this->voltage);
 }
 
-void VoltageDimmer::set_percentage(float percentage)
+void VoltageDimmer::set_voltage(float voltage)
 {
-    this->percentage = constrain(percentage, 0.0, 1.0);
-    ledcWrite(this->ledc_channel, (uint32_t)(this->percentage * 0xffff));
+    this->voltage = constrain(voltage, 0.0, 120.0);
+    float percentage = this->voltage_to_pwm_percentage(this->voltage);
+    ledcWrite(this->ledc_channel, (uint32_t)(percentage * 0xffff));
 }
 
-float VoltageDimmer::get_percentage()
+float VoltageDimmer::get_voltage()
 {
-    return this->percentage;
+    return this->voltage;
 }
 
 void VoltageDimmer::mode_changed(VesselMode mode)
 {
-    this->set_percentage(0.0);
+    this->set_voltage(0.0);
+}
+
+static const float A = 1.3;
+static const float P = 1.9;
+static const float Q = 0.6;
+
+float VoltageDimmer::pwm_percentage_to_voltage(float percentage)
+{
+    percentage = constrain(percentage, 0.0, 1.0);
+    if (percentage == 1.0)
+        return MAX_DIMMER_VOLTAGE;
+    
+    return MAX_DIMMER_VOLTAGE * pow(1.0 + A * pow(percentage / (1.0 - percentage), -P), -Q);
+}
+
+float VoltageDimmer::voltage_to_pwm_percentage(float voltage)
+{
+    voltage = constrain(voltage, 0.0, MAX_DIMMER_VOLTAGE);
+    if (voltage == 0.0)
+        return 0.0;
+
+    return 1.0 / (1.0 + pow((pow(voltage / 120.0, -1.0 / Q) - 1.0) / A, 1.0 / P));
 }

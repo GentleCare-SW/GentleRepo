@@ -53,7 +53,7 @@ void ControlPanel::update()
         if (!pressed && this->button_pressed[i]) {
             if (i == (int)ButtonType::STOP) {
                 this->vessel->set(MOTOR_VELOCITY_UUID, 0.0);
-                this->vessel->set(VOLTAGE_PERCENTAGE_UUID, 0.0);
+                this->vessel->set(DIMMER_VOLTAGE_UUID, 0.0);
                 this->vessel->set(AUTO_CONTROL_MODE_UUID, 0.0);
             } else if (i == (int)ButtonType::INVERT) {
                 this->vessel->set(AUTO_CONTROL_MODE_UUID, 3.0);
@@ -72,7 +72,7 @@ void ControlPanel::update()
             } else if (i == (int)ButtonType::CHAMBER) {
                 this->vessel->set(SERVO_CHAMBER_UUID, 1.0 - this->vessel->get(SERVO_CHAMBER_UUID));
             } else if (i == (int)ButtonType::STOP_AIR) {
-                this->vessel->set(VOLTAGE_PERCENTAGE_UUID, 0.0);
+                this->vessel->set(DIMMER_VOLTAGE_UUID, 0.0);
             } else if (i == (int)ButtonType::STOP_MOTOR) {
                 this->vessel->set(MOTOR_VELOCITY_UUID, 0.0);
             }
@@ -94,10 +94,10 @@ void ControlPanel::update()
     int64_t air_knob_count = this->knobs[(int)KnobType::AIR].getCount();
     int64_t air_knob_difference = air_knob_count - this->last_knob_positions[(int)KnobType::AIR];
     if (air_knob_difference != 0) {
-        float voltage_percentage = this->vessel->get(VOLTAGE_PERCENTAGE_UUID);
-        voltage_percentage += air_knob_difference * 0.01;
-        voltage_percentage = constrain(voltage_percentage, 0.0, 1.0);
-        this->vessel->set(VOLTAGE_PERCENTAGE_UUID, voltage_percentage);
+        float voltage = this->vessel->get(DIMMER_VOLTAGE_UUID);
+        voltage += air_knob_difference * 1.0;
+        voltage = constrain(voltage, 0.0, 120.0);
+        this->vessel->set(DIMMER_VOLTAGE_UUID, voltage);
     }
     this->last_knob_positions[(int)KnobType::AIR] = air_knob_count;
 
@@ -138,7 +138,7 @@ void ControlPanel::update()
 
     this->display.setCursor(0, 40);
     this->display.printf("Torque: %.2f Nm\n", this->vessel->get(MOTOR_TORQUE_UUID));
-    this->display.printf("Voltage: %.1f%%\n", this->vessel->get(VOLTAGE_PERCENTAGE_UUID) * 100.0);
+    this->display.printf("Voltage: %.1f V\n", this->vessel->get(DIMMER_VOLTAGE_UUID));
     this->display.printf("Pressure: %.1f PSI\n", this->vessel->get(PRESSURE_SENSOR_UUID));
 
     this->display.display();

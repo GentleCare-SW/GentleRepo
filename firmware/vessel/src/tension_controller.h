@@ -38,7 +38,7 @@ public:
     void reset();
 
 private:
-    float voltage_percentage;
+    float voltage;
     float velocity;
     float min_velocity;
     float max_velocity;

@@ -33,7 +33,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
 
     @Published var airPressure: Float?
     @Published var pressureSensorError: Float?
-    @Published var voltagePercentage: Float?
+    @Published var voltage: Float?
     @Published var motorPosition: Float?
     @Published var motorVelocity: Float?
     @Published var motorTorque: Float?
@@ -188,7 +188,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         airPressure = values[PRESSURE_SENSOR_UUID]
         pressureSensorError = values[PRESSURE_SENSOR_ERROR_UUID]
-        voltagePercentage = values[VOLTAGE_PERCENTAGE_UUID]
+        voltage = values[DIMMER_VOLTAGE_UUID]
         motorPosition = values[MOTOR_POSITION_UUID]
         motorVelocity = values[MOTOR_VELOCITY_UUID]
         motorTorque = values[MOTOR_TORQUE_UUID]
@@ -229,8 +229,8 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         writeValue(Float(chamber), for: SERVO_CHAMBER_UUID)
     }
     
-    public func setVoltagePercentage(_ percentage: Float) {
-        writeValue(percentage, for: VOLTAGE_PERCENTAGE_UUID)
+    public func setVoltage(_ voltage: Float) {
+        writeValue(voltage, for: DIMMER_VOLTAGE_UUID)
     }
     
     public func setMotorVelocity(_ velocity: Float) {

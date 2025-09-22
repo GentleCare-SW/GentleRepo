@@ -35,7 +35,7 @@ public:
     float get_reference();
 
 private:
-    float percentage;
+    float voltage;
     float pressure_reference;
     PressureSensor *sensor;
     VoltageDimmer *dimmer;
