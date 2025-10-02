@@ -233,6 +233,10 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         writeValue(voltage, for: DIMMER_VOLTAGE_UUID)
     }
     
+    public func setPressureSetpoint(_ pressure: Float) {
+        writeValue(pressure, for: PRESSURE_CONTROLLER_UUID)
+    }
+    
     public func setMotorVelocity(_ velocity: Float) {
         writeValue(velocity, for: MOTOR_VELOCITY_UUID)
     }

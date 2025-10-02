@@ -344,7 +344,8 @@ private struct DeveloperInfoSection: View {
     @ObservedObject var vessel: RemoteVessel
     @Binding var expanded: Bool
     
-    @State var sliderValue: Float = 0.0
+    @State var voltageSliderValue: Float = 0.0
+    @State var pressureSliderValue: Float = 0.0
 
     @State var chart1Series: [MetricPoint] = []
     @State var chart2Series: [MetricPoint] = []
@@ -401,19 +402,35 @@ private struct DeveloperInfoSection: View {
                         .font(.headline)
                     
                     HStack {
-                        Text("Voltage: \(sliderValue, specifier: "%.1f") V")
+                        Text("Voltage: \(voltageSliderValue, specifier: "%.1f") V")
                             .font(.subheadline)
                     }
                     
                     let voltageBinding = Binding<Float>(
-                        get: { sliderValue },
+                        get: { voltageSliderValue },
                         set: {
-                            sliderValue = $0
+                            voltageSliderValue = $0
                             vessel.setVoltage($0)
                         }
                     )
                     
                     Slider(value: voltageBinding, in: 0...72.0, step: 2.0) {}
+                    .disabled(!vessel.isConnected)
+                    
+                    HStack {
+                        Text("Pressure: \(pressureSliderValue, specifier: "%.2f") PSI")
+                            .font(.subheadline)
+                    }
+                    
+                    let pressureBinding = Binding<Float>(
+                        get: { pressureSliderValue },
+                        set: {
+                            pressureSliderValue = $0
+                            vessel.setPressureSetpoint($0)
+                        }
+                    )
+                    
+                    Slider(value: pressureBinding, in: 0...1.0, step: 0.005) {}
                     .disabled(!vessel.isConnected)
                     
                     HStack(spacing: 12) {
