@@ -19,8 +19,8 @@
 #include "pressure_controller.h"
 #include "config.h"
 
-static const float Kp = 0.003;
-static const float Kd = 0.00003;
+static const float Kp = 0.3;
+static const float Kd = 0.3;
 
 PressureController::PressureController(VoltageDimmer *dimmer, PressureSensor *sensor)
 {
@@ -46,7 +46,7 @@ void PressureController::update(float dt)
     float pressure = this->sensor->get_pressure();
     float pressure_derivative = this->sensor->get_derivative();
     this->voltage += (this->pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-    this->voltage = constrain(this->voltage, 0.0, MAX_DIMMER_VOLTAGE);
+    this->voltage = constrain(this->voltage, 15.0, MAX_DIMMER_VOLTAGE);
     this->dimmer->set_voltage(this->voltage);
 }
 

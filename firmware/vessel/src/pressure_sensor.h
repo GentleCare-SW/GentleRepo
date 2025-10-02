@@ -42,7 +42,10 @@ public:
     float get_error();
 
 private:
+    float read_psi();
+
     int32_t adc_pin;
+    float last_psi;
     float moving_pressure;
     float moving_squared_pressure;
     float pressure_derivative;

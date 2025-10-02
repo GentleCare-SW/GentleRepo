@@ -55,6 +55,7 @@ void ControlPanel::update()
                 this->vessel->set(MOTOR_VELOCITY_UUID, 0.0);
                 this->vessel->set(DIMMER_VOLTAGE_UUID, 0.0);
                 this->vessel->set(AUTO_CONTROL_MODE_UUID, 0.0);
+                this->vessel->set(PRESSURE_CONTROLLER_UUID, 0.0);
             } else if (i == (int)ButtonType::INVERT) {
                 this->vessel->set(AUTO_CONTROL_MODE_UUID, 3.0);
             } else if (i == (int)ButtonType::EVERT) {
@@ -73,6 +74,7 @@ void ControlPanel::update()
                 this->vessel->set(SERVO_CHAMBER_UUID, 1.0 - this->vessel->get(SERVO_CHAMBER_UUID));
             } else if (i == (int)ButtonType::STOP_AIR) {
                 this->vessel->set(DIMMER_VOLTAGE_UUID, 0.0);
+                this->vessel->set(PRESSURE_CONTROLLER_UUID, 0.0);
             } else if (i == (int)ButtonType::STOP_MOTOR) {
                 this->vessel->set(MOTOR_VELOCITY_UUID, 0.0);
             }
@@ -94,10 +96,17 @@ void ControlPanel::update()
     int64_t air_knob_count = this->knobs[(int)KnobType::AIR].getCount();
     int64_t air_knob_difference = air_knob_count - this->last_knob_positions[(int)KnobType::AIR];
     if (air_knob_difference != 0) {
+#if CLOSED_LOOP_PRESSURE_CONTROL
+        float pressure_setpoint = this->vessel->get(PRESSURE_CONTROLLER_UUID);
+        pressure_setpoint += air_knob_difference * 0.005;
+        pressure_setpoint = constrain(pressure_setpoint, 0.0, 1.0);
+        this->vessel->set(PRESSURE_CONTROLLER_UUID, pressure_setpoint);
+#else
         float voltage = this->vessel->get(DIMMER_VOLTAGE_UUID);
         voltage += air_knob_difference * 1.0;
         voltage = constrain(voltage, 0.0, 120.0);
         this->vessel->set(DIMMER_VOLTAGE_UUID, voltage);
+#endif
     }
     this->last_knob_positions[(int)KnobType::AIR] = air_knob_count;
 
@@ -139,7 +148,11 @@ void ControlPanel::update()
     this->display.setCursor(0, 40);
     this->display.printf("Torque: %.2f Nm\n", this->vessel->get(MOTOR_TORQUE_UUID));
     this->display.printf("Voltage: %.1f V\n", this->vessel->get(DIMMER_VOLTAGE_UUID));
-    this->display.printf("Pressure: %.1f PSI\n", this->vessel->get(PRESSURE_SENSOR_UUID));
+#if CLOSED_LOOP_PRESSURE_CONTROL
+    this->display.printf("Pressure: %.2f PSI\n", this->vessel->get(PRESSURE_CONTROLLER_UUID));
+#else
+    this->display.printf("Pressure: %.2f PSI\n", this->vessel->get(PRESSURE_SENSOR_UUID));
+#endif
 
     this->display.display();
 }

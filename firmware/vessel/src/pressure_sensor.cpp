@@ -29,6 +29,7 @@ PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid
 {
     this->adc_pin = adc_pin;
     this->pressure_constant = pressure_constant;
+    this->last_psi = 0.0;
     this->moving_pressure = 0.0;
     this->moving_squared_pressure = 0.0;
     this->pressure_derivative = 0.0;
@@ -49,15 +50,11 @@ void PressureSensor::update(float dt)
 {
     Peripheral::update(dt);
 
-    int32_t adc_value = analogRead(this->adc_pin);
-    float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
-    float psi = (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
+    float psi = this->read_psi();
+    if (abs(psi - this->last_psi) > 1.0)
+        psi = this->last_psi + (psi > this->last_psi ? 1.0 : -1.0);
 
-    float std = sqrt(this->moving_squared_pressure - this->moving_pressure * this->moving_pressure);
-    if (abs(psi - this->moving_pressure) > 4.0 * std && std > 0.0)
-        psi = this->moving_pressure + (psi > this->moving_pressure ? 1.0 : -1.0) * 4.0 * std;
-
-    float alpha = exp(-3.0 * dt);
+    float alpha = exp(-0.5 * dt);
 
     float previous_moving_pressure = this->moving_pressure;
     this->moving_pressure = this->moving_pressure * alpha + psi * (1.0 - alpha);
@@ -68,10 +65,20 @@ void PressureSensor::update(float dt)
     if (this->calibrating)
         this->pressure_offset = this->pressure_offset * alpha + this->moving_pressure * (1.0 - alpha);
 
+    float std = sqrt(max(0.0f, this->moving_squared_pressure - this->moving_pressure * this->moving_pressure));
     if (this->error == PressureSensorError::NONE && std > 10.0)
         this->error = PressureSensorError::NOT_CONNECTED;
     else if (this->error == PressureSensorError::NOT_CONNECTED && std <= 10.0)
         this->error = PressureSensorError::NONE;
+
+    this->last_psi = psi;
+}
+
+float PressureSensor::read_psi()
+{
+    int32_t adc_value = analogRead(this->adc_pin);
+    float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
+    return (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
 }
 
 float PressureSensor::get_pressure()

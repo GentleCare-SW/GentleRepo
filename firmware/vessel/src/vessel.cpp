@@ -65,7 +65,7 @@ void Vessel::start()
 void Vessel::update()
 {
     int64_t current_time = micros();
-    float dt = (current_time - this->last_update_time) / 1e6;
+    float dt = max(1e-10, (current_time - this->last_update_time) / 1e6);
     
     for (int i = 0; i < this->peripheral_count; i++)
         this->peripherals[i]->update(dt);
