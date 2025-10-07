@@ -39,4 +39,8 @@ void loop()
 {
     vessel.update();
     panel.update();
+
+#if DEBUG_MODE
+    Serial.printf(">Motor Torque (Nm): %f\n", vessel.get(MOTOR_TORQUE_UUID));
+#endif
 }
