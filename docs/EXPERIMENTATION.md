@@ -12,11 +12,11 @@ This document outlines the protocol and results for the experiments that have be
 
 The black dots are the raw data points collected, and the red curve is a parametric fit for data points:
 
-$$\text{Voltage}(\text{PWM})=120\left(1+a\left(\frac{\text{PWM}}{1-\text{PWM}}\right)^{-p}\right)^{-q},$$
+$$V(\text{PWM})=V_{\text{max}}\left(\frac{1-\cos(\pi(\text{PWM}+b))}{2}\right)\qquad0.1\leq\text{PWM}\leq 0.9,$$
 
-$$\text{PWM}(\text{Voltage})=\left(1+\left(\frac{1}{a}\left(\left(\frac{\text{Voltage}}{120}\right)^{-\frac{1}{q}}-1\right)\right)^{\frac{1}{p}}\right)^{-1},$$
+$$\text{PWM}(V)=\frac{1}{\pi}\cos^{-1}\left(1-2\frac{V}{V_{\text{max}}}\right)-b\qquad 0.1\leq\text{PWM}\leq 0.9,$$
 
-$$a\approx1.30,\quad p\approx1.90,\quad q\approx1.60.$$
+$$V_{\text{max}}\approx118.72,\quad b\approx0.07229.$$
 
 **Conclusion**: The results show a strong non-linear relationship between PWM and voltage. For the following experiments, we use the curve fit provided above to determine what PWM percentage to use to achieve a desired voltage.
 
