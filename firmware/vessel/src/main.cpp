@@ -53,7 +53,9 @@ void setup()
 #endif
     vessel.add_peripheral(&pressure_controller);
     vessel.add_peripheral(&auto_controller);
+#if ENABLE_MOTOR_CONTROLLER
     vessel.add_peripheral(&motor_controller);
+#endif
     vessel.add_peripheral(&monitor);
     vessel.start();
 }
