@@ -54,7 +54,7 @@ void PressureSensor::update(float dt)
     if (abs(psi - this->last_psi) > 1.0)
         psi = this->last_psi + (psi > this->last_psi ? 1.0 : -1.0);
 
-    float alpha = exp(-0.5 * dt);
+    float alpha = exp(-dt);
 
     float previous_moving_pressure = this->moving_pressure;
     this->moving_pressure = this->moving_pressure * alpha + psi * (1.0 - alpha);

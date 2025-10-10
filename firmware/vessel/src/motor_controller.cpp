@@ -44,7 +44,7 @@ MotorController::MotorController(const char *position_uuid, const char *velocity
 
 void MotorController::start()
 {
-    delay(2000);
+    delay(3000);
 
     this->serial->begin(BAUD_RATE, SERIAL_8N1, this->rx_pin, this->tx_pin);
     while (!this->serial);
