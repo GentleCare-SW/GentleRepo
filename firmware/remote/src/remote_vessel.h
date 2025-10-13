@@ -18,10 +18,11 @@
 #pragma once
 #include "common/uuids.h"
 #include <NimBLEDevice.h>
+#include <Adafruit_SSD1306.h>
 
 class RemoteVessel: public NimBLEScanCallbacks {
 public:
-    RemoteVessel();
+    RemoteVessel(Adafruit_SSD1306 *display);
 
     void start();
 
@@ -33,13 +34,14 @@ public:
 
     float get(const char *uuid);
 
-    void set(const char *uuid, float velocity);
+    void set(const char *uuid, float velocity, bool with_response = false);
 
 private:
     NimBLERemoteCharacteristic *get_characteristic(const char *uuid);
 
     float values[CHARACTERISTIC_UUID_COUNT];
 
+    Adafruit_SSD1306 *display;
     NimBLEScan *scanner;
     NimBLEClient *client;
     bool found_device;

@@ -17,9 +17,10 @@
 
 #include "control_panel.h"
 
-ControlPanel::ControlPanel(RemoteVessel *vessel)
+ControlPanel::ControlPanel(RemoteVessel *vessel, Adafruit_SSD1306 *display)
 {
     this->vessel = vessel;
+    this->display = display;
 }
 
 void ControlPanel::start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], uint32_t knob_clk_pins[(int)KnobType::COUNT])
@@ -35,17 +36,9 @@ void ControlPanel::start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t 
         this->knobs[i].setCount(0);
         this->last_knob_positions[i] = 0;
     }
-
-    this->display = Adafruit_SSD1306(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
-    this->display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    this->display.clearDisplay();
-    this->display.setTextSize(1);
-    this->display.setTextColor(SSD1306_WHITE);
-    this->display.printf("Searching...\n");
-    this->display.display();
 }
 
-void ControlPanel::update()
+void ControlPanel::update_buttons()
 {
     for (int i = 0; i < (int)ButtonType::COUNT; i++) {
         bool pressed = digitalRead(this->button_pins[i]) == LOW;
@@ -73,16 +66,19 @@ void ControlPanel::update()
             } else if (i == (int)ButtonType::CHAMBER) {
                 this->vessel->set(SERVO_CHAMBER_UUID, 1.0 - this->vessel->get(SERVO_CHAMBER_UUID));
             } else if (i == (int)ButtonType::STOP_AIR) {
-                this->vessel->set(DIMMER_VOLTAGE_UUID, 0.0);
-                this->vessel->set(PRESSURE_CONTROLLER_UUID, 0.0);
+                this->vessel->set(DIMMER_VOLTAGE_UUID, 0.0, true);
+                this->vessel->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
             } else if (i == (int)ButtonType::STOP_MOTOR) {
-                this->vessel->set(MOTOR_VELOCITY_UUID, 0.0);
+                this->vessel->set(MOTOR_VELOCITY_UUID, 0.0, true);
             }
         }
 
         this->button_pressed[i] = pressed;
     }
-    
+}
+
+void ControlPanel::update_knobs()
+{
     int64_t motor_knob_count = this->knobs[(int)KnobType::MOTOR].getCount();
     int64_t motor_knob_difference = motor_knob_count - this->last_knob_positions[(int)KnobType::MOTOR];
     if (motor_knob_difference != 0) {
@@ -109,50 +105,60 @@ void ControlPanel::update()
 #endif
     }
     this->last_knob_positions[(int)KnobType::AIR] = air_knob_count;
+}
 
-    this->display.clearDisplay();
-    this->display.setCursor(0, 0);
-    this->display.printf("Status: ");
+void ControlPanel::update_display()
+{
+    this->display->clearDisplay();
+    this->display->setCursor(0, 0);
+    this->display->printf("Status: ");
     float mode = this->vessel->get(AUTO_CONTROL_MODE_UUID);
     if (mode == 0.0)
-        this->display.printf("Idle\n");
+        this->display->printf("Idle\n");
     else if (mode == 1.0)
-        this->display.printf("Everting\n");
+        this->display->printf("Everting\n");
     else if (mode == 2.0)
-        this->display.printf("Paused\n");
+        this->display->printf("Paused\n");
     else if (mode == 3.0)
-        this->display.printf("Inverting\n");
+        this->display->printf("Inverting\n");
     else if (mode == 4.0)
-        this->display.printf("Paused\n");
+        this->display->printf("Paused\n");
     else
-        this->display.printf("Unknown\n");
+        this->display->printf("Unknown\n");
     
     if (this->vessel->get(MOTOR_ERROR_UUID) != 0.0)
-        this->display.printf("MOTOR ERROR: %i\n", (int)this->vessel->get(MOTOR_ERROR_UUID));
+        this->display->printf("MOTOR ERROR: %i\n", (int)this->vessel->get(MOTOR_ERROR_UUID));
     else if (this->vessel->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
-        this->display.printf("PRESSURE ERROR: %i\n", (int)this->vessel->get(PRESSURE_SENSOR_ERROR_UUID));
+        this->display->printf("PRESSURE ERROR: %i\n", (int)this->vessel->get(PRESSURE_SENSOR_ERROR_UUID));
 
 #if DEVELOPER_SCREEN
-    this->display.setCursor(0, 16);
-    this->display.printf("Chamber: %i\n", (int)this->vessel->get(SERVO_CHAMBER_UUID));
-    this->display.printf("Position: %.1f rev\n", this->vessel->get(MOTOR_POSITION_UUID));
-    this->display.printf("Velocity: %.1f RPM\n", this->vessel->get(MOTOR_VELOCITY_UUID));
+    this->display->setCursor(0, 16);
+    this->display->printf("Chamber: %i\n", (int)this->vessel->get(SERVO_CHAMBER_UUID));
+    this->display->printf("Position: %.1f rev\n", this->vessel->get(MOTOR_POSITION_UUID));
+    this->display->printf("Velocity: %.1f RPM\n", this->vessel->get(MOTOR_VELOCITY_UUID));
 #else
-    this->display.setCursor(0, 16);
+    this->display->setCursor(0, 16);
     float progress = this->vessel->get(AUTO_CONTROL_PROGRESS_UUID);
-    this->display.printf("Progress: %.1f%%\n", progress * 100.0);
-    this->display.fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
-    this->display.drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
+    this->display->printf("Progress: %.1f%%\n", progress * 100.0);
+    this->display->fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
+    this->display->drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
 #endif
 
-    this->display.setCursor(0, 40);
-    this->display.printf("Torque: %.2f Nm\n", this->vessel->get(MOTOR_TORQUE_UUID));
-    this->display.printf("Voltage: %.1f V\n", this->vessel->get(DIMMER_VOLTAGE_UUID));
+    this->display->setCursor(0, 40);
+    this->display->printf("Torque: %.2f Nm\n", this->vessel->get(MOTOR_TORQUE_UUID));
+    this->display->printf("Voltage: %.1f V\n", this->vessel->get(DIMMER_VOLTAGE_UUID));
 #if CLOSED_LOOP_PRESSURE_CONTROL
-    this->display.printf("Pressure: %.2f PSI\n", this->vessel->get(PRESSURE_CONTROLLER_UUID));
+    this->display->printf("Pressure: %.2f PSI\n", this->vessel->get(PRESSURE_CONTROLLER_UUID));
 #else
-    this->display.printf("Pressure: %.2f PSI\n", this->vessel->get(PRESSURE_SENSOR_UUID));
+    this->display->printf("Pressure: %.2f PSI\n", this->vessel->get(PRESSURE_SENSOR_UUID));
 #endif
 
-    this->display.display();
+    this->display->display();
+}
+
+void ControlPanel::update()
+{
+    this->update_knobs();
+    this->update_buttons();
+    this->update_display();
 }

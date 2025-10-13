@@ -19,9 +19,10 @@
 #include "remote_vessel.h"
 #include "common/uuids.h"
 
-RemoteVessel::RemoteVessel()
+RemoteVessel::RemoteVessel(Adafruit_SSD1306 *display)
 {
     found_device = false;
+    this->display = display;
 }
 
 void RemoteVessel::start()
@@ -38,6 +39,13 @@ void RemoteVessel::start()
 
 void RemoteVessel::update()
 {
+    if (!this->client->isConnected()) {
+        this->display->clearDisplay();
+        this->display->setCursor(0, 0);
+        this->display->printf("Not connected\nSearching...");
+        this->display->display();
+    }
+
     while (!this->client->isConnected()) {
         if (!this->scanner->isScanning())
             this->scanner->start(0);
@@ -102,7 +110,7 @@ float RemoteVessel::get(const char *uuid)
     return 0.0;
 }
 
-void RemoteVessel::set(const char *uuid, float value)
+void RemoteVessel::set(const char *uuid, float value, bool with_response)
 {
     if (!this->client->isConnected())
         return;
@@ -111,5 +119,5 @@ void RemoteVessel::set(const char *uuid, float value)
     if (characteristic == nullptr)
         return;
 
-    characteristic->writeValue((uint8_t *)&value, sizeof(value));
+    characteristic->writeValue((uint8_t *)&value, sizeof(value), with_response);
 }

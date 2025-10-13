@@ -39,17 +39,23 @@ enum class KnobType {
 
 class ControlPanel {
 public:
-    ControlPanel(RemoteVessel *vessel);
+    ControlPanel(RemoteVessel *vessel, Adafruit_SSD1306 *display);
 
     void start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], uint32_t knob_clk_pins[(int)KnobType::COUNT]);
 
     void update();
 
 private:
+    void update_buttons();
+
+    void update_knobs();
+
+    void update_display();
+    
     RemoteVessel *vessel;
     uint32_t button_pins[(int)ButtonType::COUNT];
     bool button_pressed[(int)ButtonType::COUNT];
     ESP32Encoder knobs[(int)KnobType::COUNT];
     int64_t last_knob_positions[(int)KnobType::COUNT]; 
-    Adafruit_SSD1306 display;
+    Adafruit_SSD1306 *display;
 };

@@ -16,16 +16,24 @@
  */
 
 #include <Arduino.h>
+#include <Adafruit_SSD1306.h>
 #include "control_panel.h"
 #include "remote_vessel.h"
 
-static RemoteVessel vessel;
-static ControlPanel panel(&vessel);
+static Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
+static RemoteVessel vessel(&display);
+static ControlPanel panel(&vessel, &display);
 
 void setup()
 {
     Serial.begin(BAUD_RATE);
     while (!Serial);
+
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.display();
     
     static uint32_t buttons[] = { BUTTON_STOP_PIN, BUTTON_INVERT_PIN, BUTTON_EVERT_PIN, BUTTON_PAUSE_PIN, BUTTON_CHAMBER_PIN, BUTTON_STOP_AIR_PIN, BUTTON_STOP_MOTOR_PIN };
     static uint32_t knob_dt_pins[] = { KNOB_AIR_DT_PIN, KNOB_MOTOR_DT_PIN };
