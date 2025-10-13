@@ -30,9 +30,9 @@ $$V_{\text{max}}\approx118.72,\quad b\approx0.07229.$$
 
 Black is fully inverted, purple is halfway inverted and blue is fully everted. The lines of best fits are:
 
-$$P=0.019V-0.17,$$
-$$P=0.016V-0.20,$$
-$$P=0.010V-0.11,$$
+$$P=0.038V-0.34,$$
+$$P=0.032V-0.40,$$
+$$P=0.020V-0.22,$$
 
 respectively.
 
@@ -48,9 +48,9 @@ respectively.
 
 The line of best fit (red) is given by:
 
-$$P=0.0023W+0.035.$$
+$$P=0.0046W+0.070.$$
 
-**Conclusion**: The relationship between weight and the amount of pressure needed to lift the weight a given height shows to be linear. Lifting 300lbs required 0.71 PSI, indicating that the GentleGlide should achieve at minimum that much pressure to invert under a 300lb human.
+**Conclusion**: The relationship between weight and the amount of pressure needed to lift the weight a given height shows to be linear. Lifting 300lbs required 1.42 PSI, indicating that the GentleGlide should achieve at minimum that much pressure while inverting underneath a 300lb human.
 
 ## Experiment 4: Torque Needed to Overcome a Given Pressure
 
@@ -62,17 +62,25 @@ $$P=0.0023W+0.035.$$
 
 The line of best fit is given by:
 
-$$\tau=3.64P+1.04.$$
+$$\tau=1.82P+1.04.$$
 
-**Conclusion**: The results show a linear relationship between pressure and torque, with each additional PSI of pressure requiring an additional 3.6 Nm of torque. Extrapolating on these results, 1 PSI of pressure (needed to lift 400 lbs) would require about 4.7 Nm of torque to invert.
+**Conclusion**: The results show a linear relationship between pressure and torque, with each additional PSI of pressure requiring an additional 1.82 Nm of torque. Since lifting 300lbs requires 1.42 PSI, the motor should be able to achieve at least 3.62 Nm of torque for inversion.
 
 ## Experiment 5: Pressure Needed to Burrow Under a Given Weight
 
-**Experiment**: TODO
+**Experiment**: This experiment determines how much pressure is needed to burrow under a given weight (concentrated roughly in a 2ftx2ft test-bed). The test-bed was set to a 45 degree angle and the pressure inside the GentleGlide was increased until it was able to burrow underneath the test-bed. There were two conditions tested: GentleGlide placed right next to the test-bed (representing burrowing under the shoulders) and GentleGlide placed ~2.5ft before the test-bed (representing burrowing under the hip).
 
 **Results**:
 
-**Conclusion**:
+![](images/pressure_vs_weight_burrowing.png)
+
+The first condition (burrowing underneath shoulders) is shown in red, and the second condition (burrowing underneath hip) is shown in blue. The limit for how much weight GentleGlide was able to burrow under was 100lbs and 50lbs, respectively. Both showed a linear relationship with the following lines of best fits:
+
+$$P=0.014W+0.45,$$
+$$P=0.011W+0.52.$$
+
+**Conclusion**: 
+
 
 ## Experiment 6: Pressure over Time as a Function of Leak
 
@@ -81,3 +89,8 @@ $$\tau=3.64P+1.04.$$
 **Results**:
 
 **Conclusion**:
+
+## Analysis
+
+140lbs
+60lbs

@@ -14,6 +14,8 @@ The 24V DC voltage is further branched into another two modules: a buck converte
 - Servo Motor: The MCU controls the angle of a servo motor (used for controlling air channels on the platform) via PWM.
 - Motor Driver: The MCU communicates with the motor driver serially via TX/RX pins, which itself has an on-board chip that handles motor velocity/position control.
 
+NOTE: The voltage dimmer we currently use also converts the incoming AC power to 5V DC, so the buck converter is optional (and not used in GentleGlide).
+
 The motor driver provides power to the BLDC motor through the three A/B/C power lines. It also communicates with the motor's encoder via the A/B quadrature encoding lines. There is additionally a brake resistor attached to the motor driver which is used for absorbing excess current when the motor brakes.
 
 ## GentleRemote
