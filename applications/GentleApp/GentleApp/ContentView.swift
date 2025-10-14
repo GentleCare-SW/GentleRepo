@@ -64,9 +64,6 @@ struct ContentView: View {
             }
         }
         .largeDisplayBoost()
-        .alert(vessel.alertMessage, isPresented: $vessel.showingAlert) {
-            Button("OK") { }
-        }
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
         }
@@ -366,7 +363,6 @@ private struct DeveloperInfoSection: View {
                     DevRow("Motor Error", vessel.motorError, suffix: nil, formatting: .integer)
                     DevRow("Servo Chamber", vessel.servoChamber, suffix: nil, formatting: .integer)
                     DevRow("Mode", vessel.mode?.rawValue, suffix: nil, formatting: .string)
-                    DevRow("Monitor Status", vessel.monitorStatus, suffix: nil, formatting: .integer)
                     DevRow("Bluetooth Status", vessel.bluetoothStatus, suffix: nil, formatting: .string)
                 }
                 .padding(.top, 8)
