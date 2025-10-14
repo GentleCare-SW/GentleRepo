@@ -49,5 +49,5 @@ private:
     NimBLEService *ble_service;
     Peripheral *peripherals[MAX_PERIPHERALS];
     int peripheral_count;
-    int64_t last_update_time;
+    uint32_t last_update_time;
 };

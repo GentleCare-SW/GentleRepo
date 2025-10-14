@@ -64,7 +64,7 @@ void Service::start()
 
 void Service::update()
 {
-    int64_t current_time = micros();
+    uint32_t current_time = micros();
     float dt = max(1e-10, (current_time - this->last_update_time) / 1e6);
     
     for (int i = 0; i < this->peripheral_count; i++)

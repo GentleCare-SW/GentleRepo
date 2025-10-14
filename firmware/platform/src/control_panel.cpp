@@ -112,7 +112,7 @@ void ControlPanel::update(float dt)
         this->servo->set_chamber(1 - this->servo->get_chamber());
 #endif
     
-    if (millis() - this->last_display_update_time > DISPLAY_UPDATE_INTERVAL * 1000) {
+    if (millis() - this->last_display_update_time > (uint32_t)(DISPLAY_UPDATE_INTERVAL * 1000)) {
         this->last_display_update_time = millis();
         this->update_display();
     }

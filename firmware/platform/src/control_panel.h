@@ -44,7 +44,7 @@ private:
 
     Button buttons[(uint32_t)ButtonType::COUNT];
     Adafruit_SSD1306 display;
-    uint64_t last_display_update_time;
+    uint32_t last_display_update_time;
     AutoController *auto_controller;
     MotorController *motor_controller;
     PressureSensor *pressure_sensor;

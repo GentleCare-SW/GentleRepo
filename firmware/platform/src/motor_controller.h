@@ -57,7 +57,7 @@ private:
     float position;
     float velocity;
     float torque;
-    int64_t last_update_time;
+    uint32_t last_update_time;
     MotorControllerError error;
 
     void set_error(MotorControllerError error);

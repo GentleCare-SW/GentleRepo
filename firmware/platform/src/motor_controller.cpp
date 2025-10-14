@@ -70,8 +70,8 @@ void MotorController::update(float dt)
 {
     Peripheral::update(dt);
 
-    int64_t current_time = micros();
-    if (current_time - this->last_update_time > MOTOR_UPDATE_INTERVAL * 1e6) {
+    uint32_t current_time = micros();
+    if (current_time - this->last_update_time > (uint32_t)(MOTOR_UPDATE_INTERVAL * 1e6)) {
         dt = (current_time - this->last_update_time) / 1e6;
         this->last_update_time = current_time;
 
@@ -135,9 +135,9 @@ String MotorController::wait_for_response()
     if (this->error == MotorControllerError::NOT_RESPONDING)
         return "";
 
-    int64_t start_time = millis();
+    uint32_t start_time = millis();
     String response = this->serial->readStringUntil('\n');
-    if (millis() - start_time > 1000)
+    if (millis() - start_time > 1000u)
         this->set_error(MotorControllerError::NOT_RESPONDING);
     
     return response;
