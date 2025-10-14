@@ -2,7 +2,7 @@
 
 ![](images/sw_architecture.png)
 
-The software architecture used in GentleGlide/Wedge follows a client-service model and is directly based off the Bluetooth Low Energy (BLE) architecture (highly rec: https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/).
+The software architecture used in GentleGlide/Wedge follows a client-service model and is directly based off the Bluetooth Low Energy (BLE) architecture (read this: https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/).
 
 At a high level there are two major systems, the "platform" (representing GentleGlide/Wedge) and the "remote" (representing the physical remote controller or any application that can connect remotely). The platform consists of a single service which manages a group of peripherirals, while the remote consists of a single client that can connect to the platform and communicate data back and forth.
 
@@ -12,7 +12,7 @@ When a client connects to the service, it is able to directly read/write to thes
 
 ## List of Characteristics
 
-The following is the list of characteristics as of writing.
+The following is the list of characteristics/peripherals as of writing.
 
 | Characteristic | Peripheral | Attributes |
 |-|-|-|
