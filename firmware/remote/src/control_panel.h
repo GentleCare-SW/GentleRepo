@@ -18,7 +18,7 @@
 #pragma once
 #include <ESP32Encoder.h>
 #include <Adafruit_SSD1306.h>
-#include "remote_vessel.h"
+#include "remote_platform.h"
 
 enum class ButtonType {
     STOP,
@@ -39,7 +39,7 @@ enum class KnobType {
 
 class ControlPanel {
 public:
-    ControlPanel(RemoteVessel *vessel, Adafruit_SSD1306 *display);
+    ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display);
 
     void start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], uint32_t knob_clk_pins[(int)KnobType::COUNT]);
 
@@ -52,7 +52,7 @@ private:
 
     void update_display();
     
-    RemoteVessel *vessel;
+    RemotePlatform *platform;
     uint32_t button_pins[(int)ButtonType::COUNT];
     bool button_pressed[(int)ButtonType::COUNT];
     ESP32Encoder knobs[(int)KnobType::COUNT];

@@ -18,11 +18,11 @@
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
 #include "control_panel.h"
-#include "remote_vessel.h"
+#include "remote_platform.h"
 
 static Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
-static RemoteVessel vessel(&display);
-static ControlPanel panel(&vessel, &display);
+static RemotePlatform platform(&display);
+static ControlPanel panel(&platform, &display);
 
 void setup()
 {
@@ -40,15 +40,15 @@ void setup()
     static uint32_t knob_clk_pins[] = { KNOB_AIR_CLK_PIN, KNOB_MOTOR_CLK_PIN };
     panel.start(buttons, knob_dt_pins, knob_clk_pins);
 
-    vessel.start();
+    platform.start();
 }
 
 void loop()
 {
-    vessel.update();
+    platform.update();
     panel.update();
 
 #if DEBUG_MODE
-    Serial.printf(">Motor Torque (Nm): %f\n", vessel.get(MOTOR_TORQUE_UUID));
+    Serial.printf(">Motor Torque (Nm): %f\n", platform.get(MOTOR_TORQUE_UUID));
 #endif
 }

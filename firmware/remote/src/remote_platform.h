@@ -16,43 +16,36 @@
  */
 
 #pragma once
+#include "common/uuids.h"
+#include <NimBLEDevice.h>
+#include <Adafruit_SSD1306.h>
 
-#include "peripheral.h"
-#include "voltage_dimmer.h"
-#include "motor_controller.h"
-#include "pressure_sensor.h"
-#include "servo.h"
-#include "tension_controller.h"
-
-enum class AutoControlMode {
-    IDLE,
-    EVERSION,
-    EVERSION_PAUSED,
-    INVERSION,
-    INVERSION_PAUSED,
-};
-
-class AutoController: public Peripheral {
+class RemotePlatform: public NimBLEScanCallbacks {
 public:
-    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo);
+    RemotePlatform(Adafruit_SSD1306 *display);
 
-    void update(float dt) override;
+    void start();
 
-    void mode_changed(VesselMode mode) override;
+    void update();
 
-    void set_mode(float mode);
+    void onResult(const NimBLEAdvertisedDevice *device) override;
 
-    float get_mode();
+    void on_notification(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify);
 
-    float get_progress();
+    float get(const char *uuid);
 
-    void toggle_paused();
+    void set(const char *uuid, float velocity, bool with_response = false);
 
 private:
-    VoltageDimmer *dimmer;
-    MotorController *motor;
-    PressureSensor *pressure_sensor;
-    Servo *servo;
-    AutoControlMode mode;
-    TensionController tension_controller;
+    NimBLERemoteCharacteristic *get_characteristic(const char *uuid);
+
+    float values[CHARACTERISTIC_UUID_COUNT];
+
+    Adafruit_SSD1306 *display;
+    NimBLEScan *scanner;
+    NimBLEClient *client;
+    bool found_device;
+    NimBLEAdvertisedDevice *device;
+    NimBLERemoteService *service;
+    NimBLERemoteCharacteristic *characteristics[CHARACTERISTIC_UUID_COUNT];
 };

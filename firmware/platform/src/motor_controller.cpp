@@ -87,7 +87,7 @@ void MotorController::update(float dt)
     }
 }
 
-void MotorController::mode_changed(VesselMode mode)
+void MotorController::mode_changed(ServiceMode mode)
 {
     this->set_velocity(0.0);
 }

@@ -15,39 +15,25 @@
  * SOFTWARE.
  */
 
-#pragma once
-#include <NimBLEDevice.h>
 #include "peripheral.h"
-#include "characteristic.h"
+#include "service.h"
 
-#define MAX_PERIPHERALS 16
+void Peripheral::start()
+{
+}
 
-enum class VesselMode {
-    IDLE,
-    CONNECTED,
-};
+void Peripheral::add_characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter)
+{
+    if (this->characteristic_count < MAX_CHARACTERISTICS)
+        this->characteristics[this->characteristic_count++] = Characteristic(uuid, setter, getter);
+}
 
-class Vessel: public NimBLEServerCallbacks {
-public:
-    Vessel();
+void Peripheral::update(float dt)
+{
+    for (int i = 0; i < this->characteristic_count; i++)
+        this->characteristics[i].notify();
+}
 
-    void add_peripheral(Peripheral *peripheral);
-
-    void start();
-
-    void update();
-
-    void onConnect(NimBLEServer *server, NimBLEConnInfo& info) override;
-
-    void onDisconnect(NimBLEServer *server, NimBLEConnInfo& info, int reason) override;
-
-private:
-    void set_mode(VesselMode mode);
-
-    VesselMode mode;
-    NimBLEServer *server;
-    NimBLEService *service;
-    Peripheral *peripherals[MAX_PERIPHERALS];
-    int peripheral_count;
-    int64_t last_update_time;
-};
+void Peripheral::mode_changed(ServiceMode mode)
+{
+}

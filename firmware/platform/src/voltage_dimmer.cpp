@@ -48,7 +48,7 @@ float VoltageDimmer::get_voltage()
     return this->voltage;
 }
 
-void VoltageDimmer::mode_changed(VesselMode mode)
+void VoltageDimmer::mode_changed(ServiceMode mode)
 {
     this->set_voltage(0.0);
 }

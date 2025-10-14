@@ -16,16 +16,16 @@
  */
 
 #include <Arduino.h>
-#include "remote_vessel.h"
+#include "remote_platform.h"
 #include "common/uuids.h"
 
-RemoteVessel::RemoteVessel(Adafruit_SSD1306 *display)
+RemotePlatform::RemotePlatform(Adafruit_SSD1306 *display)
 {
-    found_device = false;
+    this->found_device = false;
     this->display = display;
 }
 
-void RemoteVessel::start()
+void RemotePlatform::start()
 {
     NimBLEDevice::init("GentleBombDetonator");
     NimBLEDevice::setPower(ESP_PWR_LVL_P9);
@@ -37,7 +37,7 @@ void RemoteVessel::start()
     this->client = NimBLEDevice::createClient();
 }
 
-void RemoteVessel::update()
+void RemotePlatform::update()
 {
     if (!this->client->isConnected()) {
         this->display->clearDisplay();
@@ -56,30 +56,30 @@ void RemoteVessel::update()
 
             this->client->connect(this->device);
             this->client->setConnectionParams(6, 12, 0, 100);
-            this->service = this->client->getService(VESSEL_UUID);
+            this->service = this->client->getService(SERVICE_UUID);
             for (int i = 0; i < CHARACTERISTIC_UUID_COUNT; i++) {
                 this->characteristics[i] = this->service->getCharacteristic(CHARACTERISTIC_UUIDS[i]);
                 if (this->characteristics[i] != nullptr && this->characteristics[i]->canNotify())
-                    this->characteristics[i]->subscribe(true, std::bind(&RemoteVessel::on_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+                    this->characteristics[i]->subscribe(true, std::bind(&RemotePlatform::on_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
                 this->values[i] = 0.0;
             }
         }
     }
 }
 
-void RemoteVessel::onResult(const NimBLEAdvertisedDevice *device)
+void RemotePlatform::onResult(const NimBLEAdvertisedDevice *device)
 {
 #if DEBUG_MODE
     Serial.printf("Device: %s\n", device->toString().c_str());
 #endif
-    if (device->getServiceUUID().toString() != VESSEL_UUID)
+    if (device->getServiceUUID().toString() != SERVICE_UUID)
         return;
     
     this->device = (NimBLEAdvertisedDevice *)device;
     this->found_device = true;
 }
 
-void RemoteVessel::on_notification(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify)
+void RemotePlatform::on_notification(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify)
 {
     if (length != sizeof(float))
         return;
@@ -90,7 +90,7 @@ void RemoteVessel::on_notification(NimBLERemoteCharacteristic *characteristic, u
     }
 }
 
-NimBLERemoteCharacteristic *RemoteVessel::get_characteristic(const char *uuid)
+NimBLERemoteCharacteristic *RemotePlatform::get_characteristic(const char *uuid)
 {
     for (int i = 0; i < CHARACTERISTIC_UUID_COUNT; i++) {
         if (strcmp(CHARACTERISTIC_UUIDS[i], uuid) == 0)
@@ -100,7 +100,7 @@ NimBLERemoteCharacteristic *RemoteVessel::get_characteristic(const char *uuid)
     return nullptr;
 }
 
-float RemoteVessel::get(const char *uuid)
+float RemotePlatform::get(const char *uuid)
 {
     for (int i = 0; i < CHARACTERISTIC_UUID_COUNT; i++) {
         if (strcmp(CHARACTERISTIC_UUIDS[i], uuid) == 0)
@@ -110,7 +110,7 @@ float RemoteVessel::get(const char *uuid)
     return 0.0;
 }
 
-void RemoteVessel::set(const char *uuid, float value, bool with_response)
+void RemotePlatform::set(const char *uuid, float value, bool with_response)
 {
     if (!this->client->isConnected())
         return;

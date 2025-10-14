@@ -16,7 +16,7 @@
  */
 
 #include "auto_controller.h"
-#include "vessel.h"
+#include "service.h"
 #include "config.h"
 
 AutoController::AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo)
@@ -54,7 +54,7 @@ void AutoController::update(float dt)
     }
 }
 
-void AutoController::mode_changed(VesselMode mode)
+void AutoController::mode_changed(ServiceMode mode)
 {
     this->set_mode((float)AutoControlMode::IDLE);
 }

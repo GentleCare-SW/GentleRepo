@@ -34,7 +34,7 @@ public:
 
     void update(float dt) override;
 
-    void mode_changed(VesselMode mode) override;
+    void mode_changed(ServiceMode mode) override;
 
     void set_velocity(float velocity);
 

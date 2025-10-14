@@ -50,7 +50,7 @@ void PressureController::update(float dt)
     this->dimmer->set_voltage(this->voltage);
 }
 
-void PressureController::mode_changed(VesselMode mode)
+void PressureController::mode_changed(ServiceMode mode)
 {
     this->set_reference(0.0);
 }

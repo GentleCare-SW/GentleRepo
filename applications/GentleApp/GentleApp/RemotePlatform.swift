@@ -17,7 +17,7 @@
 
 import CoreBluetooth
 
-enum VesselMode: Float {
+enum PlatformMode: Float {
     case idle = 0.0
     case eversion = 1.0
     case eversionPaused = 2.0
@@ -25,7 +25,7 @@ enum VesselMode: Float {
     case inversionPaused = 4.0
 }
 
-class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+class RemotePlatform: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var bluetoothStatus: String = "Starting..."
     @Published var isConnected: Bool = false
     @Published var connectedDeviceName: String = ""
@@ -39,7 +39,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     @Published var motorTorque: Float?
     @Published var motorError: Float?
     @Published var servoChamber: Float?
-    @Published var mode: VesselMode?
+    @Published var mode: PlatformMode?
     @Published var progress: Float?
     
     private var availablePeripherals: [String:CBPeripheral] = [:]
@@ -82,7 +82,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         
         availableDevices = []
         availablePeripherals = [:]
-        central.scanForPeripherals(withServices: [VESSEL_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
+        central.scanForPeripherals(withServices: [SERVICE_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
     }
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
@@ -119,7 +119,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
     
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         bluetoothStatus = "Connected to device. Discovering services..."
-        peripheral.discoverServices([VESSEL_UUID])
+        peripheral.discoverServices([SERVICE_UUID])
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: (any Error)?) {
@@ -190,7 +190,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         motorTorque = values[MOTOR_TORQUE_UUID]
         motorError = values[MOTOR_ERROR_UUID]
         servoChamber = values[SERVO_CHAMBER_UUID]
-        mode = values[AUTO_CONTROL_MODE_UUID] == nil ? nil : VesselMode(rawValue: values[AUTO_CONTROL_MODE_UUID]!)
+        mode = values[AUTO_CONTROL_MODE_UUID] == nil ? nil : PlatformMode(rawValue: values[AUTO_CONTROL_MODE_UUID]!)
         progress = values[AUTO_CONTROL_PROGRESS_UUID]
     }
     
@@ -204,7 +204,7 @@ class RemoteVessel: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeri
         peripheral!.writeValue(data, for: characteristics[uuid]!, type: .withResponse)
     }
     
-    public func setMode(_ mode: VesselMode) {
+    public func setMode(_ mode: PlatformMode) {
         writeValue(mode.rawValue, for: AUTO_CONTROL_MODE_UUID)
     }
     

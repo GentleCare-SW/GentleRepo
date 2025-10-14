@@ -16,7 +16,7 @@
  */
 
 #include <Arduino.h>
-#include "vessel.h"
+#include "service.h"
 #include "pressure_sensor.h"
 #include "motor_controller.h"
 #include "voltage_dimmer.h"
@@ -27,7 +27,7 @@
 #include "config.h"
 #include "common/uuids.h"
 
-static Vessel vessel;
+static Service service;
 static PressureSensor pressure_sensor(PRESSURE_SENSOR_UUID, PRESSURE_SENSOR_ERROR_UUID, PRESSURE_SENSOR_ADC_PIN, PRESSURE_SENSOR_CONSTANT);
 static MotorController motor_controller(MOTOR_POSITION_UUID, MOTOR_VELOCITY_UUID, MOTOR_TORQUE_UUID, MOTOR_ERROR_UUID, &Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN);
 static VoltageDimmer voltage_dimmer(DIMMER_VOLTAGE_UUID, VOLTAGE_DIMMER_PWM_PIN, VOLTAGE_DIMMER_LEDC_CHANNEL);
@@ -42,23 +42,23 @@ void setup()
     while (!Serial);
 
 #if ENABLE_CONTROL_PANEL
-    vessel.add_peripheral(&control_panel);
+    service.add_peripheral(&control_panel);
 #endif
-    vessel.add_peripheral(&pressure_sensor);
-    vessel.add_peripheral(&voltage_dimmer);
+    service.add_peripheral(&pressure_sensor);
+    service.add_peripheral(&voltage_dimmer);
 #if ENABLE_SERVO
-    vessel.add_peripheral(&servo);
+    service.add_peripheral(&servo);
 #endif
-    vessel.add_peripheral(&pressure_controller);
-    vessel.add_peripheral(&auto_controller);
+    service.add_peripheral(&pressure_controller);
+    service.add_peripheral(&auto_controller);
 #if ENABLE_MOTOR_CONTROLLER
-    vessel.add_peripheral(&motor_controller);
+    service.add_peripheral(&motor_controller);
 #endif
-    vessel.start();
+    service.start();
 }
 
 void loop()
 {
     pressure_sensor.set_calibrating(voltage_dimmer.get_voltage() == 0.0);
-    vessel.update();
+    service.update();
 }

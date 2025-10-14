@@ -15,25 +15,24 @@
  * SOFTWARE.
  */
 
-#include "peripheral.h"
-#include "vessel.h"
+#pragma once
+#include <NimBLEDevice.h>
+#include <functional>
+#include "characteristic.h"
 
-void Peripheral::start()
-{
-}
+#define MAX_CHARACTERISTICS 16
 
-void Peripheral::add_characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter)
-{
-    if (this->characteristic_count < MAX_CHARACTERISTICS)
-        this->characteristics[this->characteristic_count++] = Characteristic(uuid, setter, getter);
-}
+enum class ServiceMode;
 
-void Peripheral::update(float dt)
-{
-    for (int i = 0; i < this->characteristic_count; i++)
-        this->characteristics[i].notify();
-}
+struct Peripheral {
+    Characteristic characteristics[MAX_CHARACTERISTICS];
+    int characteristic_count = 0;
 
-void Peripheral::mode_changed(VesselMode mode)
-{
-}
+    void add_characteristic(const char *uuid, std::function<void(float)> setter, std::function<float()> getter);
+
+    virtual void start();
+
+    virtual void update(float dt);
+
+    virtual void mode_changed(ServiceMode mode);
+};

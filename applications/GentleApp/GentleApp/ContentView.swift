@@ -19,38 +19,38 @@ import SwiftUI
 import Charts
 
 struct ContentView: View {
-    @StateObject private var vessel = RemoteVessel()
+    @StateObject private var platform = RemotePlatform()
     @State private var showDevInfo = false
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    if vessel.isConnected {
-                        StatusHeader(vessel: vessel)
-                        ControlCard(vessel: vessel)
-                        if vessel.servoChamber != nil {
-                            ChamberSelector(vessel: vessel)
+                    if platform.isConnected {
+                        StatusHeader(platform: platform)
+                        ControlCard(platform: platform)
+                        if platform.servoChamber != nil {
+                            ChamberSelector(platform: platform)
                         }
-                        ProgressSection(vessel: vessel)
-                        DeveloperInfoSection(vessel: vessel, expanded: $showDevInfo)
+                        ProgressSection(platform: platform)
+                        DeveloperInfoSection(platform: platform, expanded: $showDevInfo)
                     } else {
-                        AvailableDevicesSection(vessel: vessel)
+                        AvailableDevicesSection(platform: platform)
                     }
                 }
                 .padding(16)
             }
             .background(.appBackground)
-            .navigationTitle(vessel.isConnected ? vessel.connectedDeviceName : "Home Menu")
+            .navigationTitle(platform.isConnected ? platform.connectedDeviceName : "Home Menu")
             .toolbarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    ConnectivityPill(statusText: vessel.bluetoothStatus, isConnected: vessel.isConnected)
+                    ConnectivityPill(statusText: platform.bluetoothStatus, isConnected: platform.isConnected)
                 }
-                if vessel.isConnected {
+                if platform.isConnected {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
-                            vessel.disconnectFromDevice()
+                            platform.disconnectFromDevice()
                             haptic(.soft)
                         } label: {
                             Label("Disconnect", systemImage: "bolt.slash.fill")
@@ -74,44 +74,44 @@ struct ContentView: View {
 }
 
 private struct StatusHeader: View {
-    @ObservedObject var vessel: RemoteVessel
+    @ObservedObject var platform: RemotePlatform
     
     var body: some View {
         Card {
             HStack(alignment: .center, spacing: 12) {
-                StatusDot(isOK: vessel.isConnected)
+                StatusDot(isOK: platform.isConnected)
                     .accessibilityHidden(true)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(vessel.isConnected ? "Connected" : "Not Connected")
+                    Text(platform.isConnected ? "Connected" : "Not Connected")
                         .font(.headline)
-                    if vessel.isConnected && vessel.motorErrorLabel != "" {
-                        Text(vessel.motorErrorLabel)
+                    if platform.isConnected && platform.motorErrorLabel != "" {
+                        Text(platform.motorErrorLabel)
                             .font(.subheadline)
                             .foregroundStyle(.red)
                     }
-                    if vessel.isConnected && vessel.pressureSensorErrorLabel != "" {
-                        Text(vessel.pressureSensorErrorLabel)
+                    if platform.isConnected && platform.pressureSensorErrorLabel != "" {
+                        Text(platform.pressureSensorErrorLabel)
                             .font(.subheadline)
                             .foregroundStyle(.red)
                     }
                 }
                 Spacer(minLength: 12)
                 
-                if vessel.isConnected {
-                    ModeTag(text: vessel.modeDisplay, tone: vessel.modeTone)
+                if platform.isConnected {
+                    ModeTag(text: platform.modeDisplay, tone: platform.modeTone)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Vessel status")
-        .accessibilityValue("\(vessel.isConnected ? "Connected" : "Not connected"), mode \(vessel.modeDisplay)")
+        .accessibilityLabel("platform status")
+        .accessibilityValue("\(platform.isConnected ? "Connected" : "Not connected"), mode \(platform.modeDisplay)")
     }
 }
 
 private struct ControlCard: View {
-    @ObservedObject var vessel: RemoteVessel
+    @ObservedObject var platform: RemotePlatform
     
     var body: some View {
         Card {
@@ -121,7 +121,7 @@ private struct ControlCard: View {
                 
                 HStack(spacing: 12) {
                     Button {
-                        vessel.setMode(vessel.mode == .eversion ? .eversionPaused : .inversionPaused)
+                        platform.setMode(platform.mode == .eversion ? .eversionPaused : .inversionPaused)
                         haptic(.heavy)
                     } label: {
                         Label("Pause", systemImage: "pause.fill")
@@ -129,11 +129,11 @@ private struct ControlCard: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.orange)
-                    .disabled(!vessel.canPause)
+                    .disabled(!platform.canPause)
                     .accessibilityHint("Pauses current motion")
                     
                     Button {
-                        vessel.resumeIfPaused()
+                        platform.resumeIfPaused()
                         haptic(.soft)
                     } label: {
                         Label("Resume", systemImage: "play.fill")
@@ -141,13 +141,13 @@ private struct ControlCard: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.green)
-                    .disabled(!vessel.canResume)
+                    .disabled(!platform.canResume)
                     .accessibilityHint("Resumes motion")
                 }
                 
                 HStack(spacing: 12) {
                     Button {
-                        vessel.setMode(.inversion)
+                        platform.setMode(.inversion)
                         haptic(.rigid)
                     } label: {
                         Label("Invert", systemImage: "arrow.up.right.and.arrow.down.left")
@@ -155,10 +155,10 @@ private struct ControlCard: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.purple)
-                    .disabled(!vessel.canInvert)
+                    .disabled(!platform.canInvert)
                     
                     Button {
-                        vessel.setMode(.eversion)
+                        platform.setMode(.eversion)
                         haptic(.rigid)
                     } label: {
                         Label("Evert", systemImage: "arrow.down.left.and.arrow.up.right")
@@ -166,25 +166,25 @@ private struct ControlCard: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.blue)
-                    .disabled(!vessel.canEvert)
+                    .disabled(!platform.canEvert)
                 }
                 
                 Button {
-                    vessel.setMode(.idle)
+                    platform.setMode(.idle)
                     haptic(.light)
                 } label: {
                     Label("Stop", systemImage: "stop.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
-                .disabled(!vessel.isConnected || vessel.mode == .idle)
+                .disabled(!platform.isConnected || platform.mode == .idle)
             }
         }
     }
 }
 
 private struct ChamberSelector: View {
-    @ObservedObject var vessel: RemoteVessel
+    @ObservedObject var platform: RemotePlatform
     
     var body: some View {
         Card {
@@ -194,25 +194,25 @@ private struct ChamberSelector: View {
                 
                 HStack(spacing: 12) {
                     SelectablePill(title: "Chamber 0",
-                                   isSelected: vessel.servoChamber == 0,
-                                   action: { vessel.setChamber(0); haptic(.heavy) })
-                    .disabled(!vessel.canSelectChamber)
+                                   isSelected: platform.servoChamber == 0,
+                                   action: { platform.setChamber(0); haptic(.heavy) })
+                    .disabled(!platform.canSelectChamber)
                     
                     SelectablePill(title: "Chamber 1",
-                                   isSelected: vessel.servoChamber == 1,
-                                   action: { vessel.setChamber(1); haptic(.heavy) })
-                    .disabled(!vessel.canSelectChamber)
+                                   isSelected: platform.servoChamber == 1,
+                                   action: { platform.setChamber(1); haptic(.heavy) })
+                    .disabled(!platform.canSelectChamber)
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel("Chamber selection")
-                .accessibilityValue(vessel.servoChamber == nil ? "None" : "Chamber \(vessel.servoChamber!)")
+                .accessibilityValue(platform.servoChamber == nil ? "None" : "Chamber \(platform.servoChamber!)")
             }
         }
     }
 }
 
 private struct ProgressSection: View {
-    @ObservedObject var vessel: RemoteVessel
+    @ObservedObject var platform: RemotePlatform
     
     var body: some View {
         Card {
@@ -220,29 +220,29 @@ private struct ProgressSection: View {
                 Text("Progress")
                     .font(.title3).bold()
                 
-                let value = vessel.progress ?? 0
+                let value = platform.progress ?? 0
                 ProgressView(value: value, total: 1.0)
                     .progressViewStyle(.linear)
                 
                 HStack {
-                    Text(vessel.progressLabel)
+                    Text(platform.progressLabel)
                         .font(.subheadline).bold()
                     Spacer()
-                    if vessel.isMoving {
+                    if platform.isMoving {
                         AnimatedDot()
                             .accessibilityHidden(true)
                     }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("Progress")
-                .accessibilityValue(vessel.progressLabel)
+                .accessibilityValue(platform.progressLabel)
             }
         }
     }
 }
 
 private struct AvailableDevicesSection: View {
-    @ObservedObject var vessel: RemoteVessel
+    @ObservedObject var platform: RemotePlatform
     
     var body: some View {
         Card {
@@ -250,7 +250,7 @@ private struct AvailableDevicesSection: View {
                 Text("Available Devices")
                     .font(.title3).bold()
                 
-                if vessel.availableDevices.isEmpty {
+                if platform.availableDevices.isEmpty {
                     HStack(spacing: 8) {
                         ProgressView()
                         Text("Searching…")
@@ -260,9 +260,9 @@ private struct AvailableDevicesSection: View {
                     .accessibilityLabel("Searching for devices")
                 } else {
                     LazyVStack(spacing: 10) {
-                        ForEach(vessel.availableDevices, id: \.self) { name in
+                        ForEach(platform.availableDevices, id: \.self) { name in
                             Button {
-                                vessel.connectToDevice(name)
+                                platform.connectToDevice(name)
                                 haptic(.light)
                             } label: {
                                 HStack(spacing: 10) {
@@ -338,7 +338,7 @@ private struct LiveMetricChart: View {
 }
 
 private struct DeveloperInfoSection: View {
-    @ObservedObject var vessel: RemoteVessel
+    @ObservedObject var platform: RemotePlatform
     @Binding var expanded: Bool
     
     @State var voltageSliderValue: Float = 0.0
@@ -354,16 +354,16 @@ private struct DeveloperInfoSection: View {
         Card {
             DisclosureGroup(isExpanded: $expanded) {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
-                    DevRow("Air Pressure (PSI)", vessel.airPressure, suffix: nil, formatting: .number)
-                    DevRow("Pressure Sensor Error", vessel.pressureSensorError, suffix: nil, formatting: .integer)
-                    DevRow("Voltage (V)", vessel.voltage != nil ? vessel.voltage! : nil, suffix: nil, formatting: .number)
-                    DevRow("Motor Position (rad)", vessel.motorPosition, suffix: nil, formatting: .number)
-                    DevRow("Motor Velocity (rad/s)", vessel.motorVelocity, suffix: nil, formatting: .number)
-                    DevRow("Motor Torque (Nm)", vessel.motorTorque, suffix: nil, formatting: .number)
-                    DevRow("Motor Error", vessel.motorError, suffix: nil, formatting: .integer)
-                    DevRow("Servo Chamber", vessel.servoChamber, suffix: nil, formatting: .integer)
-                    DevRow("Mode", vessel.mode?.rawValue, suffix: nil, formatting: .string)
-                    DevRow("Bluetooth Status", vessel.bluetoothStatus, suffix: nil, formatting: .string)
+                    DevRow("Air Pressure (PSI)", platform.airPressure, suffix: nil, formatting: .number)
+                    DevRow("Pressure Sensor Error", platform.pressureSensorError, suffix: nil, formatting: .integer)
+                    DevRow("Voltage (V)", platform.voltage != nil ? platform.voltage! : nil, suffix: nil, formatting: .number)
+                    DevRow("Motor Position (rad)", platform.motorPosition, suffix: nil, formatting: .number)
+                    DevRow("Motor Velocity (rad/s)", platform.motorVelocity, suffix: nil, formatting: .number)
+                    DevRow("Motor Torque (Nm)", platform.motorTorque, suffix: nil, formatting: .number)
+                    DevRow("Motor Error", platform.motorError, suffix: nil, formatting: .integer)
+                    DevRow("Servo Chamber", platform.servoChamber, suffix: nil, formatting: .integer)
+                    DevRow("Mode", platform.mode?.rawValue, suffix: nil, formatting: .string)
+                    DevRow("Bluetooth Status", platform.bluetoothStatus, suffix: nil, formatting: .string)
                 }
                 .padding(.top, 8)
 
@@ -373,7 +373,7 @@ private struct DeveloperInfoSection: View {
                         Spacer()
                         Button(isPlotPaused ? "Resume" : "Pause") { isPlotPaused.toggle() }
                             .buttonStyle(.bordered)
-                            .disabled(!vessel.isConnected)
+                            .disabled(!platform.isConnected)
                             .accessibilityHint("Pause or resume live chart updates")
                     }
 
@@ -406,12 +406,12 @@ private struct DeveloperInfoSection: View {
                         get: { voltageSliderValue },
                         set: {
                             voltageSliderValue = $0
-                            vessel.setVoltage($0)
+                            platform.setVoltage($0)
                         }
                     )
                     
                     Slider(value: voltageBinding, in: 0...72.0, step: 2.0) {}
-                    .disabled(!vessel.isConnected)
+                    .disabled(!platform.isConnected)
                     
                     HStack {
                         Text("Pressure: \(pressureSliderValue, specifier: "%.2f") PSI")
@@ -422,12 +422,12 @@ private struct DeveloperInfoSection: View {
                         get: { pressureSliderValue },
                         set: {
                             pressureSliderValue = $0
-                            vessel.setPressureSetpoint($0)
+                            platform.setPressureSetpoint($0)
                         }
                     )
                     
                     Slider(value: pressureBinding, in: 0...1.0, step: 0.005) {}
-                    .disabled(!vessel.isConnected)
+                    .disabled(!platform.isConnected)
                     
                     HStack(spacing: 12) {
                         Button {
@@ -437,12 +437,12 @@ private struct DeveloperInfoSection: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.purple)
-                        .disabled(!vessel.isConnected)
+                        .disabled(!platform.isConnected)
                         .onLongPressGesture(minimumDuration: 0, maximumDistance: 30, pressing: { isPressing in
                                 if isPressing {
-                                    vessel.setMotorVelocity(-20.0)
+                                    platform.setMotorVelocity(-20.0)
                                 } else {
-                                    vessel.setMotorVelocity(0.0)
+                                    platform.setMotorVelocity(0.0)
                                 }
                             },
                             perform: {})
@@ -454,12 +454,12 @@ private struct DeveloperInfoSection: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.blue)
-                        .disabled(!vessel.isConnected)
+                        .disabled(!platform.isConnected)
                         .onLongPressGesture(minimumDuration: 0, maximumDistance: 30, pressing: { isPressing in
                                 if isPressing {
-                                    vessel.setMotorVelocity(20.0)
+                                    platform.setMotorVelocity(20.0)
                                 } else {
-                                    vessel.setMotorVelocity(0.0)
+                                    platform.setMotorVelocity(0.0)
                                 }
                             },
                             perform: {})
@@ -474,16 +474,16 @@ private struct DeveloperInfoSection: View {
             }
         }
         .accessibilityElement(children: .contain)
-        .task(id: vessel.isConnected) {
-            guard vessel.isConnected else { return }
-            while vessel.isConnected {
+        .task(id: platform.isConnected) {
+            guard platform.isConnected else { return }
+            while platform.isConnected {
                 if !isPlotPaused {
                     let now = Date()
                     await MainActor.run {
-                        if let pressure = vessel.airPressure {
+                        if let pressure = platform.airPressure {
                             append(.init(time: now, value: Double(pressure)), to: &chart1Series)
                         }
-                        if let torque = vessel.motorTorque {
+                        if let torque = platform.motorTorque {
                             append(.init(time: now, value: Double(torque)), to: &chart2Series)
                         }
                     }
@@ -491,7 +491,7 @@ private struct DeveloperInfoSection: View {
                 try? await Task.sleep(nanoseconds: UInt64(sampleInterval * 1_000_000_000))
             }
         }
-        .onChange(of: vessel.isConnected) { wasConnected, connected in
+        .onChange(of: platform.isConnected) { wasConnected, connected in
             if !connected {
                 chart1Series.removeAll()
                 chart2Series.removeAll()
@@ -687,7 +687,7 @@ private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
     gen.impactOccurred()
 }
 
-private extension RemoteVessel {
+private extension RemotePlatform {
     var modeDisplay: String {
         if mode == nil {
             return ""

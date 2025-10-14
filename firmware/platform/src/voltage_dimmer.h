@@ -16,36 +16,26 @@
  */
 
 #pragma once
-#include "common/uuids.h"
-#include <NimBLEDevice.h>
-#include <Adafruit_SSD1306.h>
+#include "peripheral.h"
 
-class RemoteVessel: public NimBLEScanCallbacks {
+class VoltageDimmer: public Peripheral {
 public:
-    RemoteVessel(Adafruit_SSD1306 *display);
+    VoltageDimmer(const char *uuid, int32_t pwm_pin, int32_t ledc_channel);
 
-    void start();
+    void start() override;
 
-    void update();
+    void mode_changed(ServiceMode mode) override;
 
-    void onResult(const NimBLEAdvertisedDevice *device) override;
+    void set_voltage(float voltage);
 
-    void on_notification(NimBLERemoteCharacteristic *characteristic, uint8_t *data, size_t length, bool isNotify);
-
-    float get(const char *uuid);
-
-    void set(const char *uuid, float velocity, bool with_response = false);
+    float get_voltage();
 
 private:
-    NimBLERemoteCharacteristic *get_characteristic(const char *uuid);
+    float pwm_percentage_to_voltage(float percentage);
 
-    float values[CHARACTERISTIC_UUID_COUNT];
+    float voltage_to_pwm_percentage(float voltage);
 
-    Adafruit_SSD1306 *display;
-    NimBLEScan *scanner;
-    NimBLEClient *client;
-    bool found_device;
-    NimBLEAdvertisedDevice *device;
-    NimBLERemoteService *service;
-    NimBLERemoteCharacteristic *characteristics[CHARACTERISTIC_UUID_COUNT];
+    int32_t pwm_pin;
+    int32_t ledc_channel;
+    float voltage;
 };

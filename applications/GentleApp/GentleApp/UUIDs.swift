@@ -17,7 +17,7 @@
 
 import CoreBluetooth
 
-public let VESSEL_UUID = CBUUID(string: "8e349df3-4f3a-40b7-92e7-e5fe3db9cbb7")
+public let SERVICE_UUID = CBUUID(string: "8e349df3-4f3a-40b7-92e7-e5fe3db9cbb7")
 public let PRESSURE_SENSOR_UUID = CBUUID(string: "f7ec0786-e220-48d6-a837-8b4cc1762ed9")
 public let PRESSURE_SENSOR_ERROR_UUID = CBUUID(string: "9676e807-95b2-45f1-a466-55a15e55d6a5")
 public let DIMMER_VOLTAGE_UUID = CBUUID(string: "3c50614b-4652-4a59-9076-9bbab527b26d")

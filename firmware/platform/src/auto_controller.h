@@ -16,26 +16,43 @@
  */
 
 #pragma once
+
 #include "peripheral.h"
+#include "voltage_dimmer.h"
+#include "motor_controller.h"
+#include "pressure_sensor.h"
+#include "servo.h"
+#include "tension_controller.h"
 
-class VoltageDimmer: public Peripheral {
+enum class AutoControlMode {
+    IDLE,
+    EVERSION,
+    EVERSION_PAUSED,
+    INVERSION,
+    INVERSION_PAUSED,
+};
+
+class AutoController: public Peripheral {
 public:
-    VoltageDimmer(const char *uuid, int32_t pwm_pin, int32_t ledc_channel);
+    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo);
 
-    void start() override;
+    void update(float dt) override;
 
-    void mode_changed(VesselMode mode) override;
+    void mode_changed(ServiceMode mode) override;
 
-    void set_voltage(float voltage);
+    void set_mode(float mode);
 
-    float get_voltage();
+    float get_mode();
+
+    float get_progress();
+
+    void toggle_paused();
 
 private:
-    float pwm_percentage_to_voltage(float percentage);
-
-    float voltage_to_pwm_percentage(float voltage);
-
-    int32_t pwm_pin;
-    int32_t ledc_channel;
-    float voltage;
+    VoltageDimmer *dimmer;
+    MotorController *motor;
+    PressureSensor *pressure_sensor;
+    Servo *servo;
+    AutoControlMode mode;
+    TensionController tension_controller;
 };
