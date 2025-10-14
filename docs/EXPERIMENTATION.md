@@ -81,6 +81,7 @@ $$P=0.011W+0.52.$$
 
 **Conclusion**: 
 
+The difference between pressure needed to burrow under the shoulders vs hip shows to be negligible (at least until we can collect data on higher hip weights), indicating that the main challenge in burrowing underneath the hip is achieving high pressures despite leakage in the sheet. 
 
 ## Experiment 6: Pressure over Time as a Function of Leak
 
@@ -92,5 +93,3 @@ $$P=0.011W+0.52.$$
 
 ## Analysis
 
-140lbs
-60lbs
