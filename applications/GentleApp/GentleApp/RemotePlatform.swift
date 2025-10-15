@@ -16,6 +16,7 @@
  */
 
 import CoreBluetooth
+import SwiftUI
 
 enum PlatformMode: Float {
     case idle = 0.0
@@ -222,5 +223,90 @@ class RemotePlatform: NSObject, ObservableObject, CBCentralManagerDelegate, CBPe
     
     public func setMotorVelocity(_ velocity: Float) {
         writeValue(velocity, for: MOTOR_VELOCITY_UUID)
+    }
+    
+    var modeDisplay: String {
+        if mode == nil {
+            return ""
+        }
+        switch mode! {
+            case .idle: return "Idle"
+            case .eversion: return "Everting"
+            case .eversionPaused: return "Paused"
+            case .inversion: return "Inverting"
+            case .inversionPaused: return "Paused"
+        }
+    }
+    
+    var isMoving: Bool {
+        switch mode {
+        case .some(.eversion), .some(.inversion): return true
+        default: return false
+        }
+    }
+    var isPaused: Bool {
+        switch mode {
+        case .some(.eversionPaused), .some(.inversionPaused): return true
+        default: return false
+        }
+    }
+    
+    var canPause: Bool {
+        isConnected && isMoving
+    }
+    var canResume: Bool {
+        isConnected && isPaused
+    }
+    var canEvert: Bool {
+        isConnected && !(mode == .eversion || mode == .eversionPaused)
+    }
+    var canInvert: Bool {
+        isConnected && !(mode == .inversion || mode == .inversionPaused)
+    }
+    var canSelectChamber: Bool {
+        isConnected && !isMoving
+    }
+    
+    var progressLabel: String {
+        let pct = Int(round((progress ?? 0) * 100))
+        return "\(pct)%"
+    }
+    
+    var motorErrorLabel: String {
+        if motorError == 1.0 {
+            return "ERROR: Motor not responding."
+        } else if motorError == 2.0 {
+            return "ERROR: Motor calibration failed."
+        } else if motorError == 3.0 {
+            return "ERROR: Motor control failed."
+        }
+        
+        return ""
+    }
+    
+    var pressureSensorErrorLabel: String {
+        if pressureSensorError == 1.0 {
+            return "ERROR: Pressure sensor disconnected."
+        }
+        
+        return ""
+    }
+    
+    func resumeIfPaused() {
+        switch mode {
+        case .some(.eversionPaused): setMode(.eversion)
+        case .some(.inversionPaused): setMode(.inversion)
+        default: break
+        }
+    }
+    
+    var modeTone: Color {
+        switch mode {
+        case .some(.idle): return .gray
+        case .some(.eversion): return .blue
+        case .some(.inversion): return .purple
+        case .some(.eversionPaused), .some(.inversionPaused): return .orange
+        case .none: return .gray
+        }
     }
 }
