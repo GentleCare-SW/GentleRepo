@@ -63,7 +63,7 @@ void PressureSensor::update(float dt)
     this->pressure_derivative = (this->moving_pressure - previous_moving_pressure) / dt;
 
     if (this->calibrating)
-        this->pressure_offset = this->pressure_offset * alpha + this->moving_pressure * (1.0 - alpha);
+        this->pressure_offset = this->moving_pressure;
 
     float std = sqrt(max(0.0f, this->moving_squared_pressure - this->moving_pressure * this->moving_pressure));
     if (this->error == PressureSensorError::NONE && std > 10.0)

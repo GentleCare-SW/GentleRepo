@@ -38,3 +38,4 @@ The GentleRemote consists of a battery that provides 5V DC power to a microcontr
 - OLED Display: https://www.amazon.com/dp/B0D2RMQQHR?ref=fed_asin_title
 - Knobs: https://www.amazon.com/dp/B07B68H6R8?ref=fed_asin_title
 - Buttons: https://www.amazon.com/dp/B083JWJPW5?ref=fed_asin_title&th=1
+- Molex connectors: https://www.amazon.com/dp/B0753VW1B4?ref=fed_asin_title https://www.amazon.com/dp/B0753VW1B4?ref=fed_asin_title

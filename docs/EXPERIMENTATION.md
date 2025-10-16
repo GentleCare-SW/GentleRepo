@@ -8,6 +8,8 @@ This document outlines the protocol and results for the experiments that have be
 
 **Results**: 
 
+https://www.desmos.com/calculator/cczbvugbbo
+
 ![](images/voltage_vs_pwm.png)
 
 The black dots are the raw data points collected, and the red curve is a parametric fit for data points:
@@ -25,6 +27,8 @@ $$V_{\text{max}}\approx118.72,\quad b\approx0.07229.$$
 **Experiment**: This experiment determines the relationship between pressure inside the platform/sheet and voltage supplied to the air pump. The experiment was conducted at three different conditions: fully inverted, halfway inverted, and fully everted. For each condition, the experiment was conducted by recording a 20-30 second average of the pressure at each voltage level.
 
 **Results**:
+
+https://www.desmos.com/calculator/t076bu6jsy
 
 ![](images/pressure_vs_voltage.png)
 
@@ -44,6 +48,8 @@ respectively.
 
 **Results**:
 
+https://www.desmos.com/calculator/ozc46w6fde
+
 ![](images/pressure_vs_weight.png)
 
 The line of best fit (red) is given by:
@@ -58,6 +64,8 @@ $$P=0.0046W+0.070.$$
 
 **Results**:
 
+https://www.desmos.com/calculator/oniwtotm4w
+
 ![](images/torque_vs_pressure.png)
 
 The line of best fit is given by:
@@ -71,6 +79,8 @@ $$\tau=1.82P+1.04.$$
 **Experiment**: This experiment determines how much pressure is needed to burrow under a given weight (concentrated roughly in a 2ftx2ft test-bed). The test-bed was set to a 45 degree angle and the pressure inside the GentleGlide was increased until it was able to burrow underneath the test-bed. There were two conditions tested: GentleGlide placed right next to the test-bed (representing burrowing under the shoulders) and GentleGlide placed ~2.5ft before the test-bed (representing burrowing under the hip).
 
 **Results**:
+
+https://www.desmos.com/calculator/6cjsuwd00v
 
 ![](images/pressure_vs_weight_burrowing.png)
 
