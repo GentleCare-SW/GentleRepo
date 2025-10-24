@@ -24,6 +24,8 @@ public:
 
     void start() override;
 
+    void update(float dt) override;
+
     void set_angle(float angle);
 
     float get_angle();
@@ -35,5 +37,8 @@ public:
 private:
     int32_t pwm_pin;
     int32_t ledc_channel;
+    float goal_angle;
     float angle;
+    float chamber;
+    uint32_t last_update_time;
 };

@@ -20,12 +20,15 @@
 
 static const float MAX_MICROSECONDS = 2500.0;
 static const float MIN_MICROSECONDS = 500.0;
+static const float SERVO_UPDATE_INTERVAL = 0.1;
 
 Servo::Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, int32_t ledc_channel)
 {
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
+    this->goal_angle = 0.0;
     this->angle = 0.0;
+    this->chamber = 0.0;
 
     this->add_characteristic(angle_uuid, std::bind(&Servo::set_angle, this, std::placeholders::_1), std::bind(&Servo::get_angle, this));
     this->add_characteristic(chamber_uuid, std::bind(&Servo::set_chamber, this, std::placeholders::_1), std::bind(&Servo::get_chamber, this));
@@ -37,6 +40,23 @@ void Servo::start()
     ledcSetup(this->ledc_channel, 400, 16);
     ledcAttachPin(this->pwm_pin, this->ledc_channel);
     this->set_chamber(0.0);
+    this->last_update_time = micros();
+
+}
+
+void Servo::update(float dt)
+{
+    Peripheral::update(dt);
+
+    uint32_t current_time = micros();
+    if (current_time - this->last_update_time > (uint32_t)(SERVO_UPDATE_INTERVAL * 1e6)) {
+        dt = (current_time - this->last_update_time) / 1e6;
+        this->last_update_time = current_time;
+        if (this->goal_angle != this->angle){
+            this->angle = (this->goal_angle-this->angle)>0 ? this->angle+1 : this->angle-1;
+            this->set_angle(this->angle);
+        }
+    }
 }
 
 void Servo::set_angle(float angle)
@@ -53,11 +73,13 @@ float Servo::get_angle()
 
 void Servo::set_chamber(float chamber)
 {
-    this->angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
-    this->set_angle(this->angle);
+    this->goal_angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
+    //this->set_angle(this->angle);
 }
 
 float Servo::get_chamber()
 {
-    return this->angle == SERVO_ANGLE2 ? 1.0 : 0.0;
+    //return this->angle;
+    return this->goal_angle == SERVO_ANGLE2 ? 1.0 : 0.0;
+    //return this->chamber;
 }
