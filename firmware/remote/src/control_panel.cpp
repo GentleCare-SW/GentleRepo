@@ -126,10 +126,21 @@ void ControlPanel::update_display()
     else
         this->display->printf("Unknown\n");
     
-    if (this->platform->get(MOTOR_ERROR_UUID) != 0.0)
-        this->display->printf("MOTOR ERROR: %i\n", (int)this->platform->get(MOTOR_ERROR_UUID));
-    else if (this->platform->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
-        this->display->printf("PRESSURE ERROR: %i\n", (int)this->platform->get(PRESSURE_SENSOR_ERROR_UUID));
+    switch ((int)this->platform->get(MOTOR_ERROR_UUID)){
+        case 1:
+            this->display->printf("MOTOR NOT RESPONDING");
+            break;
+        case 2:
+            this->display->printf("MOTOR CALIBRATION ERROR");
+            break;
+        case 3:
+            this->display->printf("MOTOR CONTROL ERROR");
+            break;
+        default:
+            if (this->platform->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
+                this->display->printf("PRESSURE ERROR: %i\n", (int)this->platform->get(PRESSURE_SENSOR_ERROR_UUID));
+    }
+    
 
 #if DEVELOPER_SCREEN
     this->display->setCursor(0, 16);

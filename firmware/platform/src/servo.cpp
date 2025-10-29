@@ -20,7 +20,7 @@
 
 static const float MAX_MICROSECONDS = 2500.0;
 static const float MIN_MICROSECONDS = 500.0;
-static const float SERVO_UPDATE_INTERVAL = 0.1;
+static const float SERVO_UPDATE_INTERVAL = 0.2;
 
 Servo::Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, int32_t ledc_channel)
 {

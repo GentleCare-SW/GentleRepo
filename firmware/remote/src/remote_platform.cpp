@@ -53,7 +53,12 @@ void RemotePlatform::update()
         if (this->found_device) {
             this->found_device = false;
             this->scanner->stop();
-
+            this->display->clearDisplay();
+            this->display->setCursor(0, 0);
+            this->display->printf("Connected to \n", this->device->getName());
+            this->display->display();
+            delay(500);
+            
             this->client->connect(this->device);
             this->client->setConnectionParams(6, 12, 0, 100);
             this->service = this->client->getService(SERVICE_UUID);
@@ -74,7 +79,6 @@ void RemotePlatform::onResult(const NimBLEAdvertisedDevice *device)
 #endif
     if (device->getServiceUUID().toString() != SERVICE_UUID)
         return;
-    
     this->device = (NimBLEAdvertisedDevice *)device;
     this->found_device = true;
 }
