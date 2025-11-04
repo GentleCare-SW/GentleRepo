@@ -16,6 +16,7 @@
  */
 
 #include "control_panel.h"
+#include "config.h"
 
 ControlPanel::ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display)
 {

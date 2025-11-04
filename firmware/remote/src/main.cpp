@@ -19,10 +19,12 @@
 #include <Adafruit_SSD1306.h>
 #include "control_panel.h"
 #include "remote_platform.h"
+#include "config.h"
 
 static Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
 static RemotePlatform platform(&display);
 static ControlPanel panel(&platform, &display);
+long start_millis;  
 
 void setup()
 {
@@ -44,9 +46,11 @@ void setup()
 }
 
 void loop()
-{
+{   
+    start_millis = millis();
     platform.update();
     panel.update();
+    Serial.println(millis()-start_millis);
 
 #if DEBUG_MODE
     Serial.printf(">Motor Torque (Nm): %f\n", platform.get(MOTOR_TORQUE_UUID));

@@ -20,10 +20,10 @@
 
 static const int32_t ADC_MAX_VALUE = 4095;
 static const float ADC_VOLTAGE_REF = 5.0;
-static const float MIN_VOLTAGE = 0.5; 
-static const float MAX_VOLTAGE = 4.5;
+static const float MIN_VOLTAGE = 0.0; 
+static const float MAX_VOLTAGE = 2.5;
 static const float MIN_PSI = 0.0;
-static const float MAX_PSI = 100.0;
+static const float MAX_PSI = 140.0;
 
 PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid, int32_t adc_pin, float pressure_constant)
 {

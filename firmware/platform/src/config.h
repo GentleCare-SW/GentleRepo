@@ -20,6 +20,7 @@
 #if PLATFORM_TYPE == 0
 
 #define DEVICE_NAME "GentleWedge"
+#define ADVERTISED_NAME "Wedge"
 
 #define PRESSURE_SENSOR_ADC_PIN 4
 #define PRESSURE_SENSOR_CONSTANT 0.7
@@ -62,6 +63,7 @@
 #elif PLATFORM_TYPE == 1
 
 #define DEVICE_NAME "GentleGlide"
+#define ADVERTISED_NAME "Glide"
 
 #define PRESSURE_SENSOR_ADC_PIN 4
 #define PRESSURE_SENSOR_CONSTANT 1.4

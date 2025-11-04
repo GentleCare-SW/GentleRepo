@@ -16,6 +16,7 @@
  */
 
 #include <Arduino.h>
+#include "config.h"
 #include "remote_platform.h"
 #include "common/uuids.h"
 
@@ -55,9 +56,12 @@ void RemotePlatform::update()
             this->scanner->stop();
             this->display->clearDisplay();
             this->display->setCursor(0, 0);
-            this->display->printf("Connected to \n", this->device->getName());
+            if (this->device->getName() == "Glide")
+                this->display->println("Connected to \nGentleGlide");
+            else if (this->device->getName() == "Wedge")
+                this->display->println("Connected to \nGentleWedge");
+
             this->display->display();
-            delay(500);
             
             this->client->connect(this->device);
             this->client->setConnectionParams(6, 12, 0, 100);
@@ -78,6 +82,8 @@ void RemotePlatform::onResult(const NimBLEAdvertisedDevice *device)
     Serial.printf("Device: %s\n", device->toString().c_str());
 #endif
     if (device->getServiceUUID().toString() != SERVICE_UUID)
+        return;
+    if (device->getName() != CONNECTION_NAME)
         return;
     this->device = (NimBLEAdvertisedDevice *)device;
     this->found_device = true;

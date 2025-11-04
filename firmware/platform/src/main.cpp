@@ -60,5 +60,8 @@ void setup()
 void loop()
 {
     pressure_sensor.set_calibrating(voltage_dimmer.get_voltage() == 0.0);
+    
     service.update();
+    Serial.print(">angle:");
+    Serial.println(servo.get_angle());
 }

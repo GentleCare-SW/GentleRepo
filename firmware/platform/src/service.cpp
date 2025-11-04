@@ -57,6 +57,7 @@ void Service::start()
     this->ble_service->start();
     NimBLEAdvertising *advertising = NimBLEDevice::getAdvertising();
     advertising->addServiceUUID(this->ble_service->getUUID());
+    advertising->setName(ADVERTISED_NAME);
     NimBLEDevice::startAdvertising();
 
     this->last_update_time = micros();
