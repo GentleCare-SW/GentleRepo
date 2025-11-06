@@ -27,7 +27,7 @@ Servo::Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, 
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
     this->goal_angle = 0.0;
-    this->angle = 0.0;
+    this->angle = SERVO_ANGLE1;
     this->chamber = 0.0;
 
     this->add_characteristic(angle_uuid, std::bind(&Servo::set_angle, this, std::placeholders::_1), std::bind(&Servo::get_angle, this));
@@ -52,10 +52,10 @@ void Servo::update(float dt)
     if (current_time - this->last_update_time > (uint32_t)(SERVO_UPDATE_INTERVAL * 1e6)) {
         dt = (current_time - this->last_update_time) / 1e6;
         this->last_update_time = current_time;
-        if (this->goal_angle != this->angle){
-            this->angle = (this->goal_angle-this->angle)>0 ? this->angle+1 : this->angle-1;
-            this->set_angle(this->angle);
-        }
+        // if (this->goal_angle != this->angle){
+        //     this->angle = (this->goal_angle-this->angle)>0 ? this->angle+1 : this->angle-1;
+        //     this->set_angle(this->angle);
+        // }
     }
 }
 

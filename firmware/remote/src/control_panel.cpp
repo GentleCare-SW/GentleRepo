@@ -65,7 +65,12 @@ void ControlPanel::update_buttons()
                 else if (mode == 4.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
             } else if (i == (int)ButtonType::CHAMBER) {
-                this->platform->set(SERVO_CHAMBER_UUID, 1.0 - this->platform->get(SERVO_CHAMBER_UUID));
+                float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
+                if (SERVO_ANGLE2-prev_angle > prev_angle-SERVO_ANGLE1)
+                    this->platform->set(SERVO_ANGLE_UUID, SERVO_ANGLE2);
+                else
+                    this->platform->set(SERVO_ANGLE_UUID, SERVO_ANGLE1);
+                //this->platform->set(SERVO_CHAMBER_UUID, 1.0 - this->platform->get(SERVO_CHAMBER_UUID));
             } else if (i == (int)ButtonType::STOP_AIR) {
                 this->platform->set(DIMMER_VOLTAGE_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -106,6 +111,16 @@ void ControlPanel::update_knobs()
 #endif
     }
     this->last_knob_positions[(int)KnobType::AIR] = air_knob_count;
+
+    int64_t servo_knob_count = this->knobs[(int)KnobType::SERVO].getCount();
+    int64_t servo_knob_difference = servo_knob_count - this->last_knob_positions[(int)KnobType::SERVO];
+    if (servo_knob_difference != 0) {
+        float angle = this->platform->get(SERVO_ANGLE_UUID);
+        angle += servo_knob_difference * 0.5;
+        angle = constrain(angle, SERVO_ANGLE1, SERVO_ANGLE2);
+        this->platform->set(SERVO_ANGLE_UUID, angle);
+    }
+    this->last_knob_positions[(int)KnobType::SERVO] = servo_knob_count;
 }
 
 void ControlPanel::update_display()
@@ -145,7 +160,7 @@ void ControlPanel::update_display()
 
 #if DEVELOPER_SCREEN
     this->display->setCursor(0, 16);
-    this->display->printf("Chamber: %i\n", (int)this->platform->get(SERVO_CHAMBER_UUID));
+    this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-5);
     this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
     this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
 #else

@@ -38,8 +38,8 @@ void setup()
     display.display();
     
     static uint32_t buttons[] = { BUTTON_STOP_PIN, BUTTON_INVERT_PIN, BUTTON_EVERT_PIN, BUTTON_PAUSE_PIN, BUTTON_CHAMBER_PIN, BUTTON_STOP_AIR_PIN, BUTTON_STOP_MOTOR_PIN };
-    static uint32_t knob_dt_pins[] = { KNOB_AIR_DT_PIN, KNOB_MOTOR_DT_PIN };
-    static uint32_t knob_clk_pins[] = { KNOB_AIR_CLK_PIN, KNOB_MOTOR_CLK_PIN };
+    static uint32_t knob_dt_pins[] = { KNOB_AIR_DT_PIN, KNOB_MOTOR_DT_PIN, KNOB_SERVO_DT_PIN };
+    static uint32_t knob_clk_pins[] = { KNOB_AIR_CLK_PIN, KNOB_MOTOR_CLK_PIN, KNOB_SERVO_CLK_PIN };
     panel.start(buttons, knob_dt_pins, knob_clk_pins);
 
     platform.start();
@@ -47,12 +47,10 @@ void setup()
 
 void loop()
 {   
-    start_millis = millis();
     platform.update();
     panel.update();
-    Serial.println(millis()-start_millis);
 
 #if DEBUG_MODE
-    Serial.printf(">Motor Torque (Nm): %f\n", platform.get(MOTOR_TORQUE_UUID));
+    Serial.printf(">Servo angle: %f\n", platform.get(SERVO_ANGLE_UUID));
 #endif
 }

@@ -34,6 +34,7 @@ enum class ButtonType {
 enum class KnobType {
     AIR,
     MOTOR,
+    SERVO,
     COUNT
 };
 
