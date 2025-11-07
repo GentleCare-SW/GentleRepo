@@ -64,13 +64,15 @@ void ControlPanel::update_buttons()
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
                 else if (mode == 4.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
-            } else if (i == (int)ButtonType::CHAMBER) {
+            } else if (i == (int)ButtonType::SERVO) {
                 float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
                 if (SERVO_ANGLE2-prev_angle > prev_angle-SERVO_ANGLE1)
                     this->platform->set(SERVO_ANGLE_UUID, SERVO_ANGLE2);
                 else
                     this->platform->set(SERVO_ANGLE_UUID, SERVO_ANGLE1);
-                //this->platform->set(SERVO_CHAMBER_UUID, 1.0 - this->platform->get(SERVO_CHAMBER_UUID));
+            } else if (i == (int)ButtonType::CHAMBER) {
+                float new_state = 1.0 - this->platform->get(ON_OFF_VALVE_UUID);
+                this->platform->set(ON_OFF_VALVE_UUID, new_state);
             } else if (i == (int)ButtonType::STOP_AIR) {
                 this->platform->set(DIMMER_VOLTAGE_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -83,7 +85,7 @@ void ControlPanel::update_buttons()
     }
 }
 
-void ControlPanel::update_knobs()
+void ControlPanel::update_knobs() //TODO: refactor this
 {
     int64_t motor_knob_count = this->knobs[(int)KnobType::MOTOR].getCount();
     int64_t motor_knob_difference = motor_knob_count - this->last_knob_positions[(int)KnobType::MOTOR];
@@ -116,11 +118,22 @@ void ControlPanel::update_knobs()
     int64_t servo_knob_difference = servo_knob_count - this->last_knob_positions[(int)KnobType::SERVO];
     if (servo_knob_difference != 0) {
         float angle = this->platform->get(SERVO_ANGLE_UUID);
-        angle += servo_knob_difference * 0.5;
+        angle += servo_knob_difference * 0.8;
         angle = constrain(angle, SERVO_ANGLE1, SERVO_ANGLE2);
         this->platform->set(SERVO_ANGLE_UUID, angle);
     }
     this->last_knob_positions[(int)KnobType::SERVO] = servo_knob_count;
+
+    int64_t valve_knob_count = this->knobs[(int)KnobType::VALVE].getCount();
+    int64_t valve_knob_difference = valve_knob_count - this->last_knob_positions[(int)KnobType::VALVE];
+    if (valve_knob_difference != 0) {
+        Serial.println(valve_knob_difference);
+        float voltage = this->platform->get(PROPORTIONAL_VALVE_UUID);
+        voltage += valve_knob_difference * 0.5;
+        voltage = constrain(voltage, 0, 15);
+        this->platform->set(PROPORTIONAL_VALVE_UUID, voltage);
+    }
+    this->last_knob_positions[(int)KnobType::VALVE] = valve_knob_count;
 }
 
 void ControlPanel::update_display()
@@ -158,27 +171,31 @@ void ControlPanel::update_display()
     }
     
 
-#if DEVELOPER_SCREEN
-    this->display->setCursor(0, 16);
-    this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-5);
-    this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
-    this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
-#else
-    this->display->setCursor(0, 16);
-    float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
-    this->display->printf("Progress: %.1f%%\n", progress * 100.0);
-    this->display->fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
-    this->display->drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
-#endif
+    #if DEVELOPER_SCREEN
+        this->display->setCursor(0, 16);
+        this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-5);
+        #if CALIBRATION_MODE
+            this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
+        #else
+            this->display->printf("Valves: %.1f V | %.1f\n", this->platform->get(PROPORTIONAL_VALVE_UUID), this->platform->get(ON_OFF_VALVE_UUID));
+        #endif
+        this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
+    #else
+        this->display->setCursor(0, 16);
+        float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
+        this->display->printf("Progress: %.1f%%\n", progress * 100.0);
+        this->display->fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
+        this->display->drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
+    #endif
 
     this->display->setCursor(0, 40);
     this->display->printf("Torque: %.2f Nm\n", this->platform->get(MOTOR_TORQUE_UUID));
     this->display->printf("Voltage: %.1f V\n", this->platform->get(DIMMER_VOLTAGE_UUID));
-#if CLOSED_LOOP_PRESSURE_CONTROL
-    this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_CONTROLLER_UUID));
-#else
-    this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_SENSOR_UUID));
-#endif
+    #if CLOSED_LOOP_PRESSURE_CONTROL
+        this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_CONTROLLER_UUID));
+    #else
+        this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_SENSOR_UUID));
+    #endif
 
     this->display->display();
 }

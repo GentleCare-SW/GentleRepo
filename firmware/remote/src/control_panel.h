@@ -25,6 +25,7 @@ enum class ButtonType {
     INVERT,
     EVERT,
     PAUSE,
+    SERVO,
     CHAMBER,
     STOP_AIR,
     STOP_MOTOR,
@@ -35,6 +36,7 @@ enum class KnobType {
     AIR,
     MOTOR,
     SERVO,
+    VALVE,
     COUNT
 };
 

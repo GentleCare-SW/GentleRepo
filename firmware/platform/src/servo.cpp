@@ -73,13 +73,14 @@ float Servo::get_angle()
 
 void Servo::set_chamber(float chamber)
 {
-    this->goal_angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
-    //this->set_angle(this->angle);
+    //this->goal_angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
+    this->angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
+    this->set_angle(this->angle);
 }
 
 float Servo::get_chamber()
 {
     //return this->angle;
-    return this->goal_angle == SERVO_ANGLE2 ? 1.0 : 0.0;
-    //return this->chamber;
+    //return this->goal_angle == SERVO_ANGLE2 ? 1.0 : 0.0;
+    return this->chamber;
 }

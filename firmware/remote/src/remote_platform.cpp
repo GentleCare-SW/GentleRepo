@@ -116,17 +116,18 @@ float RemotePlatform::get(const char *uuid)
         if (strcmp(CHARACTERISTIC_UUIDS[i], uuid) == 0)
             return this->values[i];
     }
-
     return 0.0;
 }
 
 void RemotePlatform::set(const char *uuid, float value, bool with_response)
 {
     if (!this->client->isConnected())
+        Serial.println("not connected");
         return;
     
     NimBLERemoteCharacteristic *characteristic = this->get_characteristic(uuid);
     if (characteristic == nullptr)
+        Serial.println("null pointer");
         return;
 
     characteristic->writeValue((uint8_t *)&value, sizeof(value), with_response);
