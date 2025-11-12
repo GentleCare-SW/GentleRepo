@@ -57,9 +57,9 @@ void RemotePlatform::update()
             this->display->clearDisplay();
             this->display->setCursor(0, 0);
             if (this->device->getName() == "Glide")
-                this->display->println("Connected to \nGentleGlide");
+                this->display->println("Connecting to \nGentleGlide");
             else if (this->device->getName() == "Wedge")
-                this->display->println("Connected to \nGentleWedge");
+                this->display->println("Connecting to \nGentleWedge");
 
             this->display->display();
             
@@ -69,6 +69,7 @@ void RemotePlatform::update()
             for (int i = 0; i < CHARACTERISTIC_UUID_COUNT; i++) {
                 this->characteristics[i] = this->service->getCharacteristic(CHARACTERISTIC_UUIDS[i]);
                 if (this->characteristics[i] != nullptr && this->characteristics[i]->canNotify())
+                    //Serial.println(i);
                     this->characteristics[i]->subscribe(true, std::bind(&RemotePlatform::on_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
                 this->values[i] = 0.0;
             }
@@ -122,12 +123,10 @@ float RemotePlatform::get(const char *uuid)
 void RemotePlatform::set(const char *uuid, float value, bool with_response)
 {
     if (!this->client->isConnected())
-        Serial.println("not connected");
         return;
     
     NimBLERemoteCharacteristic *characteristic = this->get_characteristic(uuid);
     if (characteristic == nullptr)
-        Serial.println("null pointer");
         return;
 
     characteristic->writeValue((uint8_t *)&value, sizeof(value), with_response);

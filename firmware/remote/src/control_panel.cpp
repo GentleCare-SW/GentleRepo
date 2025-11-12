@@ -35,6 +35,7 @@ void ControlPanel::start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t 
     for (int i = 0; i < (int)KnobType::COUNT; i++) {
         this->knobs[i].attachFullQuad(knob_dt_pins[i], knob_clk_pins[i]);
         this->knobs[i].setCount(0);
+        this->current_knob_positions[i] = 0;
         this->last_knob_positions[i] = 0;
     }
 }
@@ -85,55 +86,43 @@ void ControlPanel::update_buttons()
     }
 }
 
-void ControlPanel::update_knobs() //TODO: refactor this
+void ControlPanel::update_knobs() 
 {
-    int64_t motor_knob_count = this->knobs[(int)KnobType::MOTOR].getCount();
-    int64_t motor_knob_difference = motor_knob_count - this->last_knob_positions[(int)KnobType::MOTOR];
-    if (motor_knob_difference != 0) {
-        float velocity = this->platform->get(MOTOR_VELOCITY_UUID);
-        velocity += motor_knob_difference * 1.0;
-        velocity = constrain(velocity, -30.0, 30.0);
-        this->platform->set(MOTOR_VELOCITY_UUID, velocity);
+    for (int i = 0; i < (int)KnobType::COUNT; i++) {
+        this->current_knob_positions[i] = this->knobs[i].getCount();
+        int64_t knob_difference = this->current_knob_positions[i] - this->last_knob_positions[i];
+        if (knob_difference != 0) {
+            if (i == (int)KnobType::MOTOR) {
+                float velocity = this->platform->get(MOTOR_VELOCITY_UUID);
+                velocity += knob_difference * 1.0;
+                velocity = constrain(velocity, -30.0, 30.0);
+                this->platform->set(MOTOR_VELOCITY_UUID, velocity);
+            } else if (i == (int)KnobType::AIR){
+                #if CLOSED_LOOP_PRESSURE_CONTROL
+                    float pressure_setpoint = this->platform->get(PRESSURE_CONTROLLER_UUID);
+                    pressure_setpoint += air_knob_difference * 0.005;
+                    pressure_setpoint = constrain(pressure_setpoint, 0.0, 1.0);
+                    this->platform->set(PRESSURE_CONTROLLER_UUID, pressure_setpoint);
+                #else
+                    float voltage = this->platform->get(DIMMER_VOLTAGE_UUID);
+                    voltage += knob_difference * 1.0;
+                    voltage = constrain(voltage, 0.0, 120.0);
+                    this->platform->set(DIMMER_VOLTAGE_UUID, voltage);
+                #endif
+            } else if (i == (int)KnobType::SERVO){
+                float angle = this->platform->get(SERVO_ANGLE_UUID);
+                angle += knob_difference * 0.8;
+                angle = constrain(angle, SERVO_ANGLE1, SERVO_ANGLE2);
+                this->platform->set(SERVO_ANGLE_UUID, angle);
+            } else if (i == (int)KnobType::VALVE){
+                float pvoltage = this->platform->get(PROPORTIONAL_VALVE_UUID);
+                pvoltage += knob_difference * 0.2;
+                pvoltage = constrain(pvoltage, 0.0, 15.0);
+                this->platform->set(PROPORTIONAL_VALVE_UUID, pvoltage);
+            }
+        }
+        this->last_knob_positions[i] = this->current_knob_positions[i];
     }
-    this->last_knob_positions[(int)KnobType::MOTOR] = motor_knob_count;
-
-    int64_t air_knob_count = this->knobs[(int)KnobType::AIR].getCount();
-    int64_t air_knob_difference = air_knob_count - this->last_knob_positions[(int)KnobType::AIR];
-    if (air_knob_difference != 0) {
-#if CLOSED_LOOP_PRESSURE_CONTROL
-        float pressure_setpoint = this->platform->get(PRESSURE_CONTROLLER_UUID);
-        pressure_setpoint += air_knob_difference * 0.005;
-        pressure_setpoint = constrain(pressure_setpoint, 0.0, 1.0);
-        this->platform->set(PRESSURE_CONTROLLER_UUID, pressure_setpoint);
-#else
-        float voltage = this->platform->get(DIMMER_VOLTAGE_UUID);
-        voltage += air_knob_difference * 1.0;
-        voltage = constrain(voltage, 0.0, 120.0);
-        this->platform->set(DIMMER_VOLTAGE_UUID, voltage);
-#endif
-    }
-    this->last_knob_positions[(int)KnobType::AIR] = air_knob_count;
-
-    int64_t servo_knob_count = this->knobs[(int)KnobType::SERVO].getCount();
-    int64_t servo_knob_difference = servo_knob_count - this->last_knob_positions[(int)KnobType::SERVO];
-    if (servo_knob_difference != 0) {
-        float angle = this->platform->get(SERVO_ANGLE_UUID);
-        angle += servo_knob_difference * 0.8;
-        angle = constrain(angle, SERVO_ANGLE1, SERVO_ANGLE2);
-        this->platform->set(SERVO_ANGLE_UUID, angle);
-    }
-    this->last_knob_positions[(int)KnobType::SERVO] = servo_knob_count;
-
-    int64_t valve_knob_count = this->knobs[(int)KnobType::VALVE].getCount();
-    int64_t valve_knob_difference = valve_knob_count - this->last_knob_positions[(int)KnobType::VALVE];
-    if (valve_knob_difference != 0) {
-        Serial.println(valve_knob_difference);
-        float voltage = this->platform->get(PROPORTIONAL_VALVE_UUID);
-        voltage += valve_knob_difference * 0.5;
-        voltage = constrain(voltage, 0, 15);
-        this->platform->set(PROPORTIONAL_VALVE_UUID, voltage);
-    }
-    this->last_knob_positions[(int)KnobType::VALVE] = valve_knob_count;
 }
 
 void ControlPanel::update_display()

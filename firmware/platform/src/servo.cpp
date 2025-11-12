@@ -26,7 +26,6 @@ Servo::Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, 
 {
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
-    this->goal_angle = 0.0;
     this->angle = SERVO_ANGLE1;
     this->chamber = 0.0;
 
@@ -73,14 +72,11 @@ float Servo::get_angle()
 
 void Servo::set_chamber(float chamber)
 {
-    //this->goal_angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
     this->angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
     this->set_angle(this->angle);
 }
 
 float Servo::get_chamber()
 {
-    //return this->angle;
-    //return this->goal_angle == SERVO_ANGLE2 ? 1.0 : 0.0;
     return this->chamber;
 }

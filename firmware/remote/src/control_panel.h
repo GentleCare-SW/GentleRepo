@@ -59,6 +59,7 @@ private:
     uint32_t button_pins[(int)ButtonType::COUNT];
     bool button_pressed[(int)ButtonType::COUNT];
     ESP32Encoder knobs[(int)KnobType::COUNT];
+    int64_t current_knob_positions[(int)KnobType::COUNT];
     int64_t last_knob_positions[(int)KnobType::COUNT]; 
     Adafruit_SSD1306 *display;
 };

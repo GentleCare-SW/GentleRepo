@@ -24,9 +24,9 @@ public:
 
     void start() override;
 
-    void set_voltage(float voltage);
+    void set_volt(float voltage);
 
-    float get_voltage();
+    float get_volt();
 
     void set_state(float state);
 
@@ -36,7 +36,7 @@ private:
     int32_t digital_pin;
     int32_t pwm_pin;
     int32_t ledc_channel;
-    float voltage;
+    float prop_voltage;
     float state;
     uint32_t last_update_time;
 };
