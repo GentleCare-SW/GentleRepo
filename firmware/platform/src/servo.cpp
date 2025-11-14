@@ -26,8 +26,8 @@ Servo::Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, 
 {
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
-    this->angle = SERVO_ANGLE1;
-    this->chamber = 0.0;
+    this->angle = SERVO_ANGLE2;
+    this->chamber = 1.0;
 
     this->add_characteristic(angle_uuid, std::bind(&Servo::set_angle, this, std::placeholders::_1), std::bind(&Servo::get_angle, this));
     this->add_characteristic(chamber_uuid, std::bind(&Servo::set_chamber, this, std::placeholders::_1), std::bind(&Servo::get_chamber, this));
@@ -38,7 +38,7 @@ void Servo::start()
     pinMode(this->pwm_pin, OUTPUT);
     ledcSetup(this->ledc_channel, 400, 16);
     ledcAttachPin(this->pwm_pin, this->ledc_channel);
-    this->set_chamber(0.0);
+    this->set_chamber(1.0);
     this->last_update_time = micros();
 
 }

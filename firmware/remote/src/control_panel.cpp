@@ -24,7 +24,8 @@ ControlPanel::ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display)
     this->display = display;
 }
 
-void ControlPanel::start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], uint32_t knob_clk_pins[(int)KnobType::COUNT])
+void ControlPanel::start(int32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], 
+        uint32_t knob_clk_pins[(int)KnobType::COUNT], Knob knob_params[(int)KnobType::COUNT])
 {
     for (int i = 0; i < (int)ButtonType::COUNT; i++) {
         this->button_pins[i] = button_pins[i];
@@ -37,7 +38,9 @@ void ControlPanel::start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t 
         this->knobs[i].setCount(0);
         this->current_knob_positions[i] = 0;
         this->last_knob_positions[i] = 0;
+        this->knob_params[i] = knob_params[i];
     }
+    
 }
 
 void ControlPanel::update_buttons()
@@ -48,13 +51,10 @@ void ControlPanel::update_buttons()
         if (!pressed && this->button_pressed[i]) {
             if (i == (int)ButtonType::STOP) {
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0);
-                this->platform->set(DIMMER_VOLTAGE_UUID, 0.0);
+                this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+                this->platform->set(OUTER_DIMMER_UUID, 0.0);
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 0.0);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0);
-            } else if (i == (int)ButtonType::INVERT) {
-                this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
-            } else if (i == (int)ButtonType::EVERT) {
-                this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
             } else if (i == (int)ButtonType::PAUSE) {
                 float mode = this->platform->get(AUTO_CONTROL_MODE_UUID);
                 if (mode == 1.0)
@@ -65,6 +65,11 @@ void ControlPanel::update_buttons()
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
                 else if (mode == 4.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+            } else if (i == (int)ButtonType::INVERT) {
+                this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+            } else if (i == (int)ButtonType::EVERT) {
+                this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
+            
             } else if (i == (int)ButtonType::SERVO) {
                 float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
                 if (SERVO_ANGLE2-prev_angle > prev_angle-SERVO_ANGLE1)
@@ -74,8 +79,11 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::CHAMBER) {
                 float new_state = 1.0 - this->platform->get(ON_OFF_VALVE_UUID);
                 this->platform->set(ON_OFF_VALVE_UUID, new_state);
-            } else if (i == (int)ButtonType::STOP_AIR) {
-                this->platform->set(DIMMER_VOLTAGE_UUID, 0.0, true);
+            } else if (i == (int)ButtonType::STOP_AIR1) {
+                this->platform->set(CENTRAL_DIMMER_UUID, 0.0, true);
+                this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
+            } else if (i == (int)ButtonType::STOP_AIR2) {
+                this->platform->set(OUTER_DIMMER_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
             } else if (i == (int)ButtonType::STOP_MOTOR) {
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0, true);
@@ -91,35 +99,13 @@ void ControlPanel::update_knobs()
     for (int i = 0; i < (int)KnobType::COUNT; i++) {
         this->current_knob_positions[i] = this->knobs[i].getCount();
         int64_t knob_difference = this->current_knob_positions[i] - this->last_knob_positions[i];
+        
         if (knob_difference != 0) {
-            if (i == (int)KnobType::MOTOR) {
-                float velocity = this->platform->get(MOTOR_VELOCITY_UUID);
-                velocity += knob_difference * 1.0;
-                velocity = constrain(velocity, -30.0, 30.0);
-                this->platform->set(MOTOR_VELOCITY_UUID, velocity);
-            } else if (i == (int)KnobType::AIR){
-                #if CLOSED_LOOP_PRESSURE_CONTROL
-                    float pressure_setpoint = this->platform->get(PRESSURE_CONTROLLER_UUID);
-                    pressure_setpoint += air_knob_difference * 0.005;
-                    pressure_setpoint = constrain(pressure_setpoint, 0.0, 1.0);
-                    this->platform->set(PRESSURE_CONTROLLER_UUID, pressure_setpoint);
-                #else
-                    float voltage = this->platform->get(DIMMER_VOLTAGE_UUID);
-                    voltage += knob_difference * 1.0;
-                    voltage = constrain(voltage, 0.0, 120.0);
-                    this->platform->set(DIMMER_VOLTAGE_UUID, voltage);
-                #endif
-            } else if (i == (int)KnobType::SERVO){
-                float angle = this->platform->get(SERVO_ANGLE_UUID);
-                angle += knob_difference * 0.8;
-                angle = constrain(angle, SERVO_ANGLE1, SERVO_ANGLE2);
-                this->platform->set(SERVO_ANGLE_UUID, angle);
-            } else if (i == (int)KnobType::VALVE){
-                float pvoltage = this->platform->get(PROPORTIONAL_VALVE_UUID);
-                pvoltage += knob_difference * 0.2;
-                pvoltage = constrain(pvoltage, 0.0, 15.0);
-                this->platform->set(PROPORTIONAL_VALVE_UUID, pvoltage);
-            }
+            Knob current_knob = this->knob_params[i];
+            float value = this->platform->get(current_knob.UUID);
+            value += knob_difference * current_knob.sensitivity;
+            value = constrain(value, current_knob.lower_bound, current_knob.upper_bound);
+            this->platform->set(current_knob.UUID, value);
         }
         this->last_knob_positions[i] = this->current_knob_positions[i];
     }
@@ -179,7 +165,7 @@ void ControlPanel::update_display()
 
     this->display->setCursor(0, 40);
     this->display->printf("Torque: %.2f Nm\n", this->platform->get(MOTOR_TORQUE_UUID));
-    this->display->printf("Voltage: %.1f V\n", this->platform->get(DIMMER_VOLTAGE_UUID));
+    this->display->printf("Voltage: %.1f, %.1f V\n", this->platform->get(CENTRAL_DIMMER_UUID), this->platform->get(OUTER_DIMMER_UUID));
     #if CLOSED_LOOP_PRESSURE_CONTROL
         this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_CONTROLLER_UUID));
     #else

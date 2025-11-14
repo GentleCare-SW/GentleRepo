@@ -19,32 +19,44 @@
 #include <ESP32Encoder.h>
 #include <Adafruit_SSD1306.h>
 #include "remote_platform.h"
+#include "inputs.h"
 
 enum class ButtonType {
     STOP,
+    PAUSE,
     INVERT,
     EVERT,
-    PAUSE,
     SERVO,
     CHAMBER,
-    STOP_AIR,
+    STOP_AIR1,
+    STOP_AIR2,
     STOP_MOTOR,
     COUNT
 };
 
-enum class KnobType {
-    AIR,
-    MOTOR,
-    SERVO,
-    VALVE,
-    COUNT
-};
+#if PLATFORM_TYPE==0
+    enum class KnobType {
+        MOTOR,
+        AIR,
+        SERVO,
+        VALVE,
+        COUNT
+    };
+#else
+    enum class KnobType {
+        MOTOR,
+        AIR1,
+        AIR2,
+        COUNT
+    };
+#endif
 
 class ControlPanel {
 public:
     ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display);
 
-    void start(uint32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], uint32_t knob_clk_pins[(int)KnobType::COUNT]);
+    void start(int32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], 
+            uint32_t knob_clk_pins[(int)KnobType::COUNT], Knob knob_params[(int)KnobType::COUNT]);
 
     void update();
 
@@ -56,10 +68,11 @@ private:
     void update_display();
     
     RemotePlatform *platform;
-    uint32_t button_pins[(int)ButtonType::COUNT];
+    int32_t button_pins[(int)ButtonType::COUNT];
     bool button_pressed[(int)ButtonType::COUNT];
     ESP32Encoder knobs[(int)KnobType::COUNT];
+    Knob knob_params[(int)KnobType::COUNT];
     int64_t current_knob_positions[(int)KnobType::COUNT];
-    int64_t last_knob_positions[(int)KnobType::COUNT]; 
+    int64_t last_knob_positions[(int)KnobType::COUNT];
     Adafruit_SSD1306 *display;
 };

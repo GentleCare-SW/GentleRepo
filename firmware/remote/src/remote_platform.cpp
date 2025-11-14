@@ -69,7 +69,6 @@ void RemotePlatform::update()
             for (int i = 0; i < CHARACTERISTIC_UUID_COUNT; i++) {
                 this->characteristics[i] = this->service->getCharacteristic(CHARACTERISTIC_UUIDS[i]);
                 if (this->characteristics[i] != nullptr && this->characteristics[i]->canNotify())
-                    //Serial.println(i);
                     this->characteristics[i]->subscribe(true, std::bind(&RemotePlatform::on_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
                 this->values[i] = 0.0;
             }
