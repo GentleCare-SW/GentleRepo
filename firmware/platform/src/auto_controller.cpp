@@ -50,7 +50,7 @@ void AutoController::update(float dt)
         if (progress <= 0.0)
             this->set_mode((float)AutoControlMode::IDLE);
         else
-            this->motor->set_velocity(-max_speed);
+            this->motor->set_velocity(-max_speed*0.5);
     }
 }
 

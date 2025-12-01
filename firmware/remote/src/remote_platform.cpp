@@ -42,9 +42,11 @@ void RemotePlatform::update()
 {
     if (!this->client->isConnected()) {
         this->display->clearDisplay();
-        this->display->setCursor(0, 0);
-        this->display->printf("Not connected\nSearching...");
+        this->display->drawBitmap(0, 0, logo_bitmap, 128, 64, WHITE);
         this->display->display();
+        // this->display->setCursor(0, 0);
+        // this->display->printf("Not connected\nSearching...");
+        // this->display->display();
     }
 
     while (!this->client->isConnected()) {
@@ -54,6 +56,7 @@ void RemotePlatform::update()
         if (this->found_device) {
             this->found_device = false;
             this->scanner->stop();
+            delay(1000);
             this->display->clearDisplay();
             this->display->setCursor(0, 0);
             if (this->device->getName() == "Glide")

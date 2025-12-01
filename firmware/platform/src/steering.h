@@ -16,44 +16,20 @@
  */
 
 #pragma once
-#include <Adafruit_MPRLS.h>
 #include "peripheral.h"
 
-
-enum PressureSensorError {
-    NONE,
-    NOT_CONNECTED
-};
-
-class PressureSensor: public Peripheral {
+class Steering: public Peripheral {
 public:
-    PressureSensor(const char *pressure_uuid, const char *error_uuid, int32_t adc_pin, float pressure_constant);
+    Steering(const char *joystick_uuid, int32_t left_valve_pin, int32_t right_valve_pin);
 
     void start() override;
 
-    void update(float dt) override;
+    void set_direction(float joystick_x);
 
-    float get_pressure();
-
-    float get_derivative();
-
-    bool is_ok();
-
-    void set_calibrating(bool calibrating);
-
-    float get_error();
+    float get_direction();
 
 private:
-    float read_psi();
-
-    int32_t adc_pin;
-    Adafruit_MPRLS sensor;
-    float last_psi;
-    float moving_pressure;
-    float moving_squared_pressure;
-    float pressure_derivative;
-    float pressure_offset;
-    float pressure_constant;
-    bool calibrating;
-    PressureSensorError error;
+    int32_t left_valve_pin;
+    int32_t right_valve_pin;
+    float direction;
 };

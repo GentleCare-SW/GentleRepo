@@ -43,7 +43,13 @@ PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid
 
 void PressureSensor::start()
 {
-    pinMode(this->adc_pin, INPUT);
+    this->sensor = Adafruit_MPRLS();
+    //pinMode(this->adc_pin, INPUT);
+    if (! this->sensor.begin()) {
+        this->error = PressureSensorError::NOT_CONNECTED;
+        Serial.println("Failed to communicate with pressure sensor, check wiring?");
+    }
+    this->error = PressureSensorError::NONE;
 }
 
 void PressureSensor::update(float dt)
@@ -51,10 +57,11 @@ void PressureSensor::update(float dt)
     Peripheral::update(dt);
 
     float psi = this->read_psi();
-    if (abs(psi - this->last_psi) > 1.0)
-        psi = this->last_psi + (psi > this->last_psi ? 1.0 : -1.0);
+    //if (abs(psi - this->last_psi) > 1.0)
+    //    psi = this->last_psi + (psi > this->last_psi ? 1.0 : -1.0);
 
-    float alpha = exp(-dt);
+    //float alpha = exp(-dt);
+    float alpha = 0.5;
 
     float previous_moving_pressure = this->moving_pressure;
     this->moving_pressure = this->moving_pressure * alpha + psi * (1.0 - alpha);
@@ -76,14 +83,17 @@ void PressureSensor::update(float dt)
 
 float PressureSensor::read_psi()
 {
-    int32_t adc_value = analogRead(this->adc_pin);
-    float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
-    return (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
+    float pressure_hPa = this->sensor.readPressure();
+    return pressure_hPa / 68.947572932;
+    // int32_t adc_value = analogRead(this->adc_pin);
+    // float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
+    // return (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
 }
 
 float PressureSensor::get_pressure()
 {
-    return (this->moving_pressure - this->pressure_offset) * this->pressure_constant;
+    //return this->read_psi() - this->pressure_offset;
+    return this->moving_pressure - this->pressure_offset;
 }
 
 float PressureSensor::get_derivative()

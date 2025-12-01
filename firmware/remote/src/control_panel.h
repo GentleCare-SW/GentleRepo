@@ -65,6 +65,8 @@ private:
 
     void update_knobs();
 
+    void update_joystick();
+
     void update_display();
     
     RemotePlatform *platform;

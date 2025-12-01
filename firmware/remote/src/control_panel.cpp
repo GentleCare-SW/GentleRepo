@@ -40,6 +40,8 @@ void ControlPanel::start(int32_t button_pins[(int)ButtonType::COUNT], uint32_t k
         this->last_knob_positions[i] = 0;
         this->knob_params[i] = knob_params[i];
     }
+
+    pinMode(JOYSTICK_VRX_PIN, INPUT);
     
 }
 
@@ -84,7 +86,7 @@ void ControlPanel::update_buttons()
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
             } else if (i == (int)ButtonType::STOP_AIR2) {
                 this->platform->set(OUTER_DIMMER_UUID, 0.0, true);
-                this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
+                //this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
             } else if (i == (int)ButtonType::STOP_MOTOR) {
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0, true);
             }
@@ -111,6 +113,17 @@ void ControlPanel::update_knobs()
     }
 }
 
+void ControlPanel::update_joystick()
+{
+    float x_value = (analogRead(JOYSTICK_VRX_PIN)/2048.0) - 1.0;
+    if (x_value > 0.9)
+        this->platform->set(JOYSTICK_UUID, 1.0);
+    else if (x_value < -0.9)
+        this->platform->set(JOYSTICK_UUID, -1.0);
+    else
+        this->platform->set(JOYSTICK_UUID, 0.0);
+}
+
 void ControlPanel::update_display()
 {
     this->display->clearDisplay();
@@ -135,7 +148,7 @@ void ControlPanel::update_display()
             this->display->printf("MOTOR NOT RESPONDING");
             break;
         case 2:
-            this->display->printf("MOTOR CALIBRATION ERROR");
+            this->display->printf("CALIBRATION ERROR");
             break;
         case 3:
             this->display->printf("MOTOR CONTROL ERROR");
@@ -148,11 +161,12 @@ void ControlPanel::update_display()
 
     #if DEVELOPER_SCREEN
         this->display->setCursor(0, 16);
-        this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-5);
-        #if CALIBRATION_MODE
-            this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
-        #else
+        
+        #if PLATFORM_TYPE == 0
+            this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-5);
             this->display->printf("Valves: %.1f V | %.1f\n", this->platform->get(PROPORTIONAL_VALVE_UUID), this->platform->get(ON_OFF_VALVE_UUID));
+        #else
+            this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #endif
         this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
     #else
@@ -161,6 +175,8 @@ void ControlPanel::update_display()
         this->display->printf("Progress: %.1f%%\n", progress * 100.0);
         this->display->fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
         this->display->drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
+        this->display->setCursor(0, 32);
+        this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
     #endif
 
     this->display->setCursor(0, 40);
@@ -169,7 +185,7 @@ void ControlPanel::update_display()
     #if CLOSED_LOOP_PRESSURE_CONTROL
         this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_CONTROLLER_UUID));
     #else
-        this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_SENSOR_UUID));
+        this->display->printf("Pressure: %.2f PSI\n", std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID)));
     #endif
 
     this->display->display();
@@ -179,5 +195,8 @@ void ControlPanel::update()
 {
     this->update_knobs();
     this->update_buttons();
+    #if PLATFORM_TYPE==1
+        this->update_joystick();
+    #endif
     this->update_display();
 }
