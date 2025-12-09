@@ -1,20 +1,20 @@
 ### Troubleshooting Guide
-This guide is intended to be a record of errors we have encountered and how they were fixed.
+This guide is a record of errors we have encountered and how they were fixed.
 
 ## Motor Errors
 Motor error codes:
 1. Not responding
    - Common reasons: Motor power or A/B/C connection is bad, tx/rx pin disconnected from arduino
 2. Calibration Failed
-   - Common reasons: Problem with encoder connection
+   - Common reasons: Problem with encoder connection, the shaft has too much resistance
 4. Control Error
-   - Common reasons: Spinout - motor started running out of control
+   - Common reasons: motor started running out of control (spinoout) or too much torque caused the motor to hit the current limit
 
 ### Odrive Color Code
 Red: Error, odrive is disabled  
 Green: Calibrating or running  
 Blue: Idle (indicates a problem if it returns to blue after calibration)  
-Yellow-green?  
+
 
 ## Using odrivetool in the terminal
 List of helpful commands:
@@ -26,6 +26,24 @@ List of helpful commands:
 - odrv0.erase_configuration()
 - odrv0.config and odrv0.axis0.config
 - odrv0.save_configuration
+
+### Odrive Procedure Result Codes
+0. Success
+1. Busy
+2. Cancelled
+3. Disarmed
+4. No response
+5. Pole pair cpr mismatch
+6. Phase resistance out of range
+7. Phase inductance out of range
+8. Unbalanced phases
+9. Invalid motor type
+10. Illegal hall state
+11. Timeout
+12. Homing without end stop
+13. Invalid state
+14. Not calibrated
+15. Not converging 
 
 See [Odrive python package](https://docs.odriverobotics.com/v/latest/guides/python-package.html) for more odrivetool uses.  
 See [Odrive API](https://docs.odriverobotics.com/v/latest/fibre_types/com_odriverobotics_ODrive.html#ODrive) for all other details.
