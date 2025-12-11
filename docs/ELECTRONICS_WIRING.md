@@ -34,7 +34,9 @@ The GentleRemote consists of a battery that provides 5V DC power to a microcontr
 - Motor Driver (comes with brake resistor): https://shop.odriverobotics.com/products/odrive-s1, https://docs.odriverobotics.com/v/latest/hardware/s1-datasheet.html
 - BLDC Motor w/ encoder: https://www.maxongroup.com/maxon/view/product/motor/ecmotor/EC-i/579165, https://www.maxongroup.com/maxon/view/product/sensor/encoder/Magnetische-Encoder/ENCODER16EASY/499361, https://www.maxongroup.com/maxon/view/product/gear/planetary/gp52/223093
 - Servo motor: https://www.amazon.com/dp/B097DWW6PY?ref=fed_asin_title&th=1
-- Pressure sensor: https://www.amazon.com/dp/B08G8MCGKH?ref=fed_asin_title (GentleWedge), https://www.smcworld.com/catalog/Clean-en/mpv/cat02-23-ss-pse540_en/data/cat02-23-ss-pse540_en.pdf (GentleGlide)
+- Old pressure sensors: https://www.amazon.com/dp/B08G8MCGKH?ref=fed_asin_title (GentleWedge), https://www.smcworld.com/catalog/Clean-en/mpv/cat02-23-ss-pse540_en/data/cat02-23-ss-pse540_en.pdf (GentleGlide)
+- Adafruit pressure sensor: https://learn.adafruit.com/adafruit-mprls-ported-pressure-sensor-breakout/overview
+- Diverting valve: https://ussolid.com/products/u-s-solid-1-3-way-brass-motorized-ball-valve-ac110-230v-l-type-standard-port-with-manual-function-ip67?variant=46918478528767
 - OLED Display: https://www.amazon.com/dp/B0D2RMQQHR?ref=fed_asin_title
 - Knobs: https://www.amazon.com/dp/B07B68H6R8?ref=fed_asin_title
 - Buttons: https://www.amazon.com/dp/B083JWJPW5?ref=fed_asin_title&th=1
