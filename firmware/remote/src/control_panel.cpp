@@ -18,6 +18,8 @@
 #include "control_panel.h"
 #include "config.h"
 
+bool transferring = false;
+
 ControlPanel::ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display)
 {
     this->platform = platform;
@@ -70,8 +72,11 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::INVERT) {
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
             } else if (i == (int)ButtonType::EVERT) {
-                this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
-            
+                //this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
+                this->platform->set(JOYSTICK_UUID, -1.0);
+                this->platform->set(OUTER_DIMMER_UUID, 30.0);
+                this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
+                transferring = !transferring;
             } else if (i == (int)ButtonType::SERVO) {
                 float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
                 if (SERVO_ANGLE2-prev_angle > prev_angle-SERVO_ANGLE1)
@@ -81,6 +86,8 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::CHAMBER) {
                 float new_state = 1.0 - this->platform->get(ON_OFF_VALVE_UUID);
                 this->platform->set(ON_OFF_VALVE_UUID, new_state);
+                delay(10);
+                this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
             } else if (i == (int)ButtonType::STOP_AIR1) {
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -116,11 +123,13 @@ void ControlPanel::update_knobs()
 void ControlPanel::update_joystick()
 {
     float x_value = (analogRead(JOYSTICK_VRX_PIN)/2048.0) - 1.0;
-    if (x_value > 0.9)
+    if (x_value > 0.9) {
         this->platform->set(JOYSTICK_UUID, 1.0);
-    else if (x_value < -0.9)
+        transferring = false;
+    } else if (x_value < -0.9) {
         this->platform->set(JOYSTICK_UUID, -1.0);
-    else
+        transferring = false;
+    } else if (!transferring)
         this->platform->set(JOYSTICK_UUID, 0.0);
 }
 
@@ -181,7 +190,7 @@ void ControlPanel::update_display()
 
     this->display->setCursor(0, 40);
     this->display->printf("Torque: %.2f Nm\n", this->platform->get(MOTOR_TORQUE_UUID));
-    this->display->printf("Voltage: %.1f, %.1f V\n", this->platform->get(CENTRAL_DIMMER_UUID), this->platform->get(OUTER_DIMMER_UUID));
+    this->display->printf("Voltage: %.1f, %.1f\n", this->platform->get(CENTRAL_DIMMER_UUID), this->platform->get(OUTER_DIMMER_UUID));
     #if CLOSED_LOOP_PRESSURE_CONTROL
         this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_CONTROLLER_UUID));
     #else

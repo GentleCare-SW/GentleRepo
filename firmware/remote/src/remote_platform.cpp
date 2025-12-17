@@ -44,9 +44,6 @@ void RemotePlatform::update()
         this->display->clearDisplay();
         this->display->drawBitmap(0, 0, logo_bitmap, 128, 64, WHITE);
         this->display->display();
-        // this->display->setCursor(0, 0);
-        // this->display->printf("Not connected\nSearching...");
-        // this->display->display();
     }
 
     while (!this->client->isConnected()) {

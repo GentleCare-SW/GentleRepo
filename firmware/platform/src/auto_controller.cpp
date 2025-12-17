@@ -15,6 +15,7 @@
  * SOFTWARE.
  */
 
+#include <math.h>
 #include "auto_controller.h"
 #include "service.h"
 #include "config.h"
@@ -90,7 +91,8 @@ float AutoController::get_mode()
 
 float AutoController::get_progress()
 {
-    return max(0.0, constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0));
+    //return max(0.0, constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0));
+    return constrain(pow((this->motor->get_position() / SHEET_LENGTH ), 0.667), 0.0, 1.0);
 }
 
 void AutoController::toggle_paused()

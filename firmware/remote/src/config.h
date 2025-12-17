@@ -50,6 +50,7 @@
 
 #define DEVICE_NAME "GentleGlide"
 #define CONNECTION_NAME "Glide"
+#define VACUUM_NAME "GlideVac"
 
 #define BUTTON_STOP_PIN 14
 #define BUTTON_PAUSE_PIN 27

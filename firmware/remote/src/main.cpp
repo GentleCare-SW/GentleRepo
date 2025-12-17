@@ -62,7 +62,7 @@ void setup()
         static uint32_t knob_clk_pins[] = { KNOB_MOTOR_CLK_PIN, KNOB_AIR1_CLK_PIN, KNOB_AIR2_CLK_PIN };
         Knob MOTOR_KNOB = {MOTOR_VELOCITY_UUID, 0.75, -30.0, 30.0};
         Knob AIR1_KNOB = {CENTRAL_DIMMER_UUID, 1.0, 0.0, 120.0};
-        Knob AIR2_KNOB = {OUTER_DIMMER_UUID, 1.0, 0.0, 120.0};
+        Knob AIR2_KNOB = {OUTER_DIMMER_UUID, 1.0, 0.0, 60.0};
         static Knob knob_params[] = { MOTOR_KNOB, AIR1_KNOB, AIR2_KNOB };
     #endif
     panel.start(buttons, knob_dt_pins, knob_clk_pins, knob_params);
