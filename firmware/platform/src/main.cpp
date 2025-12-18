@@ -76,16 +76,17 @@ void loop()
 {
     pressure_sensor.set_calibrating(voltage_dimmer1.get_voltage() == 0.0);
     service.update();
-    Serial.print(">Pressure: ");
-    Serial.println(pressure_sensor.get_pressure());
-    // // For control tests
-    Serial.print(">Position: ");
-    Serial.println(motor_controller.get_position());
-    Serial.print(">Voltage 1: ");
-    Serial.println(voltage_dimmer1.get_voltage());
-    Serial.print(">Voltage 2: ");
-    Serial.println(voltage_dimmer2.get_voltage());
-    // Serial.print(">Torque: ");
-    // Serial.println(motor_controller.get_torque());
+    
+    // Serial.print(">Pressure: ");
+    // Serial.println(pressure_sensor.get_pressure());
+    // // // For control tests
+    // Serial.print(">Position: ");
+    // Serial.println(motor_controller.get_position());
+    // Serial.print(">Voltage 1: ");
+    // Serial.println(voltage_dimmer1.get_voltage());
+    // Serial.print(">Voltage 2: ");
+    // Serial.println(voltage_dimmer2.get_voltage());
+    // // Serial.print(">Torque: ");
+    // // Serial.println(motor_controller.get_torque());
 
 }

@@ -96,6 +96,10 @@ void ControlPanel::update_buttons()
                 //this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
             } else if (i == (int)ButtonType::STOP_MOTOR) {
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0, true);
+                if (this->platform->get(MOTOR_ERROR_UUID) == 2.0){
+                    Serial.println("Trying to recalibrate");
+                    this->platform->set(MOTOR_ERROR_UUID, 4.0);
+                }
             }
         }
 

@@ -24,6 +24,7 @@ enum class MotorControllerError {
     NOT_RESPONDING,
     CALIBRATION_FAILED,
     CONTROL_ERROR,
+    NEEDS_RECALIBRATION,
 };
 
 class MotorController: public Peripheral {
@@ -39,6 +40,8 @@ public:
     void set_velocity(float velocity);
 
     void set_torque(float torque);
+
+    void set_error(float error);
 
     float get_velocity();
 
@@ -59,8 +62,6 @@ private:
     float torque;
     uint32_t last_update_time;
     MotorControllerError error;
-
-    void set_error(MotorControllerError error);
 
     String wait_for_response();
 

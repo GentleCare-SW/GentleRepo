@@ -39,7 +39,7 @@ MotorController::MotorController(const char *position_uuid, const char *velocity
     this->add_characteristic(position_uuid, nullptr, std::bind(&MotorController::get_position, this));
     this->add_characteristic(velocity_uuid, std::bind(&MotorController::set_velocity, this, std::placeholders::_1), std::bind(&MotorController::get_velocity, this));
     this->add_characteristic(torque_uuid, std::bind(&MotorController::set_torque, this, std::placeholders::_1), std::bind(&MotorController::get_torque, this));
-    this->add_characteristic(error_uuid, nullptr, std::bind(&MotorController::get_error, this));
+    this->add_characteristic(error_uuid, std::bind(&MotorController::set_error, this, std::placeholders::_1), std::bind(&MotorController::get_error, this));
 }
 
 void MotorController::start()
@@ -58,7 +58,7 @@ void MotorController::start()
     this->write_state((int)AxisState::CLOSED_LOOP_CONTROL);
     delay(100);
     if ((AxisState)this->read_state() != AxisState::CLOSED_LOOP_CONTROL) {
-        this->set_error(MotorControllerError::CALIBRATION_FAILED);
+        this->set_error((float)MotorControllerError::CALIBRATION_FAILED);
         return;
     }
 
@@ -82,8 +82,27 @@ void MotorController::update(float dt)
         float alpha = exp(-6.0 * dt);
         this->torque = (1.0 - alpha) * torque + alpha * this->torque;
 
-        if (this->read_error() != 0)
-            this->set_error(MotorControllerError::CONTROL_ERROR);
+        if (this->error == MotorControllerError::NEEDS_RECALIBRATION){
+            Serial.println("Recalibration procedure");
+            this->set_error((float)MotorControllerError::NONE);
+            //this->error = MotorControllerError::NONE;
+            this->write_state((int)AxisState::FULL_CALIBRATION_SEQUENCE);
+            do {
+                delay(100);
+            } while ((AxisState)this->read_state() != AxisState::IDLE);
+            Serial.println("Recalibration done");
+            this->write_state((int)AxisState::CLOSED_LOOP_CONTROL);
+            delay(100);
+            if ((AxisState)this->read_state() != AxisState::CLOSED_LOOP_CONTROL) {
+                this->set_error((float)MotorControllerError::CALIBRATION_FAILED);
+                return;
+            }
+            Serial.println("Closed loop control working");
+            
+        }
+        //TODO
+        //if (this->read_error() != 0)
+        //    this->set_error((float)MotorControllerError::CONTROL_ERROR);
     }
 }
 
@@ -117,12 +136,14 @@ float MotorController::get_torque()
     return this->torque;
 }
 
-void MotorController::set_error(MotorControllerError error)
+void MotorController::set_error(float error)
 {
-    if (this->error != MotorControllerError::NONE && error != MotorControllerError::NONE)
-        return;
-    
-    this->error = error;
+    //why?
+    //if (this->error != MotorControllerError::NONE && error != MotorControllerError::NONE)
+    //    return;
+    // if previous error is none or new error is none
+    int int_error = (int)error;
+    this->error = MotorControllerError(int_error);
 }
 
 float MotorController::get_error()
@@ -138,7 +159,7 @@ String MotorController::wait_for_response()
     uint32_t start_time = millis();
     String response = this->serial->readStringUntil('\n');
     if (millis() - start_time > 1000u)
-        this->set_error(MotorControllerError::NOT_RESPONDING);
+        this->set_error((float)MotorControllerError::NOT_RESPONDING);
     
     return response;
 }
