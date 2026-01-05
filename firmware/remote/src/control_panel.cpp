@@ -72,11 +72,11 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::INVERT) {
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
             } else if (i == (int)ButtonType::EVERT) {
-                //this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
-                this->platform->set(JOYSTICK_UUID, -1.0);
-                this->platform->set(OUTER_DIMMER_UUID, 30.0);
-                this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
-                transferring = !transferring;
+                this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
+                // this->platform->set(JOYSTICK_UUID, -1.0);
+                // this->platform->set(OUTER_DIMMER_UUID, 30.0);
+                // this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
+                // transferring = !transferring;
             } else if (i == (int)ButtonType::SERVO) {
                 float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
                 if (SERVO_ANGLE2-prev_angle > prev_angle-SERVO_ANGLE1)

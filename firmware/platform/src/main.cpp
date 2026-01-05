@@ -79,14 +79,13 @@ void loop()
     
     // Serial.print(">Pressure: ");
     // Serial.println(pressure_sensor.get_pressure());
-    // // // For control tests
-    // Serial.print(">Position: ");
-    // Serial.println(motor_controller.get_position());
-    // Serial.print(">Voltage 1: ");
-    // Serial.println(voltage_dimmer1.get_voltage());
-    // Serial.print(">Voltage 2: ");
-    // Serial.println(voltage_dimmer2.get_voltage());
-    // // Serial.print(">Torque: ");
-    // // Serial.println(motor_controller.get_torque());
+    Serial.print(">Position: ");
+    Serial.println(motor_controller.get_position());
+    Serial.print(">Velocity: ");
+    Serial.println(motor_controller.get_velocity());
+    Serial.print(">Voltage 1: ");
+    Serial.println(voltage_dimmer1.get_voltage());
+    Serial.print(">Torque: ");
+    Serial.println(motor_controller.get_torque());
 
 }

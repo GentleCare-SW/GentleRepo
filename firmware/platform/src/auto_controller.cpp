@@ -51,6 +51,7 @@ void AutoController::update(float dt)
         if (progress <= 0.0)
             this->set_mode((float)AutoControlMode::IDLE);
         else
+            this->dimmer->set_voltage(INVERSION_VOLTAGE);
             this->motor->set_velocity(-max_speed*0.5);
     }
 }
