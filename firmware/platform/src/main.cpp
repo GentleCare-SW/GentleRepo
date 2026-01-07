@@ -42,7 +42,8 @@ static Servo servo(SERVO_ANGLE_UUID, SERVO_CHAMBER_UUID, SERVO_PWM_PIN, SERVO_LE
     static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
 #endif
 static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer1, &pressure_sensor);
-static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &motor_controller, &pressure_sensor, &servo);
+static PressureController bumper_pressure_controller(BUMPER_PRESSURE_CONTROLLER_UUID, &voltage_dimmer2, &pressure_sensor);
+static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &voltage_dimmer2, &motor_controller, &pressure_sensor, &servo);
 #if ENABLE_CONTROL_PANEL
     static ControlPanel control_panel(CONTROL_PANEL_STOP_PIN, CONTROL_PANEL_PAUSE_PIN, CONTROL_PANEL_INVERT_PIN, CONTROL_PANEL_EVERT_PIN, CONTROL_PANEL_CHAMBER_PIN, &auto_controller, &motor_controller, &pressure_sensor, &voltage_dimmer1, &servo);
 #endif
