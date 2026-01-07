@@ -39,7 +39,7 @@ void AutoController::update(float dt)
     Peripheral::update(dt);
     
     float progress = this->get_progress();
-    float max_speed = constrain(progress / 0.3, 0.0, 1.0) * 10.0 + 9.0;
+    float max_speed = constrain(progress / 0.3, 0.0, 1.0) * 10.0 + 15.0;
 
     if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);
@@ -53,15 +53,20 @@ void AutoController::update(float dt)
     } else if (this->mode == AutoControlMode::INVERSION) {
         if (progress <= 0.0)
             this->set_mode((float)AutoControlMode::IDLE);
-        else if (progress <= 0.3){
+        else if (progress <= 0.1){
+            this->dimmer->set_voltage(0);
+            this->dimmer2->set_voltage(0);
+        }
+        else if (progress <= 0.2){
             this->dimmer->set_voltage(15);
             this->dimmer2->set_voltage(0);
             this->motor->set_velocity(-max_speed);}
 
-        else
+
+        else{
             this->dimmer->set_voltage(INVERSION_VOLTAGE);
             this->dimmer2->set_voltage(BUMPER_INVERSION_VOLTAGE);
-            this->motor->set_velocity(-max_speed);
+            this->motor->set_velocity(-max_speed);}
     }
 }
 
@@ -112,7 +117,7 @@ float AutoController::get_mode()
 float AutoController::get_progress()
 {
     //return max(0.0, constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0));
-    return constrain(pow((this->motor->get_position() / SHEET_LENGTH ), 0.53), 0.0, 1.0);
+    return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), 0.53), 0.0, 1.0);
 }
 
 void AutoController::toggle_paused()

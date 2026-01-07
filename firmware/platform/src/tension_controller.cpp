@@ -43,9 +43,9 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
     this->velocity = 0.0;
     this->min_velocity = 6.0;
     this->max_velocity = 30.0;
-    this->v_kp = 36;
+    this->v_kp = 25;
     this->bv_kp = .2;
-    this->vel_kp = 20;
+    this->vel_kp = 0;
     this->torque_reference = torque_reference;
     this->add_characteristic(progress_uuid, nullptr, std::bind(&TensionController::get_progress, this));
 }
@@ -63,8 +63,8 @@ void TensionController::update(float dt)
 
     }
     else{
-        this->v_kp = 50;
-        this->vel_kp = 20;
+        this->v_kp = 25;
+        this->vel_kp = 0;
     }
 
     // float voltage_pid = -(torque - this->torque_reference) * this->v_kp;
@@ -75,7 +75,7 @@ void TensionController::update(float dt)
     else this->voltage = 90;
             
     // this->bumper_voltage = constrain(this->bumper_voltage + bumper_voltage_pid, EVERSION_BUMPER_MIN_VOLTAGE, EVERSION_BUMPER_MAX_VOLTAGE);
-    this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, this->max_velocity);
+    this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, 30);
     this->dimmer->set_voltage(this->voltage);
     this->motor->set_velocity(this->velocity);
 }
@@ -106,5 +106,5 @@ void TensionController::reset()
 float TensionController::get_progress()
 {
     //return max(0.0, constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0));
-    return constrain(pow((this->motor->get_position() / SHEET_LENGTH ), 0.667), 0.0, 1.0);
+    return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), 0.53), 0.0, 1.0);
 }
