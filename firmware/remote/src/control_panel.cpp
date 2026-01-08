@@ -24,6 +24,8 @@ ControlPanel::ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display)
 {
     this->platform = platform;
     this->display = display;
+    this->velocity_setpoint = 0.0;
+    this->transferring = false;
 }
 
 void ControlPanel::start(int32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], 
@@ -73,10 +75,6 @@ void ControlPanel::update_buttons()
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
             } else if (i == (int)ButtonType::EVERT) {
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
-                // this->platform->set(JOYSTICK_UUID, -1.0);
-                // this->platform->set(OUTER_DIMMER_UUID, 30.0);
-                // this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
-                // transferring = !transferring;
             } else if (i == (int)ButtonType::SERVO) {
                 float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
                 if (SERVO_ANGLE2-prev_angle > prev_angle-SERVO_ANGLE1)
@@ -88,6 +86,10 @@ void ControlPanel::update_buttons()
                 this->platform->set(ON_OFF_VALVE_UUID, new_state);
                 delay(10);
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+            } else if (i == (int)ButtonType::TRANSFER) {
+                this->platform->set(OUTER_DIMMER_UUID, 30.0);
+                this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
+                this->transferring = !this->transferring;
             } else if (i == (int)ButtonType::STOP_AIR1) {
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -95,6 +97,7 @@ void ControlPanel::update_buttons()
                 this->platform->set(OUTER_DIMMER_UUID, 0.0, true);
                 //this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
             } else if (i == (int)ButtonType::STOP_MOTOR) {
+                this->velocity_setpoint = 0.0;
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0, true);
                 if (this->platform->get(MOTOR_ERROR_UUID) == 2.0){
                     Serial.println("Trying to recalibrate");
@@ -118,6 +121,9 @@ void ControlPanel::update_knobs()
             float value = this->platform->get(current_knob.UUID);
             value += knob_difference * current_knob.sensitivity;
             value = constrain(value, current_knob.lower_bound, current_knob.upper_bound);
+            if (i==0){
+                this->velocity_setpoint = value;
+            }
             this->platform->set(current_knob.UUID, value);
         }
         this->last_knob_positions[i] = this->current_knob_positions[i];
@@ -181,7 +187,7 @@ void ControlPanel::update_display()
         #else
             this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #endif
-        this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
+        this->display->printf("Vel: %.1f, %.1f\n", this->platform->get(MOTOR_VELOCITY_UUID), this->velocity_setpoint);
     #else
         this->display->setCursor(0, 16);
         float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);

@@ -18,17 +18,9 @@
 #include <Arduino.h>
 #include "pressure_sensor.h"
 
-static const int32_t ADC_MAX_VALUE = 4095;
-static const float ADC_VOLTAGE_REF = 5.0;
-static const float MIN_VOLTAGE = 0.0; 
-static const float MAX_VOLTAGE = 2.5;
-static const float MIN_PSI = 0.0;
-static const float MAX_PSI = 140.0;
 
-PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid, int32_t adc_pin, float pressure_constant)
+PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid)
 {
-    this->adc_pin = adc_pin;
-    this->pressure_constant = pressure_constant;
     this->last_psi = 0.0;
     this->moving_pressure = 0.0;
     this->moving_squared_pressure = 0.0;
@@ -44,7 +36,6 @@ PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid
 void PressureSensor::start()
 {
     this->sensor = Adafruit_MPRLS();
-    //pinMode(this->adc_pin, INPUT);
     if (! this->sensor.begin()) {
         this->error = PressureSensorError::NOT_CONNECTED;
         Serial.println("Failed to communicate with pressure sensor, check wiring?");
@@ -85,9 +76,6 @@ float PressureSensor::read_psi()
 {
     float pressure_hPa = this->sensor.readPressure();
     return pressure_hPa / 68.947572932;
-    // int32_t adc_value = analogRead(this->adc_pin);
-    // float voltage = adc_value * ADC_VOLTAGE_REF / ADC_MAX_VALUE;
-    // return (voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE) * (MAX_PSI - MIN_PSI) + MIN_PSI;
 }
 
 float PressureSensor::get_pressure()
@@ -98,7 +86,7 @@ float PressureSensor::get_pressure()
 
 float PressureSensor::get_derivative()
 {
-    return this->pressure_derivative * this->pressure_constant;
+    return this->pressure_derivative;
 }
 
 bool PressureSensor::is_ok()

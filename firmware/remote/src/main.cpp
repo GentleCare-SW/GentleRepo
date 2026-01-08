@@ -19,7 +19,7 @@
 #include <Adafruit_SSD1306.h>
 #include "control_panel.h"
 #include "remote_platform.h"
-#include "inputs.h"
+#include "input_devices.h"
 #include "config.h"
 
 static Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
@@ -45,6 +45,7 @@ void setup()
         BUTTON_EVERT_PIN, 
         BUTTON_SERVO_PIN, 
         BUTTON_CHAMBER_PIN, 
+        BUTTON_TRANSFER_PIN,
         BUTTON_STOP_AIR1_PIN, 
         BUTTON_STOP_AIR2_PIN,
         BUTTON_STOP_MOTOR_PIN };

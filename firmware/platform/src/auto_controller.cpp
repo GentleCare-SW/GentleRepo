@@ -38,7 +38,7 @@ void AutoController::update(float dt)
     Peripheral::update(dt);
     
     float progress = this->get_progress();
-    float max_speed = constrain(progress / 0.15, 0.0, 1.0) * 16.0 + 4.0;
+    float max_speed = constrain(progress / 0.3, 0.0, 1.0) * 10.0 + 5.0;
 
     if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);

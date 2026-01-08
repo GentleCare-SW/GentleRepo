@@ -19,7 +19,7 @@
 #include <ESP32Encoder.h>
 #include <Adafruit_SSD1306.h>
 #include "remote_platform.h"
-#include "inputs.h"
+#include "input_devices.h"
 
 enum class ButtonType {
     STOP,
@@ -28,6 +28,7 @@ enum class ButtonType {
     EVERT,
     SERVO,
     CHAMBER,
+    TRANSFER,
     STOP_AIR1,
     STOP_AIR2,
     STOP_MOTOR,
@@ -70,6 +71,8 @@ private:
     void update_display();
     
     RemotePlatform *platform;
+    float velocity_setpoint;
+    bool transferring;
     int32_t button_pins[(int)ButtonType::COUNT];
     bool button_pressed[(int)ButtonType::COUNT];
     ESP32Encoder knobs[(int)KnobType::COUNT];

@@ -27,7 +27,7 @@ enum PressureSensorError {
 
 class PressureSensor: public Peripheral {
 public:
-    PressureSensor(const char *pressure_uuid, const char *error_uuid, int32_t adc_pin, float pressure_constant);
+    PressureSensor(const char *pressure_uuid, const char *error_uuid);
 
     void start() override;
 
@@ -46,14 +46,12 @@ public:
 private:
     float read_psi();
 
-    int32_t adc_pin;
     Adafruit_MPRLS sensor;
     float last_psi;
     float moving_pressure;
     float moving_squared_pressure;
     float pressure_derivative;
     float pressure_offset;
-    float pressure_constant;
     bool calibrating;
     PressureSensorError error;
 };

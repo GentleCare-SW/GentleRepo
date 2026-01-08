@@ -84,13 +84,13 @@ void MotorController::update(float dt)
 
         if (this->error == MotorControllerError::NEEDS_RECALIBRATION){
             Serial.println("Recalibration procedure");
-            this->set_error((float)MotorControllerError::NONE);
             //this->error = MotorControllerError::NONE;
             this->write_state((int)AxisState::FULL_CALIBRATION_SEQUENCE);
             do {
                 delay(100);
             } while ((AxisState)this->read_state() != AxisState::IDLE);
             Serial.println("Recalibration done");
+            
             this->write_state((int)AxisState::CLOSED_LOOP_CONTROL);
             delay(100);
             if ((AxisState)this->read_state() != AxisState::CLOSED_LOOP_CONTROL) {
@@ -98,7 +98,7 @@ void MotorController::update(float dt)
                 return;
             }
             Serial.println("Closed loop control working");
-            
+            this->set_error((float)MotorControllerError::NONE);
         }
         //TODO
         //if (this->read_error() != 0)
