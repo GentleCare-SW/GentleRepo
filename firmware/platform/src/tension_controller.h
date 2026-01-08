@@ -25,7 +25,7 @@ class TensionController: public Peripheral {
 public:
     TensionController();
 
-    TensionController(VoltageDimmer *voltage_dimmer, MotorController *motor_controller, PressureSensor *pressure_sensor, float torque_reference);
+    TensionController(const char *progress_uuid, VoltageDimmer *voltage_dimmer, VoltageDimmer *voltage_dimmer2, MotorController *motor_controller, PressureSensor *pressure_sensor, float torque_reference);
 
     void update(float dt) override;
 
@@ -37,13 +37,21 @@ public:
 
     void reset();
 
+    float get_progress();
+
+
 private:
     float voltage;
     float velocity;
+    float bumper_voltage;
     float min_velocity;
     float max_velocity;
+    float bv_kp;
+    float v_kp;
+    float vel_kp;
     float torque_reference;
-    VoltageDimmer *dimmmer;
+    VoltageDimmer *dimmer;
+    VoltageDimmer *dimmer2;
     MotorController *motor;
     PressureSensor *pressure_sensor;
 };
