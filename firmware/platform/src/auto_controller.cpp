@@ -39,7 +39,7 @@ void AutoController::update(float dt)
     Peripheral::update(dt);
     
     float progress = this->get_progress();
-    float max_speed = constrain(progress / 0.3, 0.0, 1.0) * 10.0 + 15.0;
+    float max_speed = constrain(progress / 0.3, 0.0, 1.0) * 10.0 + 12.0;
 
     if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);
@@ -49,7 +49,7 @@ void AutoController::update(float dt)
         if (progress >= 1.0)
             this->set_mode((float)AutoControlMode::EVERSION_PAUSED);
         else
-            this->tension_controller.set_max_velocity(max_speed);
+            this->tension_controller.set_max_velocity(30);
     } else if (this->mode == AutoControlMode::INVERSION) {
         if (progress <= 0.0)
             this->set_mode((float)AutoControlMode::IDLE);
@@ -57,8 +57,8 @@ void AutoController::update(float dt)
             this->dimmer->set_voltage(0);
             this->dimmer2->set_voltage(0);
         }
-        else if (progress <= 0.2){
-            this->dimmer->set_voltage(15);
+        else if (progress <= 0.23){
+            this->dimmer->set_voltage(25);
             this->dimmer2->set_voltage(0);
             this->motor->set_velocity(-max_speed);}
 
