@@ -43,8 +43,6 @@ void AutoController::update(float dt)
 
     if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);
-        if (progress >= .1)
-            this->dimmer2->set_voltage(33);
 
         if (progress >= 1.0)
             this->set_mode((float)AutoControlMode::EVERSION_PAUSED);

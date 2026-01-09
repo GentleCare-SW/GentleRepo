@@ -36,6 +36,7 @@ TensionController::TensionController()
 TensionController::TensionController(const char *progress_uuid, VoltageDimmer *dimmer, VoltageDimmer *dimmer2, MotorController *motor, PressureSensor *pressure_sensor, float torque_reference)
 {
     this->dimmer = dimmer;
+    this->dimmer2 = dimmer2;
     this->motor = motor;
     this->pressure_sensor = pressure_sensor;
     this->voltage = 0.0;
@@ -43,7 +44,7 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
     this->velocity = 0.0;
     this->min_velocity = 6.0;
     this->max_velocity = 30.0;
-    this->v_kp = 25;
+    this->v_kp = 40;
     this->bv_kp = .2;
     this->vel_kp = 0;
     this->torque_reference = torque_reference;
@@ -63,20 +64,33 @@ void TensionController::update(float dt)
 
     }
     else{
-        this->v_kp = 25;
+        this->v_kp = 40;
         this->vel_kp = 0;
     }
+
 
     // float voltage_pid = -(torque - this->torque_reference) * this->v_kp;
     // float bumper_voltage_pid = -(torque - this->torque_reference) * this->bv_kp;
     // float velocity_pid = (torque - (this->torque_reference - 0.1)) * .8;
-    if (progress >= .1)
+    if (progress >= .1){
         this->voltage = constrain(BASE_PRESSURE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
-    else this->voltage = 90;
+        this->bumper_voltage = 33.0;}
+    else {
+        this->voltage = 90;
+        this->bumper_voltage = 0;}
+
+    if (this->voltage >= 100) this->velocity = 15 + ((100 - this->voltage)* .25) ;
+    else this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, 30);
+
+    if (torque < -0.10){
+        this->bumper_voltage = 60.0;
+        this->velocity = 5.0;
+    }
+    //else this->bumper_voltage = 33.0;
             
     // this->bumper_voltage = constrain(this->bumper_voltage + bumper_voltage_pid, EVERSION_BUMPER_MIN_VOLTAGE, EVERSION_BUMPER_MAX_VOLTAGE);
-    this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, 30);
     this->dimmer->set_voltage(this->voltage);
+    this->dimmer2->set_voltage(this->bumper_voltage);
     this->motor->set_velocity(this->velocity);
 }
 
