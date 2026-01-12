@@ -35,7 +35,14 @@ enum class ButtonType {
     COUNT
 };
 
+
 #if PLATFORM_TYPE==0
+    enum class ValveState {
+        DRAIN,
+        FILL,
+        HOLD
+    };
+
     enum class KnobType {
         MOTOR,
         AIR,

@@ -82,12 +82,14 @@ void ControlPanel::update_buttons()
                 else
                     this->platform->set(SERVO_ANGLE_UUID, SERVO_ANGLE1);
             } else if (i == (int)ButtonType::CHAMBER) {
-                float new_state = 1.0 - this->platform->get(ON_OFF_VALVE_UUID);
-                this->platform->set(ON_OFF_VALVE_UUID, new_state);
-                delay(10);
-                this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+                int new_state = (int)(1.0 + this->platform->get(VALVE_STATE_UUID)) % 3;
+                this->platform->set(VALVE_STATE_UUID, (float)new_state);
+                if (new_state == 2) {
+                    delay(10);
+                    this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+                }
             } else if (i == (int)ButtonType::TRANSFER) {
-                this->platform->set(OUTER_DIMMER_UUID, 30.0);
+                this->platform->set(OUTER_DIMMER_UUID, 25.0);
                 this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
                 this->transferring = !this->transferring;
             } else if (i == (int)ButtonType::STOP_AIR1) {
@@ -174,20 +176,27 @@ void ControlPanel::update_display()
             break;
         default:
             if (this->platform->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
+                //TODO: replace with jam detected
                 this->display->printf("PRESSURE ERROR: %i\n", (int)this->platform->get(PRESSURE_SENSOR_ERROR_UUID));
     }
     
-
     #if DEVELOPER_SCREEN
         this->display->setCursor(0, 16);
         
         #if PLATFORM_TYPE == 0
             this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-5);
-            this->display->printf("Valves: %.1f V | %.1f\n", this->platform->get(PROPORTIONAL_VALVE_UUID), this->platform->get(ON_OFF_VALVE_UUID));
+            //this->display->printf("Valves: %.1f V | %.1f\n", this->platform->get(PROPORTIONAL_VALVE_UUID), this->platform->get(ON_OFF_VALVE_UUID));
+            float valve_state = this->platform->get(VALVE_STATE_UUID);
+            if (valve_state == 0.0)
+                this->display->println("Valve: DRAIN");
+            else if (valve_state == 1.0)
+                this->display->println("Valve: FILL");
+            else if (valve_state == 2.0)
+                this->display->println("Valve: HOLD");
         #else
             this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #endif
-        this->display->printf("Vel: %.1f, %.1f\n", this->platform->get(MOTOR_VELOCITY_UUID), this->velocity_setpoint);
+        this->display->printf("Vel: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
     #else
         this->display->setCursor(0, 16);
         float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);

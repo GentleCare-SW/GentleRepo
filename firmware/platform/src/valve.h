@@ -20,7 +20,7 @@
 
 class Valve: public Peripheral {
 public:
-    Valve(const char *proportional_uuid, const char *on_off_uuid, int32_t digital_pin, int32_t pwm_pin, int32_t ledc_channel);
+    Valve(const char *valve_uuid, int32_t digital_pin1, int32_t digital_pin2);
 
     void start() override;
 
@@ -33,10 +33,8 @@ public:
     float get_state();
 
 private:
-    int32_t digital_pin;
-    int32_t pwm_pin;
-    int32_t ledc_channel;
-    float prop_voltage;
+    int32_t digital_pin1;
+    int32_t digital_pin2;
     float state;
     uint32_t last_update_time;
 };
