@@ -47,6 +47,10 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
     this->v_kp = 40;
     this->bv_kp = .2;
     this->vel_kp = 0;
+    this->frequency = 0.5f; // hz
+    this->amplitude = 30.0f; // Half of the range (60 / 2)
+    this->offset = 30.0f;    //center point
+
     this->torque_reference = torque_reference;
     this->add_characteristic(progress_uuid, nullptr, std::bind(&TensionController::get_progress, this));
 }
@@ -87,10 +91,11 @@ void TensionController::update(float dt)
         this->velocity = 5.0;
     }
     //else this->bumper_voltage = 33.0;
-            
+    this->internal_time_ += dt;
+
     // this->bumper_voltage = constrain(this->bumper_voltage + bumper_voltage_pid, EVERSION_BUMPER_MIN_VOLTAGE, EVERSION_BUMPER_MAX_VOLTAGE);
     this->dimmer->set_voltage(this->voltage);
-    this->dimmer2->set_voltage(this->bumper_voltage);
+    this->dimmer2->set_voltage(this->offset + this->amplitude * sinf(2.0f * M_PI * this->frequency * this->internal_time_));
     this->motor->set_velocity(this->velocity);
 }
 

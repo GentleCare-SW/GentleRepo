@@ -50,6 +50,11 @@ private:
     float v_kp;
     float vel_kp;
     float torque_reference;
+    float frequency;
+    float amplitude;
+    float offset;
+
+    float internal_time_ = 0.0f;
     VoltageDimmer *dimmer;
     VoltageDimmer *dimmer2;
     MotorController *motor;
