@@ -27,8 +27,8 @@ static RemotePlatform platform(&display);
 static ControlPanel panel(&platform, &display);
 long start_millis;  
 
-void setup()
-{
+
+void setup() {
     Serial.begin(BAUD_RATE);
     while (!Serial);
 
@@ -56,7 +56,6 @@ void setup()
         Knob MOTOR_KNOB = {MOTOR_VELOCITY_UUID, 0.75, -30.0, 30.0};
         Knob AIR_KNOB = {CENTRAL_DIMMER_UUID, 1.0, 0.0, 120.0};
         Knob SERVO_KNOB = {SERVO_ANGLE_UUID, 1.0, SERVO_ANGLE1, SERVO_ANGLE2};
-        //Knob VALVE_KNOB = {PROPORTIONAL_VALVE_UUID, 0.2, 0.0, 15.0};
         static Knob knob_params[] = { MOTOR_KNOB, AIR_KNOB, SERVO_KNOB };
     #else
         static uint32_t knob_dt_pins[] = { KNOB_MOTOR_DT_PIN, KNOB_AIR1_DT_PIN, KNOB_AIR2_DT_PIN };
@@ -71,8 +70,10 @@ void setup()
     platform.start();
 }
 
-void loop()
-{   
+void loop() {   
     platform.update();
     panel.update();
+    //Serial.print("Loop time: ");
+    //Serial.println(millis()-start_millis);
+    start_millis = millis();
 }

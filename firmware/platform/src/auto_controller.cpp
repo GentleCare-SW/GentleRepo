@@ -39,31 +39,25 @@ void AutoController::update(float dt)
     Peripheral::update(dt);
     
     float progress = this->get_progress();
-    float max_speed = constrain(progress / 0.3, 0.0, 1.0) * 10.0 + 12.0;
+    float max_speed = constrain(progress / 0.3, 0.0, 1.0) * 20.0 + 5.0;
 
     if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);
-        if (progress >= .1)
-            this->dimmer2->set_voltage(33);
+        if (progress >= 0.2)
+            this->dimmer2->set_voltage(BUMPER_EVERSION_VOLTAGE);
 
         if (progress >= 1.0)
             this->set_mode((float)AutoControlMode::EVERSION_PAUSED);
         else
-            this->tension_controller.set_max_velocity(30);
+            this->tension_controller.set_max_velocity(max_speed);
     } else if (this->mode == AutoControlMode::INVERSION) {
-        if (progress <= 0.0)
+        if (progress <= 0.0){
             this->set_mode((float)AutoControlMode::IDLE);
-        else if (progress <= 0.1){
-            this->dimmer->set_voltage(0);
+        } else if (progress <= 0.3){
+            this->dimmer->set_voltage(1.2*progress);
             this->dimmer2->set_voltage(0);
-        }
-        else if (progress <= 0.23){
-            this->dimmer->set_voltage(25);
-            this->dimmer2->set_voltage(0);
-            this->motor->set_velocity(-max_speed);}
-
-
-        else{
+            this->motor->set_velocity(-max_speed);
+        } else{
             this->dimmer->set_voltage(INVERSION_VOLTAGE);
             this->dimmer2->set_voltage(BUMPER_INVERSION_VOLTAGE);
             this->motor->set_velocity(-max_speed);}
@@ -89,21 +83,20 @@ void AutoController::set_mode(float mode)
 
     } else if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.reset();
-        this->dimmer->set_voltage(50.0);
+        this->dimmer->set_voltage(BASE_VOLTAGE);
         this->dimmer2->set_voltage(0.0);
 
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
-        this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);
-        this->dimmer2->set_voltage(EVERSION_PAUSED_VOLTAGE);
+        this->dimmer->set_voltage(PAUSED_VOLTAGE);
+        this->dimmer2->set_voltage(BUMPER_PAUSED_VOLTAGE);
 
     } else if (this->mode == AutoControlMode::INVERSION) {
-        this->dimmer->set_voltage(chamber == 0 ? INVERSION_VOLTAGE : 0.0);
-        this->dimmer2->set_voltage(chamber == 0 ? BUMPER_INVERSION_VOLTAGE : 0);
+        this->dimmer->set_voltage(INVERSION_VOLTAGE);
+        this->dimmer2->set_voltage(BUMPER_INVERSION_VOLTAGE);
 
     } else if (this->mode == AutoControlMode::INVERSION_PAUSED) {
-        this->dimmer->set_voltage(chamber == 0 ? INVERSION_PAUSED_VOLTAGE : 0.0);
-        this->dimmer2->set_voltage(EVERSION_PAUSED_VOLTAGE);
-
+        this->dimmer->set_voltage(PAUSED_VOLTAGE);
+        this->dimmer2->set_voltage(BUMPER_PAUSED_VOLTAGE);
     }
 
     this->motor->set_velocity(0.0);
@@ -116,7 +109,6 @@ float AutoController::get_mode()
 
 float AutoController::get_progress()
 {
-    //return max(0.0, constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0));
     return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), 0.53), 0.0, 1.0);
 }
 

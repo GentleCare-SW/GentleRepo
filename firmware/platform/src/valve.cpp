@@ -33,22 +33,22 @@ void Valve::start()
 {
     pinMode(this->digital_pin1, OUTPUT);
     pinMode(this->digital_pin2, OUTPUT);
-    //this->set_volt(0.0);
+    this->set_state(0.0);
     this->last_update_time = micros();
 }
 
 void Valve::set_state(float state)
 {
     this->state = state;
-    if (state == 0.0) { //drain
-        digitalWrite(this->digital_pin1, LOW);
-        digitalWrite(this->digital_pin2, HIGH);
-    } else if (state == 1.0) { //fill
-        digitalWrite(this->digital_pin1, HIGH);
-        digitalWrite(this->digital_pin2, HIGH);
-    } else if (state == 2.0) { //hold
+    if (state == 0.0) { //hold
         digitalWrite(this->digital_pin1, LOW);
         digitalWrite(this->digital_pin2, LOW);
+    } else if (state == 1.0) { //drain
+        digitalWrite(this->digital_pin1, LOW);
+        digitalWrite(this->digital_pin2, HIGH);
+    } else if (state == 2.0) { //fill
+        digitalWrite(this->digital_pin1, HIGH);
+        digitalWrite(this->digital_pin2, HIGH);
     }
 }
 

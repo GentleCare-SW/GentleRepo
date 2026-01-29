@@ -29,44 +29,49 @@
 #include "config.h"
 #include "common/uuids.h"
 
+TwoWire default_I2C = TwoWire(0);
+TwoWire other_I2C = TwoWire(1);
+
 static Service service;
-static PressureSensor pressure_sensor(PRESSURE_SENSOR_UUID, PRESSURE_SENSOR_ERROR_UUID);
+static PressureSensor pressure_sensor1(PRESSURE_SENSOR_UUID, PRESSURE_SENSOR_ERROR_UUID, &default_I2C, 22, 21);
 static MotorController motor_controller(MOTOR_POSITION_UUID, MOTOR_VELOCITY_UUID, MOTOR_TORQUE_UUID, MOTOR_ERROR_UUID, &Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN);
 static VoltageDimmer voltage_dimmer1(CENTRAL_DIMMER_UUID, VOLTAGE_DIMMER_PWM_PIN, VOLTAGE_DIMMER_LEDC_CHANNEL);
-static Servo servo(SERVO_ANGLE_UUID, SERVO_CHAMBER_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
+static Servo servo(SERVO_ANGLE_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
 #if PLATFORM_TYPE == 0
+    static PressureSensor pressure_sensor2(PRESSURE_SENSOR2_UUID, PRESSURE_SENSOR_ERROR_UUID, &other_I2C, PRESSURE_SENSOR_SCL_PIN, PRESSURE_SENSOR_SDA_PIN);
     static Valve valve(VALVE_STATE_UUID, VALVE_DIGITAL_PIN1, VALVE_DIGITAL_PIN2);
 #elif PLATFORM_TYPE == 1
     static VoltageDimmer voltage_dimmer2(OUTER_DIMMER_UUID, VOLTAGE_DIMMER2_PWM_PIN, VOLTAGE_DIMMER2_LEDC_CHANNEL);
     static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
-    static PressureController bumper_pressure_controller(BUMPER_PRESSURE_CONTROLLER_UUID, &voltage_dimmer2, &pressure_sensor);
+    static PressureController bumper_pressure_controller(BUMPER_PRESSURE_CONTROLLER_UUID, &voltage_dimmer2, &pressure_sensor1);
     static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &voltage_dimmer2, &motor_controller, &pressure_sensor, &servo);
 #endif
-static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer1, &pressure_sensor);
+static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer1, &pressure_sensor1);
 
 //#if ENABLE_CONTROL_PANEL
 //    static ControlPanel control_panel(CONTROL_PANEL_STOP_PIN, CONTROL_PANEL_PAUSE_PIN, CONTROL_PANEL_INVERT_PIN, CONTROL_PANEL_EVERT_PIN, CONTROL_PANEL_CHAMBER_PIN, &auto_controller, &motor_controller, &pressure_sensor, &voltage_dimmer1, &servo);
 //#endif
-
+float prev_time = millis();
 void setup()
 {
     Serial.begin(BAUD_RATE);
-    while (!Serial);
+    while (!Serial);  
 
 #if ENABLE_CONTROL_PANEL
     service.add_peripheral(&control_panel);
 #endif
-service.add_peripheral(&pressure_sensor);
+service.add_peripheral(&pressure_sensor1);
 service.add_peripheral(&voltage_dimmer1);
 service.add_peripheral(&servo);
 #if PLATFORM_TYPE == 0   
+    service.add_peripheral(&pressure_sensor2);
     service.add_peripheral(&valve);
 #elif PLATFORM_TYPE == 1
     service.add_peripheral(&voltage_dimmer2);
     service.add_peripheral(&steering);
     service.add_peripheral(&auto_controller);
 #endif
-service.add_peripheral(&pressure_controller);
+//service.add_peripheral(&pressure_controller);
 
 #if ENABLE_MOTOR_CONTROLLER
     service.add_peripheral(&motor_controller);
@@ -76,18 +81,23 @@ service.start();
 
 void loop()
 {
-    pressure_sensor.set_calibrating(voltage_dimmer1.get_voltage() == 0.0);
+    pressure_sensor1.set_calibrating(voltage_dimmer1.get_voltage() == 0.0);
+    #if PLATFORM_TYPE == 0
+        if (voltage_dimmer1.get_voltage() == 0.0) {
+            pressure_sensor2.pressure_offset = pressure_sensor1.pressure_offset;
+        }
+    #endif
+   
     service.update();
-    
-    // Serial.print(">Pressure: ");
-    // Serial.println(pressure_sensor.get_pressure());
-    Serial.print(">Position: ");
-    Serial.println(motor_controller.get_position());
-    Serial.print(">Velocity: ");
-    Serial.println(motor_controller.get_velocity());
-    Serial.print(">Voltage 1: ");
-    Serial.println(voltage_dimmer1.get_voltage());
-    Serial.print(">Torque: ");
-    Serial.println(motor_controller.get_torque());
+    Serial.print(">Pressure 1: ");
+    Serial.println(pressure_sensor1.get_pressure());
+    // Serial.print(">Position: ");
+    // Serial.println(motor_controller.get_position());
+    // Serial.print(">Velocity: ");
+    // Serial.println(motor_controller.get_velocity());
+    // Serial.print(">Voltage 1: ");
+    // Serial.println(voltage_dimmer1.get_voltage());
+    // Serial.print(">Torque: ");
+    // Serial.println(motor_controller.get_torque());
 
 }

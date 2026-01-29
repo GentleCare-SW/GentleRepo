@@ -20,7 +20,7 @@
 
 class Servo: public Peripheral {
 public:
-    Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, int32_t ledc_channel);
+    Servo(const char *angle_uuid, int32_t pwm_pin, int32_t ledc_channel);
 
     void start() override;
 

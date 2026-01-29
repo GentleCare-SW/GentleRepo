@@ -52,17 +52,15 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
 
 void TensionController::update(float dt)
 {
-
-    float torque = this->motor->get_torque();
-    float error = (this->torque_reference - torque);
     float progress = this->get_progress();
-
+    float torque_ref = constrain(2.25-(progress*2.0), 0, 1.25);
+    float torque = this->motor->get_torque();
+    float error = (torque_ref - torque);
+    
     if (error < 0) {
         this->vel_kp = this->vel_kp/2;
         this->v_kp = this->vel_kp/3;
-
-    }
-    else{
+    } else{
         this->v_kp = 25;
         this->vel_kp = 0;
     }
@@ -71,7 +69,7 @@ void TensionController::update(float dt)
     // float bumper_voltage_pid = -(torque - this->torque_reference) * this->bv_kp;
     // float velocity_pid = (torque - (this->torque_reference - 0.1)) * .8;
     if (progress >= .1)
-        this->voltage = constrain(BASE_PRESSURE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
+        this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
     else this->voltage = 90;
             
     // this->bumper_voltage = constrain(this->bumper_voltage + bumper_voltage_pid, EVERSION_BUMPER_MIN_VOLTAGE, EVERSION_BUMPER_MAX_VOLTAGE);

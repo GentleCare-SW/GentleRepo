@@ -43,8 +43,8 @@
 #define KNOB_VALVE_CLK_PIN 36
 #define JOYSTICK_VRX_PIN -1
 
-#define SERVO_ANGLE1 5.0
-#define SERVO_ANGLE2 95.0
+#define SERVO_ANGLE1 4.0
+#define SERVO_ANGLE2 124.0
 
 
 #elif PLATFORM_TYPE == 1

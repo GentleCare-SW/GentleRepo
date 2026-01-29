@@ -84,10 +84,10 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::CHAMBER) {
                 int new_state = (int)(1.0 + this->platform->get(VALVE_STATE_UUID)) % 3;
                 this->platform->set(VALVE_STATE_UUID, (float)new_state);
-                if (new_state == 2) {
-                    delay(10);
-                    this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
-                }
+                // if (new_state == 2) {
+                //     delay(10);
+                //     this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+                // }
             } else if (i == (int)ButtonType::TRANSFER) {
                 this->platform->set(OUTER_DIMMER_UUID, 25.0);
                 this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
@@ -126,6 +126,7 @@ void ControlPanel::update_knobs()
             if (i==0){
                 this->velocity_setpoint = value;
             }
+            Serial.printf("Knob changed: %i, %.1f\n", knob_difference, value);
             this->platform->set(current_knob.UUID, value);
         }
         this->last_knob_positions[i] = this->current_knob_positions[i];
@@ -169,31 +170,38 @@ void ControlPanel::update_display()
             this->display->printf("MOTOR NOT RESPONDING");
             break;
         case 2:
-            this->display->printf("CALIBRATION ERROR");
+            //this->display->printf("CALIBRATION ERROR");
+            //TODO: automated recalibration procedure?
+            this->platform->set(CENTRAL_DIMMER_UUID, 40.0);
+            this->display->printf("AUTOMATIC RECALIBRATION");
+            delay(1500);
+            this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+            delay(1000);
+            this->platform->set(MOTOR_ERROR_UUID, 4.0);
             break;
         case 3:
             this->display->printf("MOTOR CONTROL ERROR");
             break;
-        default:
-            if (this->platform->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
-                //TODO: replace with jam detected
-                this->display->printf("PRESSURE ERROR: %i\n", (int)this->platform->get(PRESSURE_SENSOR_ERROR_UUID));
+        // default:
+        //     if (this->platform->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
+        //         //TODO: replace with jam detected
+        //         this->display->printf("PRESSURE ERROR: %i\n", (int)this->platform->get(PRESSURE_SENSOR_ERROR_UUID));
     }
     
     #if DEVELOPER_SCREEN
-        this->display->setCursor(0, 16);
-        
         #if PLATFORM_TYPE == 0
-            this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-5);
-            //this->display->printf("Valves: %.1f V | %.1f\n", this->platform->get(PROPORTIONAL_VALVE_UUID), this->platform->get(ON_OFF_VALVE_UUID));
+            this->display->setCursor(0, 8);
+            this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-4);
             float valve_state = this->platform->get(VALVE_STATE_UUID);
             if (valve_state == 0.0)
-                this->display->println("Valve: DRAIN");
+                this->display->printf("Valve: HOLD \n");
             else if (valve_state == 1.0)
-                this->display->println("Valve: FILL");
+                this->display->printf("Valve: DRAIN \n");
             else if (valve_state == 2.0)
-                this->display->println("Valve: HOLD");
+                this->display->printf("Valve: FILL \n");
+            this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #else
+            this->display->setCursor(0, 16);
             this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #endif
         this->display->printf("Vel: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
@@ -209,11 +217,19 @@ void ControlPanel::update_display()
 
     this->display->setCursor(0, 40);
     this->display->printf("Torque: %.2f Nm\n", this->platform->get(MOTOR_TORQUE_UUID));
-    this->display->printf("Voltage: %.1f, %.1f\n", this->platform->get(CENTRAL_DIMMER_UUID), this->platform->get(OUTER_DIMMER_UUID));
+
     #if CLOSED_LOOP_PRESSURE_CONTROL
         this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_CONTROLLER_UUID));
     #else
-        this->display->printf("Pressure: %.2f PSI\n", std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID)));
+        #if PLATFORM_TYPE == 0
+            this->display->printf("Voltage: %.1f V\n", this->platform->get(CENTRAL_DIMMER_UUID));
+            float p1 = std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID));
+            float p2 = std::max((float)0.0, this->platform->get(PRESSURE_SENSOR2_UUID));
+            this->display->printf("PSI: %.2f | %.2f \n", p1, p2);
+        #else
+            this->display->printf("Voltage: %.1f, %.1f\n", this->platform->get(CENTRAL_DIMMER_UUID), this->platform->get(OUTER_DIMMER_UUID));
+            this->display->printf("Pressure: %.2f PSI\n", std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID)));
+        #endif
     #endif
 
     this->display->display();

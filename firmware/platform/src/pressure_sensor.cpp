@@ -19,9 +19,12 @@
 #include "pressure_sensor.h"
 
 
-PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid)
+PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin)
 {
-    this->last_psi = 0.0;
+    this->clock_pin = SCL_pin;
+    this->data_pin = SDA_pin;
+    this->wire = wire;
+    this->last_psi = 14.0;
     this->moving_pressure = 0.0;
     this->moving_squared_pressure = 0.0;
     this->pressure_derivative = 0.0;
@@ -36,22 +39,27 @@ PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid
 void PressureSensor::start()
 {
     this->sensor = Adafruit_MPRLS();
-    if (! this->sensor.begin()) {
+    this->wire->begin(this->data_pin, this->clock_pin);
+    this->error = PressureSensorError::NONE;
+    if (! this->sensor.begin(0x18, this->wire)) {
         this->error = PressureSensorError::NOT_CONNECTED;
         Serial.println("Failed to communicate with pressure sensor, check wiring?");
     }
-    this->error = PressureSensorError::NONE;
 }
 
 void PressureSensor::update(float dt)
 {
     Peripheral::update(dt);
+    if (this->error == PressureSensorError::NOT_CONNECTED)
+        return;
 
     float psi = this->read_psi();
-    //if (abs(psi - this->last_psi) > 1.0)
-    //    psi = this->last_psi + (psi > this->last_psi ? 1.0 : -1.0);
+    float psi_diff = abs(psi-this->last_psi);
+    if (this->error == PressureSensorError::NONE && psi_diff > 10.0)
+        this->error = PressureSensorError::NOT_CONNECTED;
+    //else if (this->error == PressureSensorError::NOT_CONNECTED && psi_diff <= 10.0)
+    //    this->error = PressureSensorError::NONE;
 
-    //float alpha = exp(-dt);
     float alpha = 0.5;
 
     float previous_moving_pressure = this->moving_pressure;
@@ -64,10 +72,7 @@ void PressureSensor::update(float dt)
         this->pressure_offset = this->moving_pressure;
 
     float std = sqrt(max(0.0f, this->moving_squared_pressure - this->moving_pressure * this->moving_pressure));
-    if (this->error == PressureSensorError::NONE && std > 10.0)
-        this->error = PressureSensorError::NOT_CONNECTED;
-    else if (this->error == PressureSensorError::NOT_CONNECTED && std <= 10.0)
-        this->error = PressureSensorError::NONE;
+    
 
     this->last_psi = psi;
 }

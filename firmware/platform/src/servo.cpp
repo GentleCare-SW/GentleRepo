@@ -22,15 +22,15 @@ static const float MAX_MICROSECONDS = 2500.0;
 static const float MIN_MICROSECONDS = 500.0;
 static const float SERVO_UPDATE_INTERVAL = 0.2;
 
-Servo::Servo(const char *angle_uuid, const char *chamber_uuid, int32_t pwm_pin, int32_t ledc_channel)
+Servo::Servo(const char *angle_uuid, int32_t pwm_pin, int32_t ledc_channel)
 {
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
-    this->angle = SERVO_ANGLE2;
-    this->chamber = 1.0;
+    this->angle = SERVO_ANGLE1;
+    //this->chamber = 1.0;
 
     this->add_characteristic(angle_uuid, std::bind(&Servo::set_angle, this, std::placeholders::_1), std::bind(&Servo::get_angle, this));
-    this->add_characteristic(chamber_uuid, std::bind(&Servo::set_chamber, this, std::placeholders::_1), std::bind(&Servo::get_chamber, this));
+    //this->add_characteristic(chamber_uuid, std::bind(&Servo::set_chamber, this, std::placeholders::_1), std::bind(&Servo::get_chamber, this));
 }
 
 void Servo::start()
@@ -38,7 +38,7 @@ void Servo::start()
     pinMode(this->pwm_pin, OUTPUT);
     ledcSetup(this->ledc_channel, 400, 16);
     ledcAttachPin(this->pwm_pin, this->ledc_channel);
-    this->set_chamber(1.0);
+    this->set_angle(SERVO_ANGLE1);
     this->last_update_time = micros();
 
 }
@@ -51,6 +51,7 @@ void Servo::update(float dt)
     if (current_time - this->last_update_time > (uint32_t)(SERVO_UPDATE_INTERVAL * 1e6)) {
         dt = (current_time - this->last_update_time) / 1e6;
         this->last_update_time = current_time;
+        // Slow transition:
         // if (this->goal_angle != this->angle){
         //     this->angle = (this->goal_angle-this->angle)>0 ? this->angle+1 : this->angle-1;
         //     this->set_angle(this->angle);
@@ -59,7 +60,7 @@ void Servo::update(float dt)
 }
 
 void Servo::set_angle(float angle)
-{
+{   
     this->angle = constrain(angle, 0.0, 180.0);
     uint32_t duty_cycle = (this->angle / 180.0 * (MAX_MICROSECONDS - MIN_MICROSECONDS) + MIN_MICROSECONDS) / MAX_MICROSECONDS * 0xffff;
     ledcWrite(this->ledc_channel, duty_cycle);
@@ -70,13 +71,13 @@ float Servo::get_angle()
     return this->angle;
 }
 
-void Servo::set_chamber(float chamber)
-{
-    this->angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
-    this->set_angle(this->angle);
-}
+// void Servo::set_chamber(float chamber)
+// {
+//     this->angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
+//     this->set_angle(this->angle);
+// }
 
-float Servo::get_chamber()
-{
-    return this->chamber;
-}
+// float Servo::get_chamber()
+// {
+//     return this->chamber;
+// }
