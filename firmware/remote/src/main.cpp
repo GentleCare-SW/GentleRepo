@@ -55,7 +55,7 @@ void setup() {
         static uint32_t knob_clk_pins[] = { KNOB_MOTOR_CLK_PIN, KNOB_AIR_CLK_PIN, KNOB_SERVO_CLK_PIN, KNOB_VALVE_CLK_PIN };
         Knob MOTOR_KNOB = {MOTOR_VELOCITY_UUID, 0.75, -30.0, 30.0};
         Knob AIR_KNOB = {CENTRAL_DIMMER_UUID, 1.0, 0.0, 120.0};
-        Knob SERVO_KNOB = {SERVO_ANGLE_UUID, 1.0, SERVO_ANGLE1, SERVO_ANGLE2};
+        Knob SERVO_KNOB = {SERVO_ANGLE_UUID, -0.5, SERVO_ANGLE2, SERVO_ANGLE1};
         static Knob knob_params[] = { MOTOR_KNOB, AIR_KNOB, SERVO_KNOB };
     #else
         static uint32_t knob_dt_pins[] = { KNOB_MOTOR_DT_PIN, KNOB_AIR1_DT_PIN, KNOB_AIR2_DT_PIN };

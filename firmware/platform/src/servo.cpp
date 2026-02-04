@@ -27,10 +27,8 @@ Servo::Servo(const char *angle_uuid, int32_t pwm_pin, int32_t ledc_channel)
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
     this->angle = SERVO_ANGLE1;
-    //this->chamber = 1.0;
 
     this->add_characteristic(angle_uuid, std::bind(&Servo::set_angle, this, std::placeholders::_1), std::bind(&Servo::get_angle, this));
-    //this->add_characteristic(chamber_uuid, std::bind(&Servo::set_chamber, this, std::placeholders::_1), std::bind(&Servo::get_chamber, this));
 }
 
 void Servo::start()
@@ -70,14 +68,3 @@ float Servo::get_angle()
 {
     return this->angle;
 }
-
-// void Servo::set_chamber(float chamber)
-// {
-//     this->angle = chamber == 0.0 ? SERVO_ANGLE1 : SERVO_ANGLE2;
-//     this->set_angle(this->angle);
-// }
-
-// float Servo::get_chamber()
-// {
-//     return this->chamber;
-// }

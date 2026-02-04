@@ -74,8 +74,6 @@ void AutoController::set_mode(float mode)
     if ((AutoControlMode)mode == this->mode && mode != (float)AutoControlMode::IDLE)
         return;
 
-    int chamber = this->servo->get_chamber();
-
     this->mode = (AutoControlMode)mode;
     if (this->mode == AutoControlMode::IDLE) {
         this->dimmer->set_voltage(0);

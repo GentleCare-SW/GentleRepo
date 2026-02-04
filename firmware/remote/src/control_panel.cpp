@@ -191,7 +191,9 @@ void ControlPanel::update_display()
     #if DEVELOPER_SCREEN
         #if PLATFORM_TYPE == 0
             this->display->setCursor(0, 8);
-            this->display->printf("Servo angle: %i\n", (int)this->platform->get(SERVO_ANGLE_UUID)-4);
+            float current_angle = this->platform->get(SERVO_ANGLE_UUID);
+            
+            this->display->printf("Servo angle: %i\n", (int)current_angle);
             float valve_state = this->platform->get(VALVE_STATE_UUID);
             if (valve_state == 0.0)
                 this->display->printf("Valve: HOLD \n");
