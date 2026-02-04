@@ -43,10 +43,8 @@ void AutoController::update(float dt)
 
     if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);
-        if (progress >= 0.2)
-            this->dimmer2->set_voltage(BUMPER_EVERSION_VOLTAGE);
 
-        if (progress >= 1.0)
+        if (progress >= 1.0 || progress >= .87 && this->dimmer->get_voltage() > 115)
             this->set_mode((float)AutoControlMode::EVERSION_PAUSED);
         else
             this->tension_controller.set_max_velocity(max_speed);

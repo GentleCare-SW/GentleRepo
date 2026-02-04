@@ -1,5 +1,5 @@
-### Troubleshooting Guide
-This guide is a record of errors we have encountered and how they were fixed.
+# Troubleshooting Guide
+This guide is a record of problems we have encountered and how to fix them.
 
 ## Motor Errors
 Motor error codes:
@@ -49,4 +49,7 @@ See [Odrive python package](https://docs.odriverobotics.com/v/latest/guides/pyth
 See [Odrive API](https://docs.odriverobotics.com/v/latest/fibre_types/com_odriverobotics_ODrive.html#ODrive) for all other details.
 
 ## Servo Problems
-We had an intermittent problem where running the servo would cause the ESP32 to disconnect. This is probably because the servo was momentarily drawing too much current for the ESP to handle. I don't know what made it start working again. It started working after I unplugged the voltage dimmer pins from the breadboard then put them back (Also, the vacuum started running when I unplugged these). In the future, we might want to incorporate something into the circuit that can limit the current. 
+We had an intermittent problem where running the servo would cause the ESP32 to disconnect. I believe this was because the servo was momentarily drawing too much current from the power supply and the ESP32 didn't have enough power to function. This is why we incorporated a 24V to 5V buck converter into the wedge's circuit which can supply more current. We were previously running all of the electronics from the voltage dimmer, which only supplies 100mA at 5V. There should be at least 1A available to make sure the servo can be powered stably.
+
+## Other Issues
+If the remote seems to be working very slowly and the knobs are much less responsive than usual, check to make sure the pressure sensor is connected. If it is disconnected, it will slow down the loop time of the ESP32 significantly. 
