@@ -21,7 +21,6 @@
 #include "service.h"
 
 
-
 TensionController::TensionController()
 {
     this->dimmer = nullptr;
@@ -33,7 +32,7 @@ TensionController::TensionController()
     this->torque_reference = 0.0;
 }
 
-TensionController::TensionController(const char *progress_uuid, VoltageDimmer *dimmer, VoltageDimmer *dimmer2, MotorController *motor, PressureSensor *pressure_sensor, float torque_reference)
+TensionController::TensionController(const char *progress_uuid, VoltageDimmer *dimmer, VoltageDimmer *dimmer2, MotorController *motor, PressureSensor *pressure_sensor)
 {
     this->dimmer = dimmer;
     this->dimmer2 = dimmer2;
@@ -47,7 +46,7 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
     this->v_kp = 40;
     this->bv_kp = .2;
     this->vel_kp = 0;
-    this->torque_reference = torque_reference;
+    this->torque_reference = REFERENCE_TORQUE;
     this->add_characteristic(progress_uuid, nullptr, std::bind(&TensionController::get_progress, this));
 }
 
@@ -61,19 +60,17 @@ void TensionController::update(float dt)
     if (error < 0) {
         this->vel_kp = this->vel_kp/2;
         this->v_kp = this->vel_kp/3;
-
     }
     else{
         this->v_kp = 40;
         this->vel_kp = 0;
     }
 
-
     // float voltage_pid = -(torque - this->torque_reference) * this->v_kp;
     // float bumper_voltage_pid = -(torque - this->torque_reference) * this->bv_kp;
     // float velocity_pid = (torque - (this->torque_reference - 0.1)) * .8;
     if (progress >= .1){
-        this->voltage = constrain(BASE_PRESSURE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
+        this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
         this->bumper_voltage = 40;}
     else {
         this->voltage = 90;

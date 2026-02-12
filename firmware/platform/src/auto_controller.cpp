@@ -27,7 +27,7 @@ AutoController::AutoController(const char *mode_uuid, const char *progress_uuid,
     this->motor = motor;
     this->pressure_sensor = pressure_sensor;
     this->servo = servo;
-    this->tension_controller = TensionController(progress_uuid, dimmer, dimmer2, motor, pressure_sensor, REFERENCE_TORQUE);
+    this->tension_controller = TensionController(progress_uuid, dimmer, dimmer2, motor, pressure_sensor);
     this->set_mode((float)AutoControlMode::IDLE);
 
     this->add_characteristic(mode_uuid, std::bind(&AutoController::set_mode, this, std::placeholders::_1), std::bind(&AutoController::get_mode, this));
@@ -83,7 +83,7 @@ void AutoController::set_mode(float mode)
         this->dimmer2->set_voltage(0.0);
 
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
-        this->dimmer->set_voltage(PAUSED_VOLTAGE);
+        this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);
         this->dimmer2->set_voltage(BUMPER_PAUSED_VOLTAGE);
 
     } else if (this->mode == AutoControlMode::INVERSION) {
@@ -91,7 +91,7 @@ void AutoController::set_mode(float mode)
         this->dimmer2->set_voltage(BUMPER_INVERSION_VOLTAGE);
 
     } else if (this->mode == AutoControlMode::INVERSION_PAUSED) {
-        this->dimmer->set_voltage(PAUSED_VOLTAGE);
+        this->dimmer->set_voltage(INVERSION_PAUSED_VOLTAGE);
         this->dimmer2->set_voltage(BUMPER_PAUSED_VOLTAGE);
     }
 

@@ -44,7 +44,7 @@ static Servo servo(SERVO_ANGLE_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
     static VoltageDimmer voltage_dimmer2(OUTER_DIMMER_UUID, VOLTAGE_DIMMER2_PWM_PIN, VOLTAGE_DIMMER2_LEDC_CHANNEL);
     static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
     static PressureController bumper_pressure_controller(BUMPER_PRESSURE_CONTROLLER_UUID, &voltage_dimmer2, &pressure_sensor1);
-    static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &voltage_dimmer2, &motor_controller, &pressure_sensor, &servo);
+    static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &voltage_dimmer2, &motor_controller, &pressure_sensor1, &servo);
 #endif
 static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer1, &pressure_sensor1);
 
@@ -83,6 +83,8 @@ void loop()
 {
     pressure_sensor1.set_calibrating(voltage_dimmer1.get_voltage() == 0.0);
     #if PLATFORM_TYPE == 0
+        Serial.print(">Pressure 2: ");
+        Serial.println(pressure_sensor2.get_pressure());
         if (voltage_dimmer1.get_voltage() == 0.0) {
             pressure_sensor2.pressure_offset = pressure_sensor1.pressure_offset;
         }

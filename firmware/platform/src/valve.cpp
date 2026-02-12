@@ -25,7 +25,6 @@ Valve::Valve(const char *valve_uuid, int32_t digital_pin1, int32_t digital_pin2)
     this->digital_pin2=digital_pin2; //2-way valve
     this->state = 0.0;
 
-    //this->add_characteristic(proportional_uuid, std::bind(&Valve::set_volt, this, std::placeholders::_1), std::bind(&Valve::get_volt, this));
     this->add_characteristic(valve_uuid, std::bind(&Valve::set_state, this, std::placeholders::_1), std::bind(&Valve::get_state, this));
 }
 
