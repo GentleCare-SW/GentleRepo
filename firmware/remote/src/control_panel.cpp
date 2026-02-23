@@ -205,7 +205,7 @@ void ControlPanel::update_display()
             this->display->setCursor(0, 16);
             this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #endif
-        this->display->printf("Vel: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
+        this->display->printf("Vel: %.1f, %.1f\n", this->platform->get(MOTOR_VELOCITY_UUID), this->velocity_setpoint);
     #else
         this->display->setCursor(0, 16);
         float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);

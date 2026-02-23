@@ -19,6 +19,13 @@
 #include "voltage_dimmer.h"
 #include "config.h"
 
+VoltageDimmer::VoltageDimmer()
+{
+    this->pwm_pin = -1;
+    this->ledc_channel = 5.0;
+    this->voltage = 0.0;
+}
+
 VoltageDimmer::VoltageDimmer(const char *uuid, int32_t pwm_pin, int32_t ledc_channel)
 {
     this->pwm_pin = pwm_pin;
@@ -35,9 +42,11 @@ void VoltageDimmer::start()
     ledcAttachPin(this->pwm_pin, this->ledc_channel);
     this->set_voltage(this->voltage);
 }
-
 void VoltageDimmer::set_voltage(float voltage)
 {
+    if (ledc_channel == NAN)
+        return;
+
     this->voltage = constrain(voltage, 0.0, 120.0);
     float percentage = this->voltage_to_pwm_percentage(this->voltage);
     ledcWrite(this->ledc_channel, (uint32_t)(percentage * 0xffff));

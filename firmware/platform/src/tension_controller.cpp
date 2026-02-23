@@ -44,8 +44,8 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
     this->min_velocity = 6.0;
     this->max_velocity = 30.0;
     this->v_kp = 40;
-    this->bv_kp = .2;
-    this->vel_kp = 0;
+    this->bv_kp = 0.2;
+    this->vel_kp = 0.0;
     this->torque_reference = REFERENCE_TORQUE;
     this->add_characteristic(progress_uuid, nullptr, std::bind(&TensionController::get_progress, this));
 }
@@ -53,7 +53,7 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
 void TensionController::update(float dt)
 {
     float progress = this->get_progress();
-    float torque_ref = constrain(2.25-(progress*2.0), 0, 1.25);
+    float torque_ref = constrain(2.25-(progress*2.0), 0, REFERENCE_TORQUE);
     float torque = this->motor->get_torque();
     float error = (torque_ref - torque);
     
@@ -69,7 +69,7 @@ void TensionController::update(float dt)
     // float voltage_pid = -(torque - this->torque_reference) * this->v_kp;
     // float bumper_voltage_pid = -(torque - this->torque_reference) * this->bv_kp;
     // float velocity_pid = (torque - (this->torque_reference - 0.1)) * .8;
-    if (progress >= .1){
+    if (progress >= 0.0){ //was 0.1
         this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
         this->bumper_voltage = 40;}
     else {
@@ -79,7 +79,7 @@ void TensionController::update(float dt)
         this->bumper_voltage = constrain((this->bumper_voltage + 15), 36, 60);
     }
 
-    if (this->voltage >= 100) this->velocity = 15 + ((100 - this->voltage)* .25) ;
+    if (this->voltage >= 100) this->velocity = 15 + ((100 - this->voltage)* .25);
     else this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, 30);
 
     if (torque < -0.10){
@@ -119,6 +119,5 @@ void TensionController::reset()
 
 float TensionController::get_progress()
 {
-    //return max(0.0, constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0));
     return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), 0.53), 0.0, 1.0);
 }

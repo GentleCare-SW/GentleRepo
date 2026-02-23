@@ -26,6 +26,7 @@
 #include "servo.h"
 #include "valve.h"
 #include "steering.h"
+#include "wedges_controller.h"
 #include "config.h"
 #include "common/uuids.h"
 
@@ -40,6 +41,7 @@ static Servo servo(SERVO_ANGLE_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
 #if PLATFORM_TYPE == 0
     static PressureSensor pressure_sensor2(PRESSURE_SENSOR2_UUID, PRESSURE_SENSOR_ERROR_UUID, &other_I2C, PRESSURE_SENSOR_SCL_PIN, PRESSURE_SENSOR_SDA_PIN);
     static Valve valve(VALVE_STATE_UUID, VALVE_DIGITAL_PIN1, VALVE_DIGITAL_PIN2);
+    static WedgesController wedges_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &motor_controller, &pressure_sensor1, &pressure_sensor2, &servo, &valve);
 #elif PLATFORM_TYPE == 1
     static VoltageDimmer voltage_dimmer2(OUTER_DIMMER_UUID, VOLTAGE_DIMMER2_PWM_PIN, VOLTAGE_DIMMER2_LEDC_CHANNEL);
     static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
@@ -66,6 +68,7 @@ service.add_peripheral(&servo);
 #if PLATFORM_TYPE == 0   
     service.add_peripheral(&pressure_sensor2);
     service.add_peripheral(&valve);
+    service.add_peripheral(&wedges_controller);
 #elif PLATFORM_TYPE == 1
     service.add_peripheral(&voltage_dimmer2);
     service.add_peripheral(&steering);
@@ -93,12 +96,14 @@ void loop()
     service.update();
     Serial.print(">Pressure 1: ");
     Serial.println(pressure_sensor1.get_pressure());
+    Serial.print(">Angle: ");
+    Serial.println(servo.get_angle());
     // Serial.print(">Position: ");
     // Serial.println(motor_controller.get_position());
     // Serial.print(">Velocity: ");
     // Serial.println(motor_controller.get_velocity());
-    // Serial.print(">Voltage 1: ");
-    // Serial.println(voltage_dimmer1.get_voltage());
+    Serial.print(">Voltage: ");
+    Serial.println(voltage_dimmer1.get_voltage());
     // Serial.print(">Torque: ");
     // Serial.println(motor_controller.get_torque());
 

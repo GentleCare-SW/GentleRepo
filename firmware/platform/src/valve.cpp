@@ -39,13 +39,13 @@ void Valve::start()
 void Valve::set_state(float state)
 {
     this->state = state;
-    if (state == 0.0) { //hold
+    if (state == (float)ValveState::HOLD) { //hold
         digitalWrite(this->digital_pin1, LOW);
         digitalWrite(this->digital_pin2, LOW);
-    } else if (state == 1.0) { //drain
+    } else if (state == (float)ValveState::DRAIN) { //drain
         digitalWrite(this->digital_pin1, LOW);
         digitalWrite(this->digital_pin2, HIGH);
-    } else if (state == 2.0) { //fill
+    } else if (state == (float)ValveState::FILL) { //fill
         digitalWrite(this->digital_pin1, HIGH);
         digitalWrite(this->digital_pin2, HIGH);
     }

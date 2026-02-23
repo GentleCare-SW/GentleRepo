@@ -18,6 +18,12 @@
 #pragma once
 #include "peripheral.h"
 
+enum class ValveState{
+    HOLD,
+    DRAIN,
+    FILL
+};
+
 class Valve: public Peripheral {
 public:
     Valve(const char *valve_uuid, int32_t digital_pin1, int32_t digital_pin2);
