@@ -24,7 +24,7 @@ PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid
     this->clock_pin = SCL_pin;
     this->data_pin = SDA_pin;
     this->wire = wire;
-    this->last_psi = 14.0;
+    this->last_psi = 14.7;
     this->moving_pressure = 0.0;
     this->moving_squared_pressure = 0.0;
     this->pressure_derivative = 0.0;
@@ -54,26 +54,28 @@ void PressureSensor::update(float dt)
         return;
 
     float psi = this->read_psi();
-    float psi_diff = abs(psi-this->last_psi);
-    if (this->error == PressureSensorError::NONE && psi_diff > 10.0)
-        this->error = PressureSensorError::NOT_CONNECTED;
+    // float psi_diff = abs(psi-this->last_psi);
+    // if (this->error == PressureSensorError::NONE && psi_diff > 10.0)
+    //     this->error = PressureSensorError::NOT_CONNECTED;
     //else if (this->error == PressureSensorError::NOT_CONNECTED && psi_diff <= 10.0)
     //    this->error = PressureSensorError::NONE;
 
-    float alpha = 0.5;
+    float alpha = 0.75;
 
     float previous_moving_pressure = this->moving_pressure;
     this->moving_pressure = this->moving_pressure * alpha + psi * (1.0 - alpha);
     this->moving_squared_pressure = this->moving_squared_pressure * alpha + psi * psi * (1.0 - alpha);
 
     this->pressure_derivative = (this->moving_pressure - previous_moving_pressure) / dt;
+    Serial.println(pressure_derivative);
 
-    if (this->calibrating)
+    if (this->calibrating && abs(this->pressure_derivative) <= 0.01) {
+        Serial.println("calibrating");
         this->pressure_offset = this->moving_pressure;
+    }
 
-    float std = sqrt(max(0.0f, this->moving_squared_pressure - this->moving_pressure * this->moving_pressure));
+    //float std = sqrt(max(0.0f, this->moving_squared_pressure - this->moving_pressure * this->moving_pressure));
     
-
     this->last_psi = psi;
 }
 

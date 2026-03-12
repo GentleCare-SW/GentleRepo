@@ -43,13 +43,13 @@ void AutoController::update(float dt)
 
     if (this->mode == AutoControlMode::EVERSION) {
         this->tension_controller.update(dt);
-
+        
         if (progress >= 1.0 || progress >= .87 && this->dimmer->get_voltage() > 115)
             this->set_mode((float)AutoControlMode::EVERSION_PAUSED);
         else
             this->tension_controller.set_max_velocity(max_speed);
     } else if (this->mode == AutoControlMode::INVERSION) {
-        if (progress <= 0.0){
+        if (this->motor->get_position() <= -1.0){
             this->set_mode((float)AutoControlMode::IDLE);
         } else if (progress <= 0.25){
             this->dimmer->set_voltage(160.0*progress+20.0);
@@ -86,6 +86,14 @@ void AutoController::set_mode(float mode)
         this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);
         this->dimmer2->set_voltage(BUMPER_PAUSED_VOLTAGE);
 
+    } else if (this->mode == AutoControlMode::TRANSFER) {
+        this->dimmer->set_voltage(MAX_DIMMER_VOLTAGE);
+        this->dimmer2->set_voltage(INVERSION_PAUSED_VOLTAGE);
+
+    } else if (this->mode == AutoControlMode::TRANSFER_PAUSED) {
+        this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);
+        this->dimmer2->set_voltage(BUMPER_PAUSED_VOLTAGE);
+
     } else if (this->mode == AutoControlMode::INVERSION) {
         this->dimmer->set_voltage(INVERSION_VOLTAGE);
         this->dimmer2->set_voltage(BUMPER_INVERSION_VOLTAGE);
@@ -108,12 +116,16 @@ float AutoController::get_progress()
     return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), 0.53), 0.0, 1.0);
 }
 
-void AutoController::toggle_paused()
+void AutoController::toggle_paused() // is this being used?
 {
     if (this->mode == AutoControlMode::EVERSION)
         this->set_mode((float)AutoControlMode::EVERSION_PAUSED);
     else if (this->mode == AutoControlMode::EVERSION_PAUSED)
         this->set_mode((float)AutoControlMode::EVERSION);
+    else if (this->mode == AutoControlMode::TRANSFER)
+        this->set_mode((float)AutoControlMode::TRANSFER_PAUSED);
+    else if (this->mode == AutoControlMode::TRANSFER_PAUSED)
+        this->set_mode((float)AutoControlMode::TRANSFER);
     else if (this->mode == AutoControlMode::INVERSION)
         this->set_mode((float)AutoControlMode::INVERSION_PAUSED);
     else if (this->mode == AutoControlMode::INVERSION_PAUSED)

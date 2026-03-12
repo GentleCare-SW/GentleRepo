@@ -49,7 +49,6 @@ private:
     float bv_kp;
     float v_kp;
     float vel_kp;
-    float torque_reference;
     VoltageDimmer *dimmer;
     VoltageDimmer *dimmer2;
     MotorController *motor;

@@ -29,7 +29,6 @@ TensionController::TensionController()
     this->pressure_sensor = nullptr;
     this->voltage = 0.0;
     this->bumper_voltage = 0.0;
-    this->torque_reference = 0.0;
 }
 
 TensionController::TensionController(const char *progress_uuid, VoltageDimmer *dimmer, VoltageDimmer *dimmer2, MotorController *motor, PressureSensor *pressure_sensor)
@@ -46,14 +45,17 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
     this->v_kp = 40;
     this->bv_kp = 0.2;
     this->vel_kp = 0.0;
-    this->torque_reference = REFERENCE_TORQUE;
     this->add_characteristic(progress_uuid, nullptr, std::bind(&TensionController::get_progress, this));
 }
 
 void TensionController::update(float dt)
 {
     float progress = this->get_progress();
-    float torque_ref = constrain(2.25-(progress*2.0), 0, REFERENCE_TORQUE);
+    #if PLATFORM_TYPE==0
+    float torque_ref = constrain(-0.5*progress, -1.0, REFERENCE_TORQUE);
+    #else
+    float torque_ref = constrain(2.25-(progress*2.0), 0.0, REFERENCE_TORQUE);
+    #endif
     float torque = this->motor->get_torque();
     float error = (torque_ref - torque);
     
@@ -73,14 +75,14 @@ void TensionController::update(float dt)
         this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
         this->bumper_voltage = 40;}
     else {
-        this->voltage = 90;
-        this->bumper_voltage = 0;}
+        this->voltage = 50;
+        this->bumper_voltage = 30;}
     if (progress >= .5) {
         this->bumper_voltage = constrain((this->bumper_voltage + 15), 36, 60);
     }
 
     if (this->voltage >= 100) this->velocity = 15 + ((100 - this->voltage)* .25);
-    else this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, 30);
+    else this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, this->max_velocity);
 
     if (torque < -0.10){
         this->bumper_voltage = 60.0;
@@ -94,16 +96,6 @@ void TensionController::update(float dt)
     this->motor->set_velocity(this->velocity);
 }
 
-void TensionController::set_reference(float reference)
-{
-    this->torque_reference = reference;
-}
-
-float TensionController::get_reference()
-{
-    return this->torque_reference;
-}
-
 void TensionController::set_max_velocity(float max_velocity)
 {
     this->max_velocity = max_velocity;
@@ -111,10 +103,10 @@ void TensionController::set_max_velocity(float max_velocity)
 
 void TensionController::reset()
 {
-    this->voltage = 0.0;
-    this->velocity = 0.0;
-    this->dimmer->set_voltage(0.0);
-    this->motor->set_velocity(0.0);
+    this->voltage = this->dimmer->get_voltage();
+    this->velocity = this->motor->get_velocity();
+    // this->dimmer->set_voltage(0.0);
+    // this->motor->set_velocity(0.0);
 }
 
 float TensionController::get_progress()

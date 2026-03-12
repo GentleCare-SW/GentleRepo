@@ -18,14 +18,12 @@
 #include "control_panel.h"
 #include "config.h"
 
-bool transferring = false;
 
 ControlPanel::ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display)
 {
     this->platform = platform;
     this->display = display;
     this->velocity_setpoint = 0.0;
-    this->transferring = false;
 }
 
 void ControlPanel::start(int32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], 
@@ -65,15 +63,24 @@ void ControlPanel::update_buttons()
                 float mode = this->platform->get(AUTO_CONTROL_MODE_UUID);
                 if (mode == 1.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 2.0);
-                else if (mode == 3.0)
-                    this->platform->set(AUTO_CONTROL_MODE_UUID, 4.0);
                 else if (mode == 2.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
+                else if (mode == 3.0)
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 4.0);
                 else if (mode == 4.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+                else if (mode == 5.0)
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 6.0);
+                else if (mode == 6.0)
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 5.0);
             } else if (i == (int)ButtonType::INVERT) {
-                this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+                this->platform->set(AUTO_CONTROL_MODE_UUID, 5.0);
             } else if (i == (int)ButtonType::EVERT) {
+                if (PLATFORM_TYPE == 1 && this->platform->get(AUTO_CONTROL_PROGRESS_UUID) <= 0){
+                    this->platform->set(CENTRAL_DIMMER_UUID, 50.0);
+                    this->platform->set(OUTER_DIMMER_UUID, 30.0);
+                    delay(3000);
+                }
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
             } else if (i == (int)ButtonType::SERVO) {
                 float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
@@ -89,9 +96,7 @@ void ControlPanel::update_buttons()
                 //     this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
                 // }
             } else if (i == (int)ButtonType::TRANSFER) {
-                this->platform->set(OUTER_DIMMER_UUID, 30.0);
-                this->platform->set(CENTRAL_DIMMER_UUID, 120.0);
-                this->transferring = !this->transferring;
+                this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
             } else if (i == (int)ButtonType::STOP_AIR1) {
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -137,11 +142,9 @@ void ControlPanel::update_joystick()
     float x_value = (analogRead(JOYSTICK_VRX_PIN)/2048.0) - 1.0;
     if (x_value > 0.9) {
         this->platform->set(JOYSTICK_UUID, 1.0);
-        transferring = false;
     } else if (x_value < -0.9) {
         this->platform->set(JOYSTICK_UUID, -1.0);
-        transferring = false;
-    } else if (!transferring)
+    } else
         this->platform->set(JOYSTICK_UUID, 0.0);
 }
 
@@ -157,9 +160,24 @@ void ControlPanel::update_display()
         this->display->printf("Everting\n");
     else if (mode == 2.0)
         this->display->printf("Paused\n");
-    else if (mode == 3.0)
+    else if (mode == 3.0) {
+        #if PLATFORM_TYPE == 0
+            this->display->printf("Filling Wedges\n");
+        #else
+            this->display->printf("Lateral Transfer\n");
+        #endif
+    } else if (mode == 4.0) {
+        #if PLATFORM_TYPE == 0
+            long timer = this->platform->get(TIMER_UUID) * 0.001;
+            int secs = timer%60;
+            int mins = (int)((timer - secs)/60);
+            this->display->printf("Hold %i:%02i", mins, secs);
+        #else
+            this->display->printf("Paused\n");
+        #endif
+    } else if (mode == 5.0)
         this->display->printf("Inverting\n");
-    else if (mode == 4.0)
+    else if (mode == 6.0)
         this->display->printf("Paused\n");
     else
         this->display->printf("Unknown\n");
@@ -177,7 +195,7 @@ void ControlPanel::update_display()
             // this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
             // delay(1000);
             // this->platform->set(MOTOR_ERROR_UUID, 4.0);
-            // break;
+            break;
         case 3:
             this->display->printf("MOTOR CONTROL ERROR");
             break;

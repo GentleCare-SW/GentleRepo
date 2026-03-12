@@ -26,26 +26,10 @@
 #include "valve.h"
 #include "auto_controller.h"
 
-// enum class AutoControlMode {
-//     IDLE,
-//     EVERSION,
-//     EVERSION_PAUSED,
-//     INVERSION,
-//     INVERSION_PAUSED,
-// };
-
-enum class WedgeState {
-    IDLE,
-    EVERSION,
-    FILLING,
-    HOLDING,
-    DRAINING,
-    INVERSION
-};
 
 class WedgesController: public Peripheral {
 public:
-    WedgesController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve);
+    WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve);
 
     void update(float dt) override;
 
@@ -57,6 +41,8 @@ public:
 
     float get_progress();
 
+    long get_time();
+
     void toggle_paused();
 
 private:
@@ -67,6 +53,6 @@ private:
     PressureSensor *pressure_sensor2;
     Servo *servo;
     AutoControlMode mode;
-    WedgeState state;
     TensionController tension_controller;
+    unsigned long timer_start;
 };

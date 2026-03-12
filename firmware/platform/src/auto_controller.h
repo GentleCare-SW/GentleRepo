@@ -28,6 +28,8 @@ enum class AutoControlMode {
     IDLE,
     EVERSION,
     EVERSION_PAUSED,
+    TRANSFER,
+    TRANSFER_PAUSED,
     INVERSION,
     INVERSION_PAUSED,
 };
