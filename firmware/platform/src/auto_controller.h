@@ -32,6 +32,8 @@ enum class AutoControlMode {
     TRANSFER_PAUSED,
     INVERSION,
     INVERSION_PAUSED,
+    RAIL_RAISING,
+    RAIL_LOWERING,
 };
 
 class AutoController: public Peripheral {

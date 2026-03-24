@@ -48,7 +48,7 @@ void setup() {
         BUTTON_TRANSFER_PIN,
         BUTTON_STOP_AIR1_PIN, 
         BUTTON_STOP_AIR2_PIN,
-        BUTTON_STOP_MOTOR_PIN };
+        BUTTON_STOP_MOTOR_PIN};
 
     #if PLATFORM_TYPE==0
         static uint32_t knob_dt_pins[] = { KNOB_MOTOR_DT_PIN, KNOB_AIR_DT_PIN, KNOB_SERVO_DT_PIN, KNOB_VALVE_DT_PIN };

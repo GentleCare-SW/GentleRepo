@@ -38,21 +38,18 @@ static PressureSensor pressure_sensor1(PRESSURE_SENSOR_UUID, PRESSURE_SENSOR_ERR
 static MotorController motor_controller(MOTOR_POSITION_UUID, MOTOR_VELOCITY_UUID, MOTOR_TORQUE_UUID, MOTOR_ERROR_UUID, &Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN);
 static VoltageDimmer voltage_dimmer1(CENTRAL_DIMMER_UUID, VOLTAGE_DIMMER_PWM_PIN, VOLTAGE_DIMMER_LEDC_CHANNEL);
 static Servo servo(SERVO_ANGLE_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
+static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
 #if PLATFORM_TYPE == 0
     static PressureSensor pressure_sensor2(PRESSURE_SENSOR2_UUID, PRESSURE_SENSOR_ERROR_UUID, &other_I2C, PRESSURE_SENSOR_SCL_PIN, PRESSURE_SENSOR_SDA_PIN);
     static Valve valve(VALVE_STATE_UUID, VALVE_DIGITAL_PIN1, VALVE_DIGITAL_PIN2);
-    static WedgesController wedges_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, TIMER_UUID, &voltage_dimmer1, &motor_controller, &pressure_sensor1, &pressure_sensor2, &servo, &valve);
+    static WedgesController wedges_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, TIMER_UUID, &voltage_dimmer1, &motor_controller, &pressure_sensor1, &pressure_sensor2, &servo, &valve, &steering);
 #elif PLATFORM_TYPE == 1
     static VoltageDimmer voltage_dimmer2(OUTER_DIMMER_UUID, VOLTAGE_DIMMER2_PWM_PIN, VOLTAGE_DIMMER2_LEDC_CHANNEL);
-    static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
     static PressureController bumper_pressure_controller(BUMPER_PRESSURE_CONTROLLER_UUID, &voltage_dimmer2, &pressure_sensor1);
     static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &voltage_dimmer2, &motor_controller, &pressure_sensor1, &servo);
 #endif
 static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer1, &pressure_sensor1);
 
-//#if ENABLE_CONTROL_PANEL
-//    static ControlPanel control_panel(CONTROL_PANEL_STOP_PIN, CONTROL_PANEL_PAUSE_PIN, CONTROL_PANEL_INVERT_PIN, CONTROL_PANEL_EVERT_PIN, CONTROL_PANEL_CHAMBER_PIN, &auto_controller, &motor_controller, &pressure_sensor, &voltage_dimmer1, &servo);
-//#endif
 float prev_time = millis();
 void setup()
 {
@@ -65,13 +62,13 @@ void setup()
 service.add_peripheral(&pressure_sensor1);
 service.add_peripheral(&voltage_dimmer1);
 service.add_peripheral(&servo);
+service.add_peripheral(&steering);
 #if PLATFORM_TYPE == 0   
     service.add_peripheral(&pressure_sensor2);
     service.add_peripheral(&valve);
     service.add_peripheral(&wedges_controller);
 #elif PLATFORM_TYPE == 1
     service.add_peripheral(&voltage_dimmer2);
-    service.add_peripheral(&steering);
     service.add_peripheral(&auto_controller);
 #endif
 //service.add_peripheral(&pressure_controller);

@@ -59,6 +59,9 @@ void ControlPanel::update_buttons()
                 this->platform->set(OUTER_DIMMER_UUID, 0.0);
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 0.0);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0);
+                this->platform->set(JOYSTICK_UUID, 2.0);
+                delay(25);
+                //Serial.println(this->platform->get(JOYSTICK_UUID));
             } else if (i == (int)ButtonType::PAUSE) {
                 float mode = this->platform->get(AUTO_CONTROL_MODE_UUID);
                 if (mode == 1.0)
@@ -142,9 +145,11 @@ void ControlPanel::update_joystick()
     float x_value = (analogRead(JOYSTICK_VRX_PIN)/2048.0) - 1.0;
     if (x_value > 0.9) {
         this->platform->set(JOYSTICK_UUID, 1.0);
+        delay(25);
     } else if (x_value < -0.9) {
         this->platform->set(JOYSTICK_UUID, -1.0);
-    } else
+        delay(25);
+    } else if (this->platform->get(JOYSTICK_UUID) != 2.0)
         this->platform->set(JOYSTICK_UUID, 0.0);
 }
 
@@ -188,16 +193,19 @@ void ControlPanel::update_display()
             break;
         case 2:
             this->display->printf("CALIBRATION ERROR");
-            //TODO: automated recalibration procedure?
+            // //TODO: automated recalibration procedure?
             // this->platform->set(CENTRAL_DIMMER_UUID, 40.0);
-            // this->display->printf("AUTOMATIC RECALIBRATION");
-            // delay(1500);
+            // //this->display->printf("AUTOMATIC RECALIBRATION");
+            // delay(2000);
             // this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
             // delay(1000);
             // this->platform->set(MOTOR_ERROR_UUID, 4.0);
             break;
         case 3:
             this->display->printf("MOTOR CONTROL ERROR");
+            break;
+        case 4:
+            this->display->printf("RECALIBRATING");
             break;
         // default:
         //     if (this->platform->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
@@ -223,7 +231,7 @@ void ControlPanel::update_display()
             this->display->setCursor(0, 16);
             this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #endif
-        this->display->printf("Vel: %.1f, %.1f\n", this->platform->get(MOTOR_VELOCITY_UUID), this->velocity_setpoint);
+        this->display->printf("Vel: %.1f\n", this->platform->get(MOTOR_VELOCITY_UUID));
     #else
         this->display->setCursor(0, 16);
         float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
@@ -258,8 +266,7 @@ void ControlPanel::update()
 {
     this->update_knobs();
     this->update_buttons();
-    #if PLATFORM_TYPE==1
-        this->update_joystick();
-    #endif
+    this->update_joystick();
     this->update_display();
+    
 }

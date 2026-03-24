@@ -67,10 +67,8 @@ void PressureSensor::update(float dt)
     this->moving_squared_pressure = this->moving_squared_pressure * alpha + psi * psi * (1.0 - alpha);
 
     this->pressure_derivative = (this->moving_pressure - previous_moving_pressure) / dt;
-    Serial.println(pressure_derivative);
 
     if (this->calibrating && abs(this->pressure_derivative) <= 0.01) {
-        Serial.println("calibrating");
         this->pressure_offset = this->moving_pressure;
     }
 

@@ -25,11 +25,12 @@
 #include "tension_controller.h"
 #include "valve.h"
 #include "auto_controller.h"
+#include "steering.h"
 
 
 class WedgesController: public Peripheral {
 public:
-    WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve);
+    WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve, Steering *rail);
 
     void update(float dt) override;
 
@@ -38,6 +39,10 @@ public:
     void set_mode(float mode);
 
     float get_mode();
+
+    void auto_eversion(float progress);
+
+    void auto_inversion(float progress);
 
     float get_progress();
 
@@ -52,7 +57,11 @@ private:
     PressureSensor *pressure_sensor1;
     PressureSensor *pressure_sensor2;
     Servo *servo;
+    Steering *rail;
     AutoControlMode mode;
     TensionController tension_controller;
+    int32_t rail_pin;
+    int32_t to_rail_pin;
+    bool timer_active;
     unsigned long timer_start;
 };

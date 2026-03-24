@@ -24,9 +24,8 @@ Steering::Steering(const char *joystick_uuid, int32_t left_valve_pin, int32_t ri
     this->left_valve_pin = left_valve_pin;
     this->right_valve_pin = right_valve_pin;
     this->direction = 0.0;
-
-    this->add_characteristic(joystick_uuid, std::bind(&Steering::set_direction, this, std::placeholders::_1), std::bind(&Steering::get_direction, this));
     
+    this->add_characteristic(joystick_uuid, std::bind(&Steering::set_direction, this, std::placeholders::_1), std::bind(&Steering::get_direction, this));
 }
 
 void Steering::start()
@@ -39,18 +38,32 @@ void Steering::start()
 void Steering::set_direction(float joystick_x)
 {
     this->direction = joystick_x;
-    if (joystick_x == 0.0) {
-        digitalWrite(this->left_valve_pin, LOW);
-        digitalWrite(this->right_valve_pin, LOW);
-    } else if (joystick_x == 1.0) {
-        digitalWrite(this->left_valve_pin, HIGH);
-        digitalWrite(this->right_valve_pin, LOW);
-        Serial.println("turning right");
-    } else if (joystick_x == -1.0) {
-        digitalWrite(this->left_valve_pin, LOW);
-        digitalWrite(this->right_valve_pin, HIGH);
-        Serial.println("turning left");
-    }
+    #if PLATFORM_TYPE == 0
+        if (joystick_x == 0.0) {
+            digitalWrite(this->left_valve_pin, HIGH);
+            digitalWrite(this->right_valve_pin, HIGH);
+        } else if (joystick_x == -1.0) { //down
+            digitalWrite(this->left_valve_pin, HIGH);
+            digitalWrite(this->right_valve_pin, LOW);
+        } else if (joystick_x == 1.0) {  //up
+            digitalWrite(this->left_valve_pin, LOW);
+            digitalWrite(this->right_valve_pin, HIGH);
+        } else if (joystick_x == 2.0) {
+            digitalWrite(this->left_valve_pin, LOW);
+            digitalWrite(this->right_valve_pin, LOW);
+        }
+    #else
+        if (joystick_x == 0.0) {
+            digitalWrite(this->left_valve_pin, LOW);
+            digitalWrite(this->right_valve_pin, LOW);
+        } else if (joystick_x == 1.0) {
+            digitalWrite(this->left_valve_pin, HIGH);
+            digitalWrite(this->right_valve_pin, LOW);
+        } else if (joystick_x == -1.0) {
+            digitalWrite(this->left_valve_pin, LOW);
+            digitalWrite(this->right_valve_pin, HIGH);
+        }
+    #endif 
 }
 
 float Steering::get_direction()
