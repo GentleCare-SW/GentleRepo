@@ -50,13 +50,13 @@ void AutoController::update(float dt)
         else
             this->tension_controller.set_max_velocity(max_speed);
     } else if (this->mode == AutoControlMode::INVERSION) {
-        float inversion_voltage = constrain(120.0*progress+15, 0, 75);
         if (this->motor->get_position() <= -1.0){
             this->set_mode((float)AutoControlMode::IDLE);
         } else{
-            float tension_ref = constrain(30-40*progress, 10, 30);
+            float inversion_voltage = constrain(120.0*progress, 0, 75);
+            float tension_ref = constrain(30*(1-progress), 10, 30);
             float tension_error = tension_ref - this->motor->get_torque();
-            float inversion_velocity = constrain(-5.0 - tension_error*20.0, -20.0, -4.0);
+            float inversion_velocity = constrain(-5.0 - tension_error*2.0, -20.0, -4.0);
 
             this->dimmer->set_voltage(inversion_voltage);
             this->dimmer2->set_voltage((progress <= 0.3) ? 0.0 : BUMPER_INVERSION_VOLTAGE);

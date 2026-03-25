@@ -19,6 +19,7 @@
 #include <ESP32Encoder.h>
 #include <Adafruit_SSD1306.h>
 #include "remote_platform.h"
+#include "power_management.h"
 #include "input_devices.h"
 
 enum class ButtonType {
@@ -61,7 +62,7 @@ enum class ButtonType {
 
 class ControlPanel {
 public:
-    ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display);
+    ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display, PowerManagement *power);
 
     void start(int32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], 
             uint32_t knob_clk_pins[(int)KnobType::COUNT], Knob knob_params[(int)KnobType::COUNT]);
@@ -78,8 +79,10 @@ private:
     void update_display();
     
     RemotePlatform *platform;
+    PowerManagement *power;
     float velocity_setpoint;
     bool transferring;
+    float state_before_stop;
     int32_t button_pins[(int)ButtonType::COUNT];
     bool button_pressed[(int)ButtonType::COUNT];
     ESP32Encoder knobs[(int)KnobType::COUNT];

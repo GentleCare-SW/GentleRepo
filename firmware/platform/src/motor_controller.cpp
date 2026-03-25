@@ -101,8 +101,8 @@ void MotorController::update(float dt)
             this->set_error((float)MotorControllerError::NONE);
         }
         //TODO
-        //if (this->read_error() != 0)
-        //    this->set_error((float)MotorControllerError::CONTROL_ERROR);
+        if (this->read_error() != 0)
+           this->set_error((float)MotorControllerError::CONTROL_ERROR);
     }
 }
 
@@ -207,6 +207,8 @@ int MotorController::read_error()
 {
     this->serial->printf("r axis0.procedure_result\n");
     int result = this->wait_for_response().toInt();
+    Serial.print("motor error: ");
+    Serial.println(result);
     return result == 1 || result == 0 ? 0 : result;
 }
 

@@ -71,23 +71,26 @@ void TensionController::update(float dt)
     // float voltage_pid = -(torque - this->torque_reference) * this->v_kp;
     // float bumper_voltage_pid = -(torque - this->torque_reference) * this->bv_kp;
     // float velocity_pid = (torque - (this->torque_reference - 0.1)) * .8;
-    if (progress >= 0.1){ //was 0.1
-        this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
-        this->bumper_voltage = 40;}
-    else {
-        this->voltage = 50;
-        this->bumper_voltage = 30;}
-    if (progress >= .5) {
-        this->bumper_voltage = constrain((this->bumper_voltage + 15), 36, 60);
-    }
+    // if (progress >= 0.0){ //was 0.1
+    //     this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
+    //     this->bumper_voltage = 40;}
+    // else {
+    //     this->voltage = 80;
+    //     this->bumper_voltage = 30;}
+    this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
+    this->bumper_voltage = (progress >= 0.2) ? 40.0 : 25.0;
+
+    // if (progress >= .5) { //TODO: see what bumper voltage is
+    //     this->bumper_voltage = constrain((this->bumper_voltage + 15), 36, 60);
+    // }
 
     if (this->voltage >= 100) 
-        this->velocity = 15 + ((100 - this->voltage)* .25);
+        this->velocity = 15 + ((100 - this->voltage)*0.25);
     else 
         this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, this->max_velocity);
 
     if (torque < -0.10){
-        this->bumper_voltage = 60.0;
+        this->bumper_voltage = 50.0;
         this->velocity = 5.0;
     }
     //else this->bumper_voltage = 33.0;

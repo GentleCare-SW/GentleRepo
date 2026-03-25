@@ -19,11 +19,13 @@
 #include "config.h"
 
 
-ControlPanel::ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display)
+ControlPanel::ControlPanel(RemotePlatform *platform, Adafruit_SSD1306 *display, PowerManagement *power)
 {
     this->platform = platform;
     this->display = display;
+    this->power = power;
     this->velocity_setpoint = 0.0;
+    this->state_before_stop = 0.0;
 }
 
 void ControlPanel::start(int32_t button_pins[(int)ButtonType::COUNT], uint32_t knob_dt_pins[(int)KnobType::COUNT], 
@@ -56,12 +58,12 @@ void ControlPanel::update_buttons()
             if (i == (int)ButtonType::STOP) {
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0);
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+                this->state_before_stop = this->platform->get(AUTO_CONTROL_MODE_UUID);
                 this->platform->set(OUTER_DIMMER_UUID, 0.0);
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 0.0);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0);
                 this->platform->set(JOYSTICK_UUID, 2.0);
                 delay(25);
-                //Serial.println(this->platform->get(JOYSTICK_UUID));
             } else if (i == (int)ButtonType::PAUSE) {
                 float mode = this->platform->get(AUTO_CONTROL_MODE_UUID);
                 if (mode == 1.0)
@@ -79,7 +81,7 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::INVERT) {
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 5.0);
             } else if (i == (int)ButtonType::EVERT) {
-                if (PLATFORM_TYPE == 1 && this->platform->get(AUTO_CONTROL_PROGRESS_UUID) <= 0){
+                if (PLATFORM_TYPE == 1 && this->platform->get(AUTO_CONTROL_PROGRESS_UUID) <= 0.05){
                     this->platform->set(CENTRAL_DIMMER_UUID, 50.0);
                     this->platform->set(OUTER_DIMMER_UUID, 30.0);
                     delay(3000);
@@ -94,12 +96,12 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::CHAMBER) {
                 int new_state = (int)(1.0 + this->platform->get(VALVE_STATE_UUID)) % 3;
                 this->platform->set(VALVE_STATE_UUID, (float)new_state);
-                // if (new_state == 2) {
-                //     delay(250); //value found through testing
-                //     this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
-                // }
             } else if (i == (int)ButtonType::TRANSFER) {
-                this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+                #if PLATFORM_TYPE==0
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
+                #else
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+                #endif
             } else if (i == (int)ButtonType::STOP_AIR1) {
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -109,7 +111,7 @@ void ControlPanel::update_buttons()
                 this->velocity_setpoint = 0.0;
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0, true);
                 if (this->platform->get(MOTOR_ERROR_UUID) == 2.0){
-                    Serial.println("Trying to recalibrate");
+                    //Serial.println("Trying to recalibrate");
                     this->platform->set(MOTOR_ERROR_UUID, 4.0);
                 }
             }
@@ -167,9 +169,9 @@ void ControlPanel::update_display()
         this->display->printf("Paused\n");
     else if (mode == 3.0) {
         #if PLATFORM_TYPE == 0
-            this->display->printf("Filling Wedges\n");
+            this->display->printf("Filling\n");
         #else
-            this->display->printf("Lateral Transfer\n");
+            this->display->printf("Transfer\n");
         #endif
     } else if (mode == 4.0) {
         #if PLATFORM_TYPE == 0
@@ -193,13 +195,13 @@ void ControlPanel::update_display()
             break;
         case 2:
             this->display->printf("CALIBRATION ERROR");
-            // //TODO: automated recalibration procedure?
-            // this->platform->set(CENTRAL_DIMMER_UUID, 40.0);
-            // //this->display->printf("AUTOMATIC RECALIBRATION");
-            // delay(2000);
-            // this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
-            // delay(1000);
-            // this->platform->set(MOTOR_ERROR_UUID, 4.0);
+            //TODO: automated recalibration procedure?
+            this->platform->set(CENTRAL_DIMMER_UUID, 40.0);
+            //this->display->printf("AUTOMATIC RECALIBRATION");
+            delay(2000);
+            this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+            delay(1000);
+            this->platform->set(MOTOR_ERROR_UUID, 4.0);
             break;
         case 3:
             this->display->printf("MOTOR CONTROL ERROR");
@@ -218,7 +220,7 @@ void ControlPanel::update_display()
             this->display->setCursor(0, 8);
             float current_angle = this->platform->get(SERVO_ANGLE_UUID);
             
-            this->display->printf("Servo angle: %i\n", (int)current_angle);
+            this->display->printf("Servo: %i\n", (int)current_angle);
             float valve_state = this->platform->get(VALVE_STATE_UUID);
             if (valve_state == 0.0)
                 this->display->printf("Valve: HOLD \n");
@@ -232,22 +234,9 @@ void ControlPanel::update_display()
             this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #endif
         this->display->printf("Vel: %.1f\n", this->platform->get(MOTOR_VELOCITY_UUID));
-    #else
-        this->display->setCursor(0, 16);
-        float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
-        this->display->printf("Progress: %.1f%%\n", progress * 100.0);
-        this->display->fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
-        this->display->drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
-        this->display->setCursor(0, 32);
-        this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
-    #endif
+        this->display->setCursor(0, 40);
+        this->display->printf("Torque: %.2f Nm\n", this->platform->get(MOTOR_TORQUE_UUID));
 
-    this->display->setCursor(0, 40);
-    this->display->printf("Torque: %.2f Nm\n", this->platform->get(MOTOR_TORQUE_UUID));
-
-    #if CLOSED_LOOP_PRESSURE_CONTROL
-        this->display->printf("Pressure: %.2f PSI\n", this->platform->get(PRESSURE_CONTROLLER_UUID));
-    #else
         #if PLATFORM_TYPE == 0
             this->display->printf("Voltage: %.1f V\n", this->platform->get(CENTRAL_DIMMER_UUID));
             float p1 = std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID));
@@ -257,8 +246,30 @@ void ControlPanel::update_display()
             this->display->printf("Voltage: %.1f, %.1f\n", this->platform->get(CENTRAL_DIMMER_UUID), this->platform->get(OUTER_DIMMER_UUID));
             this->display->printf("Pressure: %.2f PSI\n", std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID)));
         #endif
+        
+    #else
+        this->display->setCursor(0, 16);
+        float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
+        this->display->printf("Progress: %.1f%%\n", progress * 100.0);
+        this->display->fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
+        this->display->drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
+        this->display->setCursor(0, 32);
+        //this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
     #endif
-
+    
+    this->display->setCursor(103, 0);
+    this->display->printf("BAT:");
+    this->display->setCursor(102, 8);
+    this->display->printf("%d%%", this->power->get_battery_percentage());
+    
+    if ((digitalRead(CHARGE_DETECT_PIN) == LOW)) { //if charging
+        this->display->drawBitmap(119, 56, lightning_icon, 8, 8, WHITE); 
+        this->display->display();
+    }
+    else {
+        this->display->fillRect(119, 56, 8, 8, BLACK); 
+        this->display->display();
+    }
     this->display->display();
 }
 

@@ -20,15 +20,19 @@
 #include "control_panel.h"
 #include "remote_platform.h"
 #include "input_devices.h"
+#include "power_management.h"
 #include "config.h"
 
 static Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
+static PowerManagement power;
 static RemotePlatform platform(&display);
-static ControlPanel panel(&platform, &display);
+static ControlPanel panel(&platform, &display, &power);
+
 long start_millis;  
 
 
 void setup() {
+    power.begin();
     Serial.begin(BAUD_RATE);
     while (!Serial);
 
@@ -71,6 +75,7 @@ void setup() {
 }
 
 void loop() {   
+    power.update();   
     platform.update();
     panel.update();
     //Serial.print("Loop time: ");

@@ -49,7 +49,7 @@ void RemotePlatform::update()
     while (!this->client->isConnected()) {
         if (!this->scanner->isScanning())
             this->scanner->start(0);
-
+        
         if (this->found_device) {
             this->found_device = false;
             this->scanner->stop();

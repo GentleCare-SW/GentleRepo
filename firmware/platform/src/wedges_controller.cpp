@@ -105,9 +105,9 @@ void WedgesController::set_mode(float mode)
 
     } else if (this->mode == AutoControlMode::EVERSION) {
         //this->dimmer->set_voltage(BASE_VOLTAGE);
-        this->rail->set_direction(1.0);
         this->valve->set_state((float)ValveState::HOLD);
-        delay(25);
+        this->rail->set_direction(1.0);
+        delay(200);
 
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
         this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);
@@ -147,17 +147,10 @@ void WedgesController::auto_eversion(float progress)
         float torque_ref = constrain(-0.5*progress, -1.0, REFERENCE_TORQUE);
         float torque = this->motor->get_torque();
         float error = (torque_ref - torque);
-        float v_kp = 40.0;
+        float v_kp = (error > 0) ? 50.0 : 25.0;
         float vel_kp = 0.0;
         float eversion_voltage;
         float eversion_velocity;
-        
-        // if (error < 0) {
-        //     float 
-        // }else {
-        //     this->v_kp = 40;
-        //     this->vel_kp = 0;
-        // }
 
         if (progress >= 0.18){ 
             eversion_voltage = constrain(BASE_VOLTAGE + (error * v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
@@ -167,11 +160,11 @@ void WedgesController::auto_eversion(float progress)
             eversion_velocity = 10;
         }
 
-        // if (eversion_voltage >= 100) 
-        //     eversion_velocity = 15 + ((100 - eversion_voltage)* .25);
-        // else 
-        if (torque < -0.5)
-            eversion_velocity = 5;
+        if (eversion_voltage >= 80) 
+            eversion_velocity = BASE_SPEED + ((80 - eversion_voltage)* .1);
+        
+        if (torque < -1.0)
+            eversion_velocity = 6.0;
         
         this->dimmer->set_voltage(eversion_voltage);
         this->motor->set_velocity(eversion_velocity);   
@@ -180,18 +173,20 @@ void WedgesController::auto_eversion(float progress)
 
 void WedgesController::auto_inversion(float progress)
 {
-    float inversion_voltage = (1.0 - progress) * 36.0 + 20.0;
+    float inversion_voltage = (1.0 - progress) * 32.0 + 20.0;
     if (progress <= 0.0){
         this->set_mode((float)AutoControlMode::IDLE);
+        digitalWrite(this->to_rail_pin, LOW);
+        delay(50);
         this->rail->set_direction(-1.0);
-        delay(25);
+        delay(150);
     } else if (progress <= 0.02){
         this->dimmer->set_voltage(0.0);
         this->motor->set_velocity(-0.2);
     } else {
         float pressure = this->pressure_sensor2->get_pressure();
         float pressure_derivative = this->pressure_sensor2->get_derivative();
-        float pressure_goal = (2.0 - progress) * 0.2;
+        float pressure_goal = (2.0 - 0.8*progress) * 0.2;
         float pressure_error = pressure_goal - pressure;
         // base_velocity + pressure_error * Kp - pressure_derivative * Kd;
         float inversion_velocity = constrain(-4.0 - pressure_error*20.0 + pressure_derivative*2.5, -10.0, -0.5);
