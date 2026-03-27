@@ -27,7 +27,7 @@ enum PressureSensorError {
 
 class PressureSensor: public Peripheral {
 public:
-    PressureSensor(const char *pressure_uuid, const char *error_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin);
+    PressureSensor(const char *pressure_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin);
 
     void start() override;
 
@@ -36,8 +36,6 @@ public:
     float get_pressure();
 
     float get_derivative();
-
-    bool is_ok();
 
     void set_calibrating(bool calibrating);
 

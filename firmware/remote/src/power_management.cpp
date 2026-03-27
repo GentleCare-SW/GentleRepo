@@ -56,6 +56,6 @@ void PowerManagement::cutoff() {
 }   
 
 int PowerManagement::get_battery_percentage() {
-    return this->battery_percentage;
+    return constrain(this->battery_percentage, 0, 100);
 }
 

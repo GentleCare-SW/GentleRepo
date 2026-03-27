@@ -25,7 +25,7 @@
 
 static Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
 static PowerManagement power;
-static RemotePlatform platform(&display);
+static RemotePlatform platform(&display, &power);
 static ControlPanel panel(&platform, &display, &power);
 
 long start_millis;  
@@ -35,6 +35,7 @@ void setup() {
     power.begin();
     Serial.begin(BAUD_RATE);
     while (!Serial);
+    start_millis = millis();
 
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
     display.clearDisplay();
@@ -45,6 +46,7 @@ void setup() {
     static int32_t buttons[] = { 
         BUTTON_STOP_PIN, 
         BUTTON_PAUSE_PIN, 
+        BUTTON_PLAY_PIN,
         BUTTON_INVERT_PIN, 
         BUTTON_EVERT_PIN, 
         BUTTON_SERVO_PIN, 
@@ -55,8 +57,8 @@ void setup() {
         BUTTON_STOP_MOTOR_PIN};
 
     #if PLATFORM_TYPE==0
-        static uint32_t knob_dt_pins[] = { KNOB_MOTOR_DT_PIN, KNOB_AIR_DT_PIN, KNOB_SERVO_DT_PIN, KNOB_VALVE_DT_PIN };
-        static uint32_t knob_clk_pins[] = { KNOB_MOTOR_CLK_PIN, KNOB_AIR_CLK_PIN, KNOB_SERVO_CLK_PIN, KNOB_VALVE_CLK_PIN };
+        static uint32_t knob_dt_pins[] = { KNOB_MOTOR_DT_PIN, KNOB_AIR_DT_PIN, KNOB_SERVO_DT_PIN };
+        static uint32_t knob_clk_pins[] = { KNOB_MOTOR_CLK_PIN, KNOB_AIR_CLK_PIN, KNOB_SERVO_CLK_PIN };
         Knob MOTOR_KNOB = {MOTOR_VELOCITY_UUID, 0.75, -30.0, 30.0};
         Knob AIR_KNOB = {CENTRAL_DIMMER_UUID, 1.0, 0.0, 120.0};
         Knob SERVO_KNOB = {SERVO_ANGLE_UUID, -0.5, SERVO_ANGLE2, SERVO_ANGLE1};
@@ -70,7 +72,6 @@ void setup() {
         static Knob knob_params[] = { MOTOR_KNOB, AIR1_KNOB, AIR2_KNOB };
     #endif
     panel.start(buttons, knob_dt_pins, knob_clk_pins, knob_params);
-
     platform.start();
 }
 
@@ -81,4 +82,5 @@ void loop() {
     //Serial.print("Loop time: ");
     //Serial.println(millis()-start_millis);
     start_millis = millis();
+    Serial.println(platform.get(MOTOR_TORQUE_UUID));
 }

@@ -17,12 +17,13 @@
 
 #pragma once
 #include "common/uuids.h"
+#include "power_management.h"
 #include <NimBLEDevice.h>
 #include <Adafruit_SSD1306.h>
 
 class RemotePlatform: public NimBLEScanCallbacks {
 public:
-    RemotePlatform(Adafruit_SSD1306 *display);
+    RemotePlatform(Adafruit_SSD1306 *display, PowerManagement *power);
 
     void start();
 
@@ -42,6 +43,7 @@ private:
     float values[CHARACTERISTIC_UUID_COUNT];
 
     Adafruit_SSD1306 *display;
+    PowerManagement *power;
     NimBLEScan *scanner;
     NimBLEClient *client;
     bool found_device;

@@ -28,6 +28,16 @@
 #include "steering.h"
 
 
+/*
+Possible messages:
+0 - no message
+1 - rail moving up
+2 - rail moving down
+3 - rail lock on
+*/ 
+
+
+
 class WedgesController: public Peripheral {
 public:
     WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve, Steering *rail);
@@ -48,6 +58,10 @@ public:
 
     long get_time();
 
+    float get_info_msg();
+
+    void set_info_msg(float msg_id);
+
     void toggle_paused();
 
 private:
@@ -62,6 +76,7 @@ private:
     TensionController tension_controller;
     int32_t rail_pin;
     int32_t to_rail_pin;
+    float info_msg;
     bool timer_active;
     unsigned long timer_start;
 };

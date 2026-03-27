@@ -34,13 +34,13 @@ TwoWire default_I2C = TwoWire(0);
 TwoWire other_I2C = TwoWire(1);
 
 static Service service;
-static PressureSensor pressure_sensor1(PRESSURE_SENSOR_UUID, PRESSURE_SENSOR_ERROR_UUID, &default_I2C, 22, 21);
+static PressureSensor pressure_sensor1(PRESSURE_SENSOR_UUID, &default_I2C, 22, 21);
 static MotorController motor_controller(MOTOR_POSITION_UUID, MOTOR_VELOCITY_UUID, MOTOR_TORQUE_UUID, MOTOR_ERROR_UUID, &Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN);
 static VoltageDimmer voltage_dimmer1(CENTRAL_DIMMER_UUID, VOLTAGE_DIMMER_PWM_PIN, VOLTAGE_DIMMER_LEDC_CHANNEL);
 static Servo servo(SERVO_ANGLE_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
 static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
 #if PLATFORM_TYPE == 0
-    static PressureSensor pressure_sensor2(PRESSURE_SENSOR2_UUID, PRESSURE_SENSOR_ERROR_UUID, &other_I2C, PRESSURE_SENSOR_SCL_PIN, PRESSURE_SENSOR_SDA_PIN);
+    static PressureSensor pressure_sensor2(PRESSURE_SENSOR2_UUID, &other_I2C, PRESSURE_SENSOR_SCL_PIN, PRESSURE_SENSOR_SDA_PIN);
     static Valve valve(VALVE_STATE_UUID, VALVE_DIGITAL_PIN1, VALVE_DIGITAL_PIN2);
     static WedgesController wedges_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, TIMER_UUID, &voltage_dimmer1, &motor_controller, &pressure_sensor1, &pressure_sensor2, &servo, &valve, &steering);
 #elif PLATFORM_TYPE == 1

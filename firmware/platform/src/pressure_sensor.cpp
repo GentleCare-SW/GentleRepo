@@ -19,7 +19,7 @@
 #include "pressure_sensor.h"
 
 
-PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin)
+PressureSensor::PressureSensor(const char *pressure_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin)
 {
     this->clock_pin = SCL_pin;
     this->data_pin = SDA_pin;
@@ -33,7 +33,7 @@ PressureSensor::PressureSensor(const char *pressure_uuid, const char *error_uuid
     this->error = PressureSensorError::NONE;
 
     this->add_characteristic(pressure_uuid, nullptr, std::bind(&PressureSensor::get_pressure, this));
-    this->add_characteristic(error_uuid, nullptr, std::bind(&PressureSensor::get_error, this));
+    //this->add_characteristic(error_uuid, nullptr, std::bind(&PressureSensor::get_error, this));
 }
 
 void PressureSensor::start()
@@ -92,11 +92,6 @@ float PressureSensor::get_pressure()
 float PressureSensor::get_derivative()
 {
     return this->pressure_derivative;
-}
-
-bool PressureSensor::is_ok()
-{
-    return this->error == PressureSensorError::NONE;
 }
 
 void PressureSensor::set_calibrating(bool calibrating)

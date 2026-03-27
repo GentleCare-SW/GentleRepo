@@ -20,7 +20,7 @@
 #include "service.h"
 #include "config.h"
 
-static const float DEFAULT_HOLD_TIME = 1.0 * 60.0 * 1000.0;
+static const float DEFAULT_HOLD_TIME = 2.0 * 60.0 * 1000.0;
 
 WedgesController::WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, 
     VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve, Steering *rail)
@@ -38,9 +38,11 @@ WedgesController::WedgesController(const char *mode_uuid, const char *progress_u
     pinMode(this->to_rail_pin, OUTPUT);
     this->set_mode((float)AutoControlMode::IDLE);
     this->timer_active = false;
+    this->info_msg = 0.0;
 
     this->add_characteristic(mode_uuid, std::bind(&WedgesController::set_mode, this, std::placeholders::_1), std::bind(&WedgesController::get_mode, this));
     this->add_characteristic(progress_uuid, nullptr, std::bind(&WedgesController::get_progress, this));
+    //this->add_characteristic(info_uuid, std::bind(&WedgesController::set_info_msg, this, std::placeholders::_1), std::bind(&WedgesController::get_info_msg, this));
     this->add_characteristic(timer_uuid, nullptr, std::bind(&WedgesController::get_time, this)); 
 }
 
@@ -58,11 +60,14 @@ void WedgesController::update(float dt)
 
     if (this->mode == AutoControlMode::EVERSION) {
         if (digitalRead(this->rail_pin)==HIGH){
+            Serial.println("eversion allowed!");
+            this->set_info_msg(0.0);
             this->auto_eversion(progress);
         } else if (this->rail->get_direction() != 1.0) {
             this->rail->set_direction(1.0);
+            this->set_info_msg(1.0);
         }
-
+        Serial.println("eversion block");
     } else if (this->mode == AutoControlMode::INVERSION) {
         this->auto_inversion(progress);
         
@@ -71,13 +76,13 @@ void WedgesController::update(float dt)
         this->dimmer->set_voltage(60.0);
         float pressure_sum = pressure_sensor1->get_pressure() + pressure_sensor2->get_pressure();
         float pressure_error = 0.9 - pressure_sum;
-        this->servo->set_angle(this->servo->get_angle() + 10.0 * pressure_error * dt);
+        float servo_angle = constrain(this->servo->get_angle() + 10.0 * pressure_error * dt, SERVO_ANGLE2, SERVO_ANGLE1);
+        this->servo->set_angle(servo_angle);
 
         if (pressure_sensor2->get_pressure() >= 1.08){
             this->set_mode((float)AutoControlMode::TRANSFER_PAUSED);
             this->timer_start = millis();
             this->timer_active = true;
-            this->dimmer->set_voltage(0.0);
         }
     } else if (this->mode == AutoControlMode::TRANSFER_PAUSED){
         //pausing during filling ends up starting inversion
@@ -105,9 +110,13 @@ void WedgesController::set_mode(float mode)
 
     } else if (this->mode == AutoControlMode::EVERSION) {
         //this->dimmer->set_voltage(BASE_VOLTAGE);
+        Serial.println("eversion started");
         this->valve->set_state((float)ValveState::HOLD);
         this->rail->set_direction(1.0);
+        this->set_info_msg(1.0);
+        Serial.println("rail up command");
         delay(200);
+        Serial.println("rail going up?");
 
     } else if (this->mode == AutoControlMode::EVERSION_PAUSED) {
         this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);
@@ -118,11 +127,14 @@ void WedgesController::set_mode(float mode)
     
     } else if (this->mode == AutoControlMode::TRANSFER_PAUSED) {
         this->valve->set_state((float)ValveState::HOLD);
+        this->dimmer->set_voltage(0.0);
 
     } else if (this->mode == AutoControlMode::INVERSION) {
         this->servo->set_angle(128.0);
         this->valve->set_state((float)ValveState::DRAIN);
         this->dimmer->set_voltage(INVERSION_VOLTAGE);
+        this->rail->set_direction(1.0);
+        delay(200);
 
     } else if (this->mode == AutoControlMode::INVERSION_PAUSED) {
         this->dimmer->set_voltage(INVERSION_PAUSED_VOLTAGE);
@@ -177,9 +189,10 @@ void WedgesController::auto_inversion(float progress)
     if (progress <= 0.0){
         this->set_mode((float)AutoControlMode::IDLE);
         digitalWrite(this->to_rail_pin, LOW);
-        delay(50);
+        delay(100);
         this->rail->set_direction(-1.0);
-        delay(150);
+        this->set_info_msg(2.0);
+        delay(200);
     } else if (progress <= 0.02){
         this->dimmer->set_voltage(0.0);
         this->motor->set_velocity(-0.2);
@@ -203,10 +216,20 @@ float WedgesController::get_progress()
 
 long WedgesController::get_time()
 {
-    if (this->mode != AutoControlMode::TRANSFER_PAUSED)
+    if (!this->timer_active)
         return 0;
     else
         return DEFAULT_HOLD_TIME - (millis() - this->timer_start);
+}
+
+float WedgesController::get_info_msg()
+{
+    return this->info_msg;
+}
+
+void WedgesController::set_info_msg(float msg_id)
+{
+    this->info_msg = msg_id;
 }
 
 void WedgesController::toggle_paused()  //TODO: is this being used?

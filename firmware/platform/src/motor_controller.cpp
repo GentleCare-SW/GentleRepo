@@ -78,6 +78,7 @@ void MotorController::update(float dt)
         this->position = this->read_position() * -1.0 / GEARBOX_RATIO;
         this->velocity = this->read_velocity() * -60.0 / GEARBOX_RATIO;
         float torque = this->read_torque() * -TORQUE_CONSTANT;
+        Serial.printf("Torque %f | dt %f \n", torque, dt);
 
         float alpha = exp(-6.0 * dt);
         this->torque = (1.0 - alpha) * torque + alpha * this->torque;
@@ -207,8 +208,8 @@ int MotorController::read_error()
 {
     this->serial->printf("r axis0.procedure_result\n");
     int result = this->wait_for_response().toInt();
-    Serial.print("motor error: ");
-    Serial.println(result);
+    //Serial.print("motor error: ");
+    //Serial.println(result);
     return result == 1 || result == 0 ? 0 : result;
 }
 

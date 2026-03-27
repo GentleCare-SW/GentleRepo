@@ -25,6 +25,7 @@
 enum class ButtonType {
     STOP,
     PAUSE,
+    PLAY,
     INVERT,
     EVERT,
     SERVO,

@@ -20,10 +20,11 @@
 #include "remote_platform.h"
 #include "common/uuids.h"
 
-RemotePlatform::RemotePlatform(Adafruit_SSD1306 *display)
+RemotePlatform::RemotePlatform(Adafruit_SSD1306 *display, PowerManagement *power)
 {
     this->found_device = false;
     this->display = display;
+    this->power = power;
 }
 
 void RemotePlatform::start()
@@ -49,11 +50,35 @@ void RemotePlatform::update()
     while (!this->client->isConnected()) {
         if (!this->scanner->isScanning())
             this->scanner->start(0);
+
+        if ((digitalRead(BUTTON_POWER_PIN))) {         //if power button is pressed
+            delay(1000);                                // Debounce delay
+            if ((digitalRead(BUTTON_POWER_PIN))) {     //if still pressed after debounce delay
+                this->power->cutoff();              // Cut power to the system
+            }
+        }
+        // this->display->clearDisplay();
+        // this->display->drawBitmap(0, 0, logo_bitmap, 128, 64, WHITE);
+        // this->display->setCursor(103, 0);
+        // this->display->printf("BAT:");
+        // this->display->setCursor(102, 8);
+        // this->display->printf("%d%%", this->power->get_battery_percentage());
+        
+        // if ((digitalRead(CHARGE_DETECT_PIN) == LOW)) { //if charging
+        //     this->display->drawBitmap(119, 56, lightning_icon, 8, 8, WHITE); 
+        //     this->display->display();
+        // }
+        // else {
+        //     this->display->fillRect(119, 56, 8, 8, BLACK); 
+        //     this->display->display();
+        // }
+        // this->display->display();
         
         if (this->found_device) {
+            Serial.println("found device");
             this->found_device = false;
             this->scanner->stop();
-            delay(1000);
+            //delay(1000); //I forgot why this is here
             this->display->clearDisplay();
             this->display->setCursor(0, 0);
             if (this->device->getName() == "Glide")
@@ -72,6 +97,7 @@ void RemotePlatform::update()
                     this->characteristics[i]->subscribe(true, std::bind(&RemotePlatform::on_notification, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
                 this->values[i] = 0.0;
             }
+            Serial.println("Bluetooth successfully initialized");
         }
     }
 }

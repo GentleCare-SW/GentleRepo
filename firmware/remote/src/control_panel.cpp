@@ -58,8 +58,8 @@ void ControlPanel::update_buttons()
             if (i == (int)ButtonType::STOP) {
                 this->platform->set(MOTOR_VELOCITY_UUID, 0.0);
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
-                this->state_before_stop = this->platform->get(AUTO_CONTROL_MODE_UUID);
                 this->platform->set(OUTER_DIMMER_UUID, 0.0);
+                this->state_before_stop = this->platform->get(AUTO_CONTROL_MODE_UUID);
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 0.0);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0);
                 this->platform->set(JOYSTICK_UUID, 2.0);
@@ -72,10 +72,26 @@ void ControlPanel::update_buttons()
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
                 else if (mode == 3.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 4.0);
-                else if (mode == 4.0)
-                    this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+                // else if (mode == 4.0)
+                //     this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0); //TODO: do we want this for the glide?
                 else if (mode == 5.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 6.0);
+                else if (mode == 6.0)
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 5.0);
+            } else if (i == (int)ButtonType::PLAY) {
+                float mode = this->platform->get(AUTO_CONTROL_MODE_UUID);
+                if (mode == 0.0 && this->state_before_stop != 0.0) {
+                    float prev_state = this->state_before_stop;
+                    if (prev_state == 2.0)
+                        prev_state = 1.0;
+                    else if (prev_state == 6.0)
+                        prev_state = 5.0;
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, prev_state);
+                    this->state_before_stop = 0.0; }
+                else if (mode == 0.0)
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
+                else if (mode == 2.0)
+                    this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
                 else if (mode == 6.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 5.0);
             } else if (i == (int)ButtonType::INVERT) {
@@ -97,11 +113,7 @@ void ControlPanel::update_buttons()
                 int new_state = (int)(1.0 + this->platform->get(VALVE_STATE_UUID)) % 3;
                 this->platform->set(VALVE_STATE_UUID, (float)new_state);
             } else if (i == (int)ButtonType::TRANSFER) {
-                #if PLATFORM_TYPE==0
-                    this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
-                #else
-                    this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
-                #endif
+                this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
             } else if (i == (int)ButtonType::STOP_AIR1) {
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -160,30 +172,34 @@ void ControlPanel::update_display()
     this->display->clearDisplay();
     this->display->setCursor(0, 0);
     this->display->printf("Status: ");
+    #if DEVELOPER_SCREEN == 0
+        this->display->print("\n");
+    #endif
     float mode = this->platform->get(AUTO_CONTROL_MODE_UUID);
+    //TODO: make this a switch?
     if (mode == 0.0)
         this->display->printf("Idle\n");
     else if (mode == 1.0)
-        this->display->printf("Everting\n");
+        this->display->printf("Extending\n");
     else if (mode == 2.0)
         this->display->printf("Paused\n");
     else if (mode == 3.0) {
         #if PLATFORM_TYPE == 0
-            this->display->printf("Filling\n");
+            this->display->printf("Inflating\n");
         #else
-            this->display->printf("Transfer\n");
+            this->display->printf("Transferring\n");
         #endif
     } else if (mode == 4.0) {
         #if PLATFORM_TYPE == 0
             long timer = this->platform->get(TIMER_UUID) * 0.001;
             int secs = timer%60;
             int mins = (int)((timer - secs)/60);
-            this->display->printf("Hold %i:%02i", mins, secs);
+            this->display->printf("Holding %i:%02i", mins, secs);
         #else
-            this->display->printf("Paused\n");
+            this->display->printf("Ready for Transfer\n");
         #endif
     } else if (mode == 5.0)
-        this->display->printf("Inverting\n");
+        this->display->printf("Retracting\n");
     else if (mode == 6.0)
         this->display->printf("Paused\n");
     else
@@ -196,12 +212,11 @@ void ControlPanel::update_display()
         case 2:
             this->display->printf("CALIBRATION ERROR");
             //TODO: automated recalibration procedure?
-            this->platform->set(CENTRAL_DIMMER_UUID, 40.0);
-            //this->display->printf("AUTOMATIC RECALIBRATION");
-            delay(2000);
-            this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
-            delay(1000);
-            this->platform->set(MOTOR_ERROR_UUID, 4.0);
+            // this->platform->set(CENTRAL_DIMMER_UUID, 40.0);
+            // delay(2000);
+            // this->platform->set(CENTRAL_DIMMER_UUID, 0.0);
+            // delay(1000);
+            // this->platform->set(MOTOR_ERROR_UUID, 4.0);
             break;
         case 3:
             this->display->printf("MOTOR CONTROL ERROR");
@@ -217,17 +232,17 @@ void ControlPanel::update_display()
     
     #if DEVELOPER_SCREEN
         #if PLATFORM_TYPE == 0
-            this->display->setCursor(0, 8);
+            this->display->setCursor(0, 16);
             float current_angle = this->platform->get(SERVO_ANGLE_UUID);
             
-            this->display->printf("Servo: %i\n", (int)current_angle);
+            this->display->printf("S: %i ", (int)current_angle);
             float valve_state = this->platform->get(VALVE_STATE_UUID);
             if (valve_state == 0.0)
-                this->display->printf("Valve: HOLD \n");
+                this->display->printf("V: HOLD \n");
             else if (valve_state == 1.0)
-                this->display->printf("Valve: DRAIN \n");
+                this->display->printf("V: DRAIN \n");
             else if (valve_state == 2.0)
-                this->display->printf("Valve: FILL \n");
+                this->display->printf("V: FILL \n");
             this->display->printf("Position: %.1f rev\n", this->platform->get(MOTOR_POSITION_UUID));
         #else
             this->display->setCursor(0, 16);
@@ -248,36 +263,47 @@ void ControlPanel::update_display()
         #endif
         
     #else
-        this->display->setCursor(0, 16);
-        float progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
-        this->display->printf("Progress: %.1f%%\n", progress * 100.0);
-        this->display->fillRect(0, 24 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
-        this->display->drawRect(0, 24 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
+        float progress;
+        if (PLATFORM_TYPE==0 && this->platform->get(AUTO_CONTROL_MODE_UUID) == 3.0)
+            progress = constrain((128.0 - this->platform->get(SERVO_ANGLE_UUID)) / 42, 0, 1);
+        else if (this->platform->get(AUTO_CONTROL_MODE_UUID) == 4.0)
+            progress = 1.0;
+        else if (this->platform->get(AUTO_CONTROL_MODE_UUID) == 5.0 || this->platform->get(AUTO_CONTROL_MODE_UUID) == 6.0)
+            progress = 1.0-this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
+        else
+            progress = this->platform->get(AUTO_CONTROL_PROGRESS_UUID);
         this->display->setCursor(0, 32);
+        this->display->printf("Progress: %.1f%%\n", progress * 100.0);
+        this->display->fillRect(0, 40 + 1, (int16_t)(DISPLAY_WIDTH * progress), 8 - 2, SSD1306_WHITE);
+        this->display->drawRect(0, 40 + 1, DISPLAY_WIDTH, 8 - 2, SSD1306_WHITE);
+        this->display->setCursor(0, 48);
         //this->display->printf("Velocity: %.1f RPM\n", this->platform->get(MOTOR_VELOCITY_UUID));
     #endif
     
-    this->display->setCursor(103, 0);
-    this->display->printf("BAT:");
-    this->display->setCursor(102, 8);
-    this->display->printf("%d%%", this->power->get_battery_percentage());
-    
-    if ((digitalRead(CHARGE_DETECT_PIN) == LOW)) { //if charging
-        this->display->drawBitmap(119, 56, lightning_icon, 8, 8, WHITE); 
-        this->display->display();
-    }
-    else {
-        this->display->fillRect(119, 56, 8, 8, BLACK); 
-        this->display->display();
-    }
+    #if BATTERY_MODE == 1
+        this->display->setCursor(104, 0);
+        this->display->printf("BAT:");
+        this->display->setCursor(102, 8);
+        this->display->printf("%d%%", this->power->get_battery_percentage());
+        
+        if ((digitalRead(CHARGE_DETECT_PIN) == LOW)) { //if charging
+            this->display->drawBitmap(119, 56, lightning_icon, 8, 8, WHITE); 
+            this->display->display();
+        } else {
+            this->display->fillRect(119, 56, 8, 8, BLACK); 
+            this->display->display();
+        }
+    #endif
     this->display->display();
+    
 }
 
 void ControlPanel::update()
 {
     this->update_knobs();
     this->update_buttons();
-    this->update_joystick();
+    #if PLATFORM_TYPE == 1 || BATTERY_MODE == 1
+        this->update_joystick();
+    #endif
     this->update_display();
-    
 }
