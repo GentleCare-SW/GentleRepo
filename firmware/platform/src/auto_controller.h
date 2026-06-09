@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -23,6 +23,7 @@
 #include "pressure_sensor.h"
 #include "servo.h"
 #include "tension_controller.h"
+#include "pressure_controller.h"
 
 enum class AutoControlMode {
     IDLE,
@@ -38,7 +39,7 @@ enum class AutoControlMode {
 
 class AutoController: public Peripheral {
 public:
-    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, VoltageDimmer *dimmer2, MotorController *motor, PressureSensor *pressure_sensor, Servo *servo);
+    AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, VoltageDimmer *dimmer2, MotorController *motor, PressureSensor *pressure_sensor, PressureController *pressure_controller);
 
     void update(float dt) override;
 
@@ -57,7 +58,7 @@ private:
     VoltageDimmer *dimmer2;
     MotorController *motor;
     PressureSensor *pressure_sensor;
-    Servo *servo;
+    PressureController *pressure_controller;
     AutoControlMode mode;
     TensionController tension_controller;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -39,4 +39,8 @@ private:
     float pressure_reference;
     PressureSensor *sensor;
     VoltageDimmer *dimmer;
+    float error;
+    float prev_error;
+    float i_error;
+    float d_error;
 };

@@ -211,7 +211,7 @@ void WedgesController::auto_inversion(float progress)
 
 float WedgesController::get_progress()
 {
-    return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), 0.676), 0.0, 1.0);
+    return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), PROGRESS_FACTOR), 0.0, 1.0);
 }
 
 long WedgesController::get_time()
@@ -230,16 +230,4 @@ float WedgesController::get_info_msg()
 void WedgesController::set_info_msg(float msg_id)
 {
     this->info_msg = msg_id;
-}
-
-void WedgesController::toggle_paused()  //TODO: is this being used?
-{
-    if (this->mode == AutoControlMode::EVERSION)
-        this->set_mode((float)AutoControlMode::EVERSION_PAUSED);
-    else if (this->mode == AutoControlMode::EVERSION_PAUSED)
-        this->set_mode((float)AutoControlMode::EVERSION);
-    else if (this->mode == AutoControlMode::INVERSION)
-        this->set_mode((float)AutoControlMode::INVERSION_PAUSED);
-    else if (this->mode == AutoControlMode::INVERSION_PAUSED)
-        this->set_mode((float)AutoControlMode::INVERSION);
 }

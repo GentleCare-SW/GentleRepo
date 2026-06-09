@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -45,10 +45,11 @@ static Steering steering(JOYSTICK_UUID, LEFT_VALVE_PIN, RIGHT_VALVE_PIN);
     static WedgesController wedges_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, TIMER_UUID, &voltage_dimmer1, &motor_controller, &pressure_sensor1, &pressure_sensor2, &servo, &valve, &steering);
 #elif PLATFORM_TYPE == 1
     static VoltageDimmer voltage_dimmer2(OUTER_DIMMER_UUID, VOLTAGE_DIMMER2_PWM_PIN, VOLTAGE_DIMMER2_LEDC_CHANNEL);
-    static PressureController bumper_pressure_controller(BUMPER_PRESSURE_CONTROLLER_UUID, &voltage_dimmer2, &pressure_sensor1);
-    static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &voltage_dimmer2, &motor_controller, &pressure_sensor1, &servo);
+    static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer1, &pressure_sensor1);
+    //static VoltageDimmer voltage_dimmer3();
+    static AutoController auto_controller(AUTO_CONTROL_MODE_UUID, AUTO_CONTROL_PROGRESS_UUID, &voltage_dimmer1, &voltage_dimmer2, &motor_controller, &pressure_sensor1, &pressure_controller);
 #endif
-static PressureController pressure_controller(PRESSURE_CONTROLLER_UUID, &voltage_dimmer1, &pressure_sensor1);
+
 
 float prev_time = millis();
 void setup()
@@ -70,8 +71,8 @@ service.add_peripheral(&steering);
 #elif PLATFORM_TYPE == 1
     service.add_peripheral(&voltage_dimmer2);
     service.add_peripheral(&auto_controller);
+    service.add_peripheral(&pressure_controller);
 #endif
-//service.add_peripheral(&pressure_controller);
 
 #if ENABLE_MOTOR_CONTROLLER
     service.add_peripheral(&motor_controller);
@@ -91,17 +92,17 @@ void loop()
         }
     #endif
    
-    //Serial.print(">Pressure 1: ");
-    //Serial.println(pressure_sensor1.get_pressure());
+    Serial.print(">Pressure 1: ");
+    Serial.println(pressure_sensor1.get_pressure());
     // Serial.print(">Angle: ");
     // Serial.println(servo.get_angle());
     // Serial.print(">Position: ");
     // Serial.println(motor_controller.get_position());
-    // Serial.print(">Velocity: ");
-    // Serial.println(motor_controller.get_velocity());
-    // Serial.print(">Voltage: ");
-    // Serial.println(voltage_dimmer1.get_voltage());
-    // Serial.print(">Torque: ");
-    // Serial.println(motor_controller.get_torque());
+    Serial.print(">Velocity: ");
+    Serial.println(motor_controller.get_velocity());
+    Serial.print(">Voltage: ");
+    Serial.println(voltage_dimmer1.get_voltage());
+    Serial.print(">Torque: ");
+    Serial.println(motor_controller.get_torque());
 
 }

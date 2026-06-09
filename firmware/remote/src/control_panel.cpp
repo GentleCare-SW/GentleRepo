@@ -73,7 +73,7 @@ void ControlPanel::update_buttons()
                 else if (mode == 3.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 4.0);
                 // else if (mode == 4.0)
-                //     this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0); //TODO: do we want this for the glide?
+                //     this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
                 else if (mode == 5.0)
                     this->platform->set(AUTO_CONTROL_MODE_UUID, 6.0);
                 else if (mode == 6.0)
@@ -97,11 +97,11 @@ void ControlPanel::update_buttons()
             } else if (i == (int)ButtonType::INVERT) {
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 5.0);
             } else if (i == (int)ButtonType::EVERT) {
-                if (PLATFORM_TYPE == 1 && this->platform->get(AUTO_CONTROL_PROGRESS_UUID) <= 0.05){
-                    this->platform->set(CENTRAL_DIMMER_UUID, 50.0);
-                    this->platform->set(OUTER_DIMMER_UUID, 30.0);
-                    delay(3000);
-                }
+                // if (PLATFORM_TYPE == 1 && this->platform->get(AUTO_CONTROL_PROGRESS_UUID) <= 0.05){
+                //     this->platform->set(CENTRAL_DIMMER_UUID, 50.0);
+                //     this->platform->set(OUTER_DIMMER_UUID, 30.0);
+                //     delay(3000);
+                // }
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 1.0);
             } else if (i == (int)ButtonType::SERVO) {
                 float prev_angle = this->platform->get(SERVO_ANGLE_UUID);
@@ -114,6 +114,8 @@ void ControlPanel::update_buttons()
                 this->platform->set(VALVE_STATE_UUID, (float)new_state);
             } else if (i == (int)ButtonType::TRANSFER) {
                 this->platform->set(AUTO_CONTROL_MODE_UUID, 3.0);
+                // float voltage_change = (int)(this->platform->get(CENTRAL_DIMMER_UUID) - 80) % 40;
+                // this->platform->set(CENTRAL_DIMMER_UUID, this->platform->get(CENTRAL_DIMMER_UUID) + voltage_change);
             } else if (i == (int)ButtonType::STOP_AIR1) {
                 this->platform->set(CENTRAL_DIMMER_UUID, 0.0, true);
                 this->platform->set(PRESSURE_CONTROLLER_UUID, 0.0, true);
@@ -196,7 +198,7 @@ void ControlPanel::update_display()
             int mins = (int)((timer - secs)/60);
             this->display->printf("Holding %i:%02i", mins, secs);
         #else
-            this->display->printf("Ready for Transfer\n");
+            this->display->printf("Fully Extended\n");
         #endif
     } else if (mode == 5.0)
         this->display->printf("Retracting\n");

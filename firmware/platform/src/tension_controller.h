@@ -49,6 +49,7 @@ private:
     float bv_kp;
     float v_kp;
     float vel_kp;
+    float prev_error;
     VoltageDimmer *dimmer;
     VoltageDimmer *dimmer2;
     MotorController *motor;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -19,8 +19,9 @@
 #include "pressure_controller.h"
 #include "config.h"
 
-static const float Kp = 0.3;
-static const float Kd = 0.3;
+static const float Kp = 100.0;
+static const float Ki = 5.0;
+static const float Kd = 10.0;
 
 PressureController::PressureController(VoltageDimmer *dimmer, PressureSensor *sensor)
 {
@@ -45,8 +46,17 @@ void PressureController::update(float dt)
 
     float pressure = this->sensor->get_pressure();
     float pressure_derivative = this->sensor->get_derivative();
-    this->voltage += (this->pressure_reference - pressure) * Kp - pressure_derivative * Kd;
-    this->voltage = constrain(this->voltage, 15.0, MAX_DIMMER_VOLTAGE);
+
+    error = pressure_reference - pressure;  //error should never be more than 1
+    d_error = (error - prev_error) / dt;
+    prev_error = error;   
+    i_error += constrain(error * dt, -2.5, 2.5); 
+
+    float Pcontrol = error * Kp;   
+    float Icontrol = i_error * Ki;  
+    float Dcontrol = d_error * Kd;
+    
+    this->voltage = constrain(Pcontrol + Icontrol + Dcontrol, 0.001, MAX_DIMMER_VOLTAGE);
     this->dimmer->set_voltage(this->voltage);
 }
 

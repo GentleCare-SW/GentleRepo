@@ -1,13 +1,13 @@
 53-gear motor config:
 
 ```python
-odrv0.config.dc_bus_overvoltage_trip_level = 30.0
-odrv0.config.dc_max_positive_current = 15.0
-odrv0.config.brake_resistor0.resistance = 2.0
+odrv0.config.dc_bus_overvoltage_trip_level = 48.0
+odrv0.config.dc_max_positive_current = 9.0
+odrv0.config.brake_resistor0.resistance = 2.2
 odrv0.config.brake_resistor0.enable = True
 odrv0.config.brake_resistor0.enable_dc_bus_voltage_feedback = True
 odrv0.config.brake_resistor0.dc_bus_voltage_feedback_ramp_start = 26.0
-odrv0.config.brake_resistor0.dc_bus_voltage_feedback_ramp_end = 30.0
+odrv0.config.brake_resistor0.dc_bus_voltage_feedback_ramp_end = 54.0
 odrv0.axis0.config.motor.motor_type = MotorType.PMSM_CURRENT_CONTROL
 odrv0.axis0.config.motor.pole_pairs = 12
 odrv0.axis0.config.motor.torque_constant = 3.975

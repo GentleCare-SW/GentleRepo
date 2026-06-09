@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -43,8 +43,9 @@ TensionController::TensionController(const char *progress_uuid, VoltageDimmer *d
     this->min_velocity = 6.0;
     this->max_velocity = 30.0;
     this->v_kp = 40;
-    this->bv_kp = 0.2;
     this->vel_kp = 0.0;
+    this->prev_error = 0.0;
+    this->prev_voltage = 0.0;
     this->add_characteristic(progress_uuid, nullptr, std::bind(&TensionController::get_progress, this));
 }
 
@@ -58,6 +59,8 @@ void TensionController::update(float dt)
     #endif
     float torque = this->motor->get_torque();
     float error = (torque_ref - torque);
+    float d_error = (error - prev_error) / dt;
+    this->prev_error = error;   
     
     if (error < 0) {
         this->v_kp = this->v_kp/2;
@@ -77,25 +80,34 @@ void TensionController::update(float dt)
     // else {
     //     this->voltage = 80;
     //     this->bumper_voltage = 30;}
-    this->voltage = constrain(BASE_VOLTAGE + (error * this->v_kp), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
-    this->bumper_voltage = (progress >= 0.2) ? 40.0 : 25.0;
+    float new_voltage = constrain(BASE_VOLTAGE + (error * this->v_kp) + (d_error * 4.0), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
+    this->voltage = constrain(new_voltage, this->prev_voltage-20.0, this->prev_voltage+20.0);
+    prev_voltage = new_voltage;
+    
+    if (progress < 0.2)
+        this->bumper_voltage = 30.0;
+    else if (progress < 0.75)
+        this->bumper_voltage = 60.0;
+    else
+        this->bumper_voltage = 50.0;
 
-    // if (progress >= .5) { //TODO: see what bumper voltage is
+    // if (progress >= .5) { 
     //     this->bumper_voltage = constrain((this->bumper_voltage + 15), 36, 60);
     // }
 
     if (this->voltage >= 100) 
-        this->velocity = 15 + ((100 - this->voltage)*0.25);
+        this->velocity = 10 + ((100 - this->voltage)*0.25);
     else 
-        this->velocity = constrain(BASE_SPEED + (error * this->vel_kp), this->min_velocity, this->max_velocity);
+        this->velocity = constrain(this->max_velocity + (error * this->vel_kp), this->min_velocity, this->max_velocity);
 
     if (torque < -0.10){
         this->bumper_voltage = 50.0;
         this->velocity = 5.0;
     }
-    //else this->bumper_voltage = 33.0;
-            
-    // this->bumper_voltage = constrain(this->bumper_voltage + bumper_voltage_pid, EVERSION_BUMPER_MIN_VOLTAGE, EVERSION_BUMPER_MAX_VOLTAGE);
+    
+    if (progress > 0.85 || progress < 0.05)
+        this->voltage = constrain(this->voltage, EVERSION_MIN_VOLTAGE, 60.0);
+
     this->dimmer->set_voltage(this->voltage);
     this->dimmer2->set_voltage(this->bumper_voltage);
     this->motor->set_velocity(this->velocity);
