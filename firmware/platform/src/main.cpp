@@ -57,9 +57,7 @@ void setup()
     Serial.begin(BAUD_RATE);
     while (!Serial);  
 
-#if ENABLE_CONTROL_PANEL
-    service.add_peripheral(&control_panel);
-#endif
+// Max of 16 peripherals
 service.add_peripheral(&pressure_sensor1);
 service.add_peripheral(&voltage_dimmer1);
 service.add_peripheral(&servo);
@@ -74,9 +72,8 @@ service.add_peripheral(&steering);
     service.add_peripheral(&pressure_controller);
 #endif
 
-#if ENABLE_MOTOR_CONTROLLER
-    service.add_peripheral(&motor_controller);
-#endif
+service.add_peripheral(&motor_controller);
+
 service.start();
 }
 
@@ -84,6 +81,7 @@ void loop()
 {
     service.update();
     pressure_sensor1.set_calibrating(voltage_dimmer1.get_voltage() == 0.0);
+    
     #if PLATFORM_TYPE == 0
         //Serial.print(">Pressure 2: ");
         //Serial.println(pressure_sensor2.get_pressure());

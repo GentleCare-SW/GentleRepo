@@ -34,11 +34,14 @@ public:
 
     float get_reference();
 
+    boolean is_working();
+
 private:
     float voltage;
     float pressure_reference;
     PressureSensor *sensor;
     VoltageDimmer *dimmer;
+    boolean controller_error;
     float error;
     float prev_error;
     float i_error;

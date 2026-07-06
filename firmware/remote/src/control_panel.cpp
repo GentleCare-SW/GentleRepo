@@ -261,7 +261,10 @@ void ControlPanel::update_display()
             this->display->printf("PSI: %.2f | %.2f \n", p1, p2);
         #else
             this->display->printf("Voltage: %.1f, %.1f\n", this->platform->get(CENTRAL_DIMMER_UUID), this->platform->get(OUTER_DIMMER_UUID));
-            this->display->printf("Pressure: %.2f PSI\n", std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID)));
+            if (this->platform->get(PRESSURE_SENSOR_ERROR_UUID) != 0.0)
+                this->display->printf("PRESSURE ERROR");
+            else
+                this->display->printf("Pressure: %.2f PSI\n", std::max((float)0.0, this->platform->get(PRESSURE_SENSOR_UUID)));
         #endif
         
     #else

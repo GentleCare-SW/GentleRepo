@@ -16,15 +16,15 @@
  */
 
 #include <Arduino.h>
-#include "pressure_sensor.h"
+#include "LPS_sensor.h"
 
 
-PressureSensor::PressureSensor(const char *pressure_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin)
+LpsSensor::LpsSensor(const char *pressure_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin, uint8_t address)
 {
     this->clock_pin = SCL_pin;
     this->data_pin = SDA_pin;
     this->wire = wire;
-    this->last_psi = 14.7;
+    this->address = address;
     this->moving_pressure = 0.0;
     this->moving_squared_pressure = 0.0;
     this->pressure_derivative = 0.0;
@@ -32,34 +32,34 @@ PressureSensor::PressureSensor(const char *pressure_uuid, TwoWire* wire, int32_t
     this->calibrating = false;
     this->error = PressureSensorError::NONE;
 
-    this->add_characteristic(pressure_uuid, nullptr, std::bind(&PressureSensor::get_pressure, this));
-    //this->add_characteristic(error_uuid, nullptr, std::bind(&PressureSensor::get_error, this));
+    this->add_characteristic(pressure_uuid, nullptr, std::bind(&LpsSensor::get_pressure, this));
+    //this->add_characteristic(error_uuid, nullptr, std::bind(&LpsSensor::get_error, this));
+    //this->add_characteristic(temperature_uuid, nullptr, std::bind(&LpsSensor::get_temperature, this));
 }
 
-void PressureSensor::start()
+
+void LpsSensor::start()
 {
-    this->sensor = Adafruit_MPRLS();
+    LPS28DFW pressure_sensor;
+    this->sensor = pressure_sensor;
     this->wire->begin(this->data_pin, this->clock_pin);
     this->error = PressureSensorError::NONE;
-    if (! this->sensor.begin(0x18, this->wire)) {
+    if (! this->sensor.begin(address) != LPS28DFW_OK) {
         this->error = PressureSensorError::NOT_CONNECTED;
         Serial.println("Failed to communicate with pressure sensor, check wiring?");
     }
 }
 
-void PressureSensor::update(float dt)
+void LpsSensor::update(float dt)
 {
     Peripheral::update(dt);
     if (this->error == PressureSensorError::NOT_CONNECTED)
         return;
 
+    this->sensor.getSensorData();
     float psi = this->read_psi();
-    // float psi_diff = abs(psi-this->last_psi);
-    // if (this->error == PressureSensorError::NONE && psi_diff > 10.0)
-    //     this->error = PressureSensorError::NOT_CONNECTED;
-    //else if (this->error == PressureSensorError::NOT_CONNECTED && psi_diff <= 10.0)
-    //    this->error = PressureSensorError::NONE;
-
+    this->temperature_c = this->sensor.data.heat.deg_c;
+    
     float alpha = 0.75;
 
     float previous_moving_pressure = this->moving_pressure;
@@ -74,37 +74,41 @@ void PressureSensor::update(float dt)
 
     //float std = sqrt(max(0.0f, this->moving_squared_pressure - this->moving_pressure * this->moving_pressure));
     
-    this->last_psi = psi;
 }
 
-float PressureSensor::read_psi()
+float LpsSensor::read_psi()
 {
-    float pressure_hPa = this->sensor.readPressure();
+    float pressure_hPa = this->sensor.data.pressure.hpa;
     return pressure_hPa / 68.947572932;
 }
 
-float PressureSensor::get_pressure()
+float LpsSensor::get_pressure()
 {
     //return this->read_psi() - this->pressure_offset;
     return this->moving_pressure - this->pressure_offset;
 }
 
-float PressureSensor::get_derivative()
+float LpsSensor::get_temperature()
+{
+    return this->temperature_c;
+}
+
+float LpsSensor::get_derivative()
 {
     return this->pressure_derivative;
 }
 
-void PressureSensor::set_calibrating(bool calibrating)
+void LpsSensor::set_calibrating(bool calibrating)
 {
     this->calibrating = calibrating;
 }
 
-void PressureSensor::set_error(PressureSensorError error)
+void LpsSensor::set_error(PressureSensorError error)
 {
     this->error = error;
 }
 
-float PressureSensor::get_error()
+float LpsSensor::get_error()
 {
     return (float)this->error;
 }

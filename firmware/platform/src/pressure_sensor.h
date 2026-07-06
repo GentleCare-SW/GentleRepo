@@ -39,6 +39,8 @@ public:
 
     void set_calibrating(bool calibrating);
 
+    void set_error(PressureSensorError error);
+
     float get_error();
     
     float pressure_offset;

@@ -77,7 +77,10 @@ void AutoController::update(float dt)
                 if (this->motor->get_torque() > 20.0)
                     inversion_velocity = -7.5;
 
-
+                if (!pressure_controller->is_working()) {
+                    this->set_mode((float)AutoControlMode::IDLE);
+                    return;
+                }
                 pressure_controller->set_reference(pressure_setpoint);
                 this->motor->set_velocity(inversion_velocity);
             #else

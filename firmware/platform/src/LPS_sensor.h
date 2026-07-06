@@ -16,43 +16,48 @@
  */
 
 #pragma once
+#include <SparkFun_LPS28DFW_Arduino_Library.h>
 #include "peripheral.h"
-#include "voltage_dimmer.h"
-#include "motor_controller.h"
-#include "pressure_sensor.h"
 
-class TensionController: public Peripheral {
+
+enum PressureSensorError {
+    NONE,
+    NOT_CONNECTED
+};
+
+class LpsSensor: public Peripheral {
 public:
-    TensionController();
+    LpsSensor(const char *pressure_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin, uint8_t address);
 
-    TensionController(const char *progress_uuid, VoltageDimmer *voltage_dimmer, VoltageDimmer *voltage_dimmer2, MotorController *motor_controller, PressureSensor *pressure_sensor);
+    void start() override;
 
     void update(float dt) override;
 
-    void set_reference(float reference);
+    float get_pressure();
 
-    float get_reference();
+    float get_temperature();
 
-    void set_max_velocity(float max_velocity);
+    float get_derivative();
 
-    void reset();
+    void set_calibrating(bool calibrating);
 
-    float get_progress();
+    void set_error(PressureSensorError error);
 
-
+    float get_error();
+    
+    float pressure_offset;
 private:
-    float voltage;
-    float velocity;
-    float bumper_voltage;
-    float min_velocity;
-    float max_velocity;
-    float bv_kp;
-    float v_kp;
-    float vel_kp;
-    float prev_error;
-    float prev_voltage;
-    VoltageDimmer *dimmer;
-    VoltageDimmer *dimmer2;
-    MotorController *motor;
-    PressureSensor *pressure_sensor;
+    float read_psi();
+
+    LPS28DFW sensor;
+    TwoWire* wire;
+    int32_t clock_pin;
+    int32_t data_pin;
+    uint8_t address;
+    float temperature_c;
+    float moving_pressure;
+    float moving_squared_pressure;
+    float pressure_derivative;
+    bool calibrating;
+    PressureSensorError error;
 };

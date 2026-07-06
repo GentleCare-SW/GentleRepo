@@ -80,7 +80,7 @@ void MotorController::update(float dt)
         float torque = this->read_torque() * -TORQUE_CONSTANT;
         Serial.printf("Torque %f | dt %f \n", torque, dt);
 
-        float alpha = exp(-6.0 * dt);
+        float alpha = exp(-3.0 * dt); //originally -6
         this->torque = (1.0 - alpha) * torque + alpha * this->torque;
 
         if (this->error == MotorControllerError::NEEDS_RECALIBRATION){
@@ -102,7 +102,7 @@ void MotorController::update(float dt)
             this->set_error((float)MotorControllerError::NONE);
         }
         //TODO
-        if (this->read_error() != 0)
+        if (this->read_error() != 0 && this->error != MotorControllerError::CALIBRATION_FAILED)
            this->set_error((float)MotorControllerError::CONTROL_ERROR);
     }
 }
@@ -210,6 +210,7 @@ int MotorController::read_error()
     int result = this->wait_for_response().toInt();
     //Serial.print("motor error: ");
     //Serial.println(result);
+    //TODO: what is going on here!?
     return result == 1 || result == 0 ? 0 : result;
 }
 

@@ -29,6 +29,7 @@ PressureController::PressureController(VoltageDimmer *dimmer, PressureSensor *se
     this->sensor = sensor;
     this->voltage = 0.0;
     this->pressure_reference = 0.0;
+    this->controller_error = false;
 }
 
 PressureController::PressureController(const char *uuid, VoltageDimmer *dimmer, PressureSensor *sensor)
@@ -41,7 +42,7 @@ void PressureController::update(float dt)
 {
     Peripheral::update(dt);
 
-    if (this->pressure_reference == 0.0)
+    if (this->pressure_reference == 0.0 || this->sensor->get_error() == 1.0)
         return;
 
     float pressure = this->sensor->get_pressure();
@@ -57,6 +58,13 @@ void PressureController::update(float dt)
     float Dcontrol = d_error * Kd;
     
     this->voltage = constrain(Pcontrol + Icontrol + Dcontrol, 0.001, MAX_DIMMER_VOLTAGE);
+
+    if (i_error == 2.5 && pressure == 0.0) {
+        this->sensor->set_error(PressureSensorError::NOT_CONNECTED);
+        this->controller_error = true;
+        return;
+    }
+    
     this->dimmer->set_voltage(this->voltage);
 }
 
@@ -77,4 +85,9 @@ void PressureController::set_reference(float reference)
 float PressureController::get_reference()
 {
     return this->pressure_reference;
+}
+
+boolean PressureController::is_working()
+{
+    return this->controller_error == false;
 }

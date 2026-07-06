@@ -82,7 +82,7 @@ void TensionController::update(float dt)
     //     this->bumper_voltage = 30;}
     float new_voltage = constrain(BASE_VOLTAGE + (error * this->v_kp) + (d_error * 4.0), EVERSION_MIN_VOLTAGE, EVERSION_MAX_VOLTAGE);
     this->voltage = constrain(new_voltage, this->prev_voltage-20.0, this->prev_voltage+20.0);
-    prev_voltage = new_voltage;
+    this->prev_voltage = voltage;
     
     if (progress < 0.2)
         this->bumper_voltage = 30.0;

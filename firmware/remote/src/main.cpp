@@ -82,5 +82,16 @@ void loop() {
     //Serial.print("Loop time: ");
     //Serial.println(millis()-start_millis);
     start_millis = millis();
+    Serial.print(">Pressure 1: ");
+    Serial.println(platform.get(PRESSURE_SENSOR_UUID));
+    // Serial.print(">Angle: ");
+    // Serial.println(servo.get_angle());
+    // Serial.print(">Position: ");
+    // Serial.println(motor_controller.get_position());
+    Serial.print(">Velocity: ");
+    Serial.println(platform.get(MOTOR_VELOCITY_UUID));
+    Serial.print(">Voltage: ");
+    Serial.println(platform.get(CENTRAL_DIMMER_UUID));
+    Serial.print(">Torque: ");
     Serial.println(platform.get(MOTOR_TORQUE_UUID));
 }
