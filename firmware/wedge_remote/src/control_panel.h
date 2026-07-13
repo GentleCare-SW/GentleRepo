@@ -16,6 +16,8 @@
  */
 
 #pragma once
+#include <array>
+#include <numeric>
 #include <ESP32Encoder.h>
 #include <Adafruit_SSD1306.h>
 #include "remote_platform.h"
@@ -38,27 +40,38 @@ enum class ButtonType {
 };
 
 
-#if PLATFORM_TYPE==0
-    enum class ValveState {
-        DRAIN,
-        FILL,
-        HOLD
-    };
+enum class BradenFactor {
+    SENSORY,
+    MOISTURE,
+    ACTIVITY,
+    MOBIILITY,
+    NUTRITION,
+    FRICTION,
+    COUNT
+};
 
-    enum class KnobType {
-        MOTOR,
-        AIR,
-        SERVO,
-        COUNT
-    };
-#else
-    enum class KnobType {
-        MOTOR,
-        AIR1,
-        AIR2,
-        COUNT
-    };
-#endif
+enum class MenuType {
+    HOME,
+    BRADEN,
+    TIMER,
+    COUNT
+};
+
+
+enum class ValveState {
+    DRAIN,
+    FILL,
+    HOLD
+};
+
+enum class KnobType {
+    MOTOR,
+    AIR,
+    SERVO,
+    COUNT
+};
+
+
 
 class ControlPanel {
 public:
@@ -80,9 +93,15 @@ private:
     
     RemotePlatform *platform;
     PowerManagement *power;
-    float velocity_setpoint;
-    bool transferring;
-    float state_before_stop;
+    std::array<uint8_t, (int)BradenFactor::COUNT> braden_score;
+    float prev_time;
+    MenuType current_menu = MenuType::HOME;
+    bool braden_menu = false;
+    bool blink = true;
+    int8_t currently_selected = 0;
+    bool editing = false;
+    float velocity_setpoint = 0.0;
+    float state_before_stop = 0.0;
     int32_t button_pins[(int)ButtonType::COUNT];
     bool button_pressed[(int)ButtonType::COUNT];
     ESP32Encoder knobs[(int)KnobType::COUNT];

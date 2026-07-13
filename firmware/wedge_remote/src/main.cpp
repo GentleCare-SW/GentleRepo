@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ *
+ * This source code and the accompanying materials are the confidential and
+ * proprietary information of GentleCare Corporation. Unauthorized copying or
+ * distribution of this file, via any medium, is strictly prohibited without
+ * the prior written permission of GentleCare Corporation.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#include <Arduino.h>
+#include <Adafruit_SSD1306.h>
+#include "control_panel.h"
+#include "remote_platform.h"
+#include "input_devices.h"
+#include "power_management.h"
+#include "config.h"
+
+static Adafruit_SSD1306 display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
+static PowerManagement power;
+static RemotePlatform platform(&display, &power);
+static ControlPanel panel(&platform, &display, &power);
+
+long start_millis;  
+
+
+void setup() {
+    power.begin();
+    Serial.begin(BAUD_RATE);
+    while (!Serial);
+    start_millis = millis();
+
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.display();
+    
+    static int32_t buttons[] = { 
+        BUTTON_STOP_PIN, 
+        BUTTON_PAUSE_PIN, 
+        BUTTON_PLAY_PIN,
+        BUTTON_INVERT_PIN, 
+        BUTTON_EVERT_PIN, 
+        BUTTON_SERVO_PIN, 
+        BUTTON_CHAMBER_PIN, 
+        BUTTON_TRANSFER_PIN,
+        BUTTON_STOP_AIR1_PIN, 
+        BUTTON_STOP_AIR2_PIN,
+        BUTTON_STOP_MOTOR_PIN};
+
+    static uint32_t knob_dt_pins[] = { KNOB_MOTOR_DT_PIN, KNOB_AIR_DT_PIN, KNOB_SERVO_DT_PIN };
+    static uint32_t knob_clk_pins[] = { KNOB_MOTOR_CLK_PIN, KNOB_AIR_CLK_PIN, KNOB_SERVO_CLK_PIN };
+    Knob MOTOR_KNOB = {MOTOR_VELOCITY_UUID, 0.75, -30.0, 30.0};
+    Knob AIR_KNOB = {CENTRAL_DIMMER_UUID, 1.0, 0.0, 120.0};
+    Knob SERVO_KNOB = {SERVO_ANGLE_UUID, -0.5, SERVO_ANGLE2, SERVO_ANGLE1};
+    static Knob knob_params[] = { MOTOR_KNOB, AIR_KNOB, SERVO_KNOB };
+    panel.start(buttons, knob_dt_pins, knob_clk_pins, knob_params);
+    platform.start();
+}
+
+void loop() {   
+    power.update();   
+    platform.update();
+    panel.update();
+    //Serial.print("Loop time: ");
+    //Serial.println(millis()-start_millis);
+    // start_millis = millis();
+    // Serial.print(">Pressure 1: ");
+    // Serial.println(platform.get(PRESSURE_SENSOR_UUID));
+    // Serial.print(">Angle: ");
+    // Serial.println(servo.get_angle());
+    // Serial.print(">Position: ");
+    // Serial.println(motor_controller.get_position());
+    // Serial.print(">Velocity: ");
+    // Serial.println(platform.get(MOTOR_VELOCITY_UUID));
+    // Serial.print(">Voltage: ");
+    // Serial.println(platform.get(CENTRAL_DIMMER_UUID));
+    // Serial.print(">Torque: ");
+    // Serial.println(platform.get(MOTOR_TORQUE_UUID));
+}

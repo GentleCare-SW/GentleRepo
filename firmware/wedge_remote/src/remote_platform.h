@@ -20,6 +20,7 @@
 #include "power_management.h"
 #include <NimBLEDevice.h>
 #include <Adafruit_SSD1306.h>
+#include <WiFi.h>
 
 class RemotePlatform: public NimBLEScanCallbacks {
 public:
@@ -37,6 +38,8 @@ public:
 
     void set(const char *uuid, float velocity, bool with_response = false);
 
+    float get_time();
+
 private:
     NimBLERemoteCharacteristic *get_characteristic(const char *uuid);
 
@@ -47,6 +50,7 @@ private:
     NimBLEScan *scanner;
     NimBLEClient *client;
     bool found_device;
+    bool internet_connection;
     unsigned long last_display_update = 0;
     NimBLEAdvertisedDevice *device;
     NimBLERemoteService *service;

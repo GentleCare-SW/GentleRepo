@@ -20,6 +20,11 @@
 #include "remote_platform.h"
 #include "common/uuids.h"
 
+
+// Replace with your network credentials
+const char* ssid     = "GentleCare";
+const char* password = "WeLoveRobots";
+
 RemotePlatform::RemotePlatform(Adafruit_SSD1306 *display, PowerManagement *power)
 {
     this->found_device = false;
@@ -37,6 +42,31 @@ void RemotePlatform::start()
     this->scanner->setMaxResults(0);
 
     this->client = NimBLEDevice::createClient();
+
+    this->display->clearDisplay();
+    this->display->drawBitmap(0, 0, logo_bitmap, 128, 64, WHITE);
+    this->display->display();
+    
+    WiFi.begin(ssid, password);
+    delay(2000);
+    this->internet_connection = WiFi.status() == WL_CONNECTED;
+
+    if (this->internet_connection) {
+        // TZ string carries the DST rules; SNTP syncs in the background.
+        Serial.println("Wifi Connected");
+        configTzTime("EST5EDT,M3.2.0,M11.1.0", "pool.ntp.org", "time.nist.gov");
+    }
+
+    // while (WiFi.status() != WL_CONNECTED) {
+    //     delay(500);
+    //     Serial.print(".");
+    // }
+    // // Print local IP address and start web server
+    // Serial.println("");
+    // Serial.println("WiFi connected.");
+    // Serial.println("IP address: ");
+    // Serial.println(WiFi.localIP());
+
 }
 
 void RemotePlatform::update()
@@ -58,13 +88,15 @@ void RemotePlatform::update()
                 this->power->cutoff();              // Cut power to the system
             }
         }
-
+        
         if (millis() - this->last_display_update >= 500) {
             this->last_display_update = millis();
             this->power->update();      
             this->display->fillRect(122, 2, 5, 10, BLACK); //black out previous percentage
             int bat = (int)(this->power->get_battery_percentage()*0.1);
             this->display->fillRect(122, 2+(10-bat), 5, bat, WHITE);
+            //this->display->setCursor(102, 8);
+            //this->display->printf("%d%%", this->power->get_battery_percentage());
 
             if ((digitalRead(CHARGE_DETECT_PIN) == LOW))    // if charging
                 this->display->drawBitmap(119, 56, lightning_icon, 8, 8, WHITE);
@@ -73,11 +105,12 @@ void RemotePlatform::update()
 
             this->display->display();   
         }
-        
+
         if (this->found_device) {
             Serial.println("found device");
             this->found_device = false;
             this->scanner->stop();
+
             //delay(1000); //I forgot why this is here
             this->display->clearDisplay();
             this->display->setCursor(0, 0);
@@ -88,9 +121,26 @@ void RemotePlatform::update()
 
             this->display->display();
             
-            this->client->connect(this->device);
-            this->client->setConnectionParams(6, 12, 0, 100);
+            // Set desired connection params before connecting so they apply to
+            // this link. 12-24 (15-30ms) interval, 0 latency, 400 (4s) supervision
+            // timeout - a longer timeout tolerates brief RF interference without
+            // dropping the link.
+            this->client->setConnectionParams(6, 20, 0, 200);
+
+            if (!this->client->connect(this->device)) {
+                Serial.println("connect failed");
+                this->found_device = false;     // fall back to scanning
+                continue;
+            }
+
             this->service = this->client->getService(SERVICE_UUID);
+            if (this->service == nullptr) {
+                Serial.println("service not found");
+                this->client->disconnect();
+                this->found_device = false;     // fall back to scanning
+                continue;
+            }
+
             for (int i = 0; i < CHARACTERISTIC_UUID_COUNT; i++) {
                 this->characteristics[i] = this->service->getCharacteristic(CHARACTERISTIC_UUIDS[i]);
                 if (this->characteristics[i] != nullptr && this->characteristics[i]->canNotify())

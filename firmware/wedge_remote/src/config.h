@@ -17,8 +17,6 @@
 
 #pragma once
 
-#if PLATFORM_TYPE == 0
-
 #define DEVICE_NAME "GentleWedge"
 #define CONNECTION_NAME "Wedge"
 
@@ -71,60 +69,7 @@
 
 
 
-#elif PLATFORM_TYPE == 1
 
-#define DEVICE_NAME "GentleGlide"
-#define CONNECTION_NAME "Glide"
-
-#define BUTTON_STOP_PIN 14
-#define BUTTON_PAUSE_PIN 27
-#define BUTTON_PLAY_PIN -1
-#define BUTTON_INVERT_PIN 26
-#define BUTTON_EVERT_PIN 25
-#define BUTTON_SERVO_PIN -1
-#define BUTTON_CHAMBER_PIN -1
-#define BUTTON_TRANSFER_PIN 23
-#define BUTTON_STOP_AIR1_PIN 4
-#define BUTTON_STOP_AIR2_PIN 32
-#define BUTTON_STOP_MOTOR_PIN 19
-
-#if BATTERY_MODE == 0
-	#define POWER_ENABLE_PIN -1
-	#define CHARGE_DETECT_PIN -1
-	#define BUTTON_RESERVED_PIN -1
-	#define BUTTON_POWER_PIN -1
-
-	#define KNOB_AIR1_DT_PIN 16
-	#define KNOB_AIR1_CLK_PIN 17
-	#define KNOB_AIR2_DT_PIN 34
-	#define KNOB_AIR2_CLK_PIN 35
-	#define KNOB_MOTOR_DT_PIN 18
-	#define KNOB_MOTOR_CLK_PIN 5
-#else
-	#define POWER_ENABLE_PIN 2
-	#define CHARGE_DETECT_PIN 12
-	#define BUTTON_RESERVED_PIN 15
-	#define BUTTON_POWER_PIN 13
-
-	#define KNOB_AIR1_DT_PIN 17
-	#define KNOB_AIR1_CLK_PIN 16
-	#define KNOB_AIR2_DT_PIN 35
-	#define KNOB_AIR2_CLK_PIN 34
-	#define KNOB_MOTOR_DT_PIN 18
-	#define KNOB_MOTOR_CLK_PIN 5
-#endif
-
-#define JOYSTICK_VRX_PIN 33
-
-#define SERVO_ANGLE1 0.0
-#define SERVO_ANGLE2 179.0
-
-
-#else
-
-#error "Unknown platform type"
-
-#endif
 
 const unsigned char logo_bitmap [] PROGMEM = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
