@@ -23,10 +23,9 @@
 #include "pressure_sensor.h"
 #include "servo.h"
 #include "tension_controller.h"
-#include "valve.h"
 #include "auto_controller.h"
-#include "steering.h"
-
+#include "valve.h"
+#include "rail.h"
 
 /*
 Possible messages:
@@ -37,10 +36,9 @@ Possible messages:
 */ 
 
 
-
 class WedgesController: public Peripheral {
 public:
-    WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve, Steering *rail);
+    WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve, Rail *rail);
 
     void update(float dt) override;
 
@@ -71,7 +69,7 @@ private:
     PressureSensor *pressure_sensor1;
     PressureSensor *pressure_sensor2;
     Servo *servo;
-    Steering *rail;
+    Rail *rail;
     AutoControlMode mode;
     TensionController tension_controller;
     int32_t rail_pin;

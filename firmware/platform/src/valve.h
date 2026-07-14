@@ -30,15 +30,11 @@ public:
 
     void start() override;
 
-    void set_volt(float voltage);
+    virtual void set_state(float state);
 
-    float get_volt();
+    virtual float get_state();
 
-    void set_state(float state);
-
-    float get_state();
-
-private:
+protected:
     int32_t digital_pin1;
     int32_t digital_pin2;
     float state;

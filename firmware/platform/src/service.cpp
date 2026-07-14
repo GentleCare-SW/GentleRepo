@@ -54,7 +54,7 @@ void Service::start()
         }
     }
 
-    this->ble_service->start();
+    //this->ble_service->start(); //TODO: check if removing this causes any errors
     NimBLEAdvertising *advertising = NimBLEDevice::getAdvertising();
     advertising->addServiceUUID(this->ble_service->getUUID());
     advertising->setName(ADVERTISED_NAME);

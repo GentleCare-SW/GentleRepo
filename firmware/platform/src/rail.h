@@ -18,9 +18,9 @@
 #pragma once
 #include "peripheral.h"
 
-class Steering: public Peripheral {
+class Rail: public Peripheral {
 public:
-    Steering(const char *joystick_uuid, int32_t left_valve_pin, int32_t right_valve_pin);
+    Rail(const char *joystick_uuid, int32_t left_pin, int32_t right_pin);
 
     void start() override;
 
@@ -29,7 +29,7 @@ public:
     float get_direction();
 
 private:
-    int32_t left_valve_pin;
-    int32_t right_valve_pin;
+    int32_t left_pin;
+    int32_t right_pin;
     float direction;
 };

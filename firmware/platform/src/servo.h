@@ -16,29 +16,26 @@
  */
 
 #pragma once
-#include "peripheral.h"
+#include "valve.h"
 
-class Servo: public Peripheral {
+class Servo: public Valve {
 public:
     Servo(const char *angle_uuid, int32_t pwm_pin, int32_t ledc_channel);
 
     void start() override;
 
-    void update(float dt) override;
+    //void update(float dt) override;
 
     void set_angle(float angle);
 
     float get_angle();
 
-    void set_chamber(float chamber);
-
-    float get_chamber();
+    void set_state(float state);
 
 private:
     int32_t pwm_pin;
     int32_t ledc_channel;
     float goal_angle;
     float angle;
-    float chamber;
     uint32_t last_update_time;
 };

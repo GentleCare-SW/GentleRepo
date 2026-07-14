@@ -15,7 +15,6 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
 #include "pressure_controller.h"
 #include "config.h"
 

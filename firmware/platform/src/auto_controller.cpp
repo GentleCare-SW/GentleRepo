@@ -20,6 +20,7 @@
 #include "service.h"
 #include "config.h"
 
+#if PLATFORM_TYPE == 1
 AutoController::AutoController(const char *mode_uuid, const char *progress_uuid, VoltageDimmer *dimmer, VoltageDimmer *dimmer2, MotorController *motor, PressureSensor *pressure_sensor, PressureController *pressure_controller)
 {
     this->dimmer = dimmer;
@@ -150,3 +151,5 @@ float AutoController::get_progress()
 {
     return constrain(pow((constrain(this->motor->get_position() / SHEET_LENGTH, 0.0, 1.0) ), PROGRESS_FACTOR), 0.0, 1.0);
 }
+
+#endif

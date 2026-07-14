@@ -19,7 +19,6 @@
 #include <Adafruit_MPRLS.h>
 #include "peripheral.h"
 
-
 enum PressureSensorError {
     NONE,
     NOT_CONNECTED
@@ -28,24 +27,25 @@ enum PressureSensorError {
 class PressureSensor: public Peripheral {
 public:
     PressureSensor(const char *pressure_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin);
+    virtual ~PressureSensor() = default;
 
     void start() override;
 
     void update(float dt) override;
 
-    float get_pressure();
+    virtual float get_pressure();
 
-    float get_derivative();
+    virtual float get_derivative();
 
-    void set_calibrating(bool calibrating);
+    virtual void set_calibrating(bool calibrating);
 
-    void set_error(PressureSensorError error);
+    virtual void set_error(PressureSensorError error);
 
-    float get_error();
-    
+    virtual float get_error();
+
     float pressure_offset;
-private:
-    float read_psi();
+protected:
+    virtual float read_psi();
 
     Adafruit_MPRLS sensor;
     TwoWire* wire;

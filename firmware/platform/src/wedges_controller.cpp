@@ -20,10 +20,13 @@
 #include "service.h"
 #include "config.h"
 
+#if PLATFORM_TYPE == 0
 static const float DEFAULT_HOLD_TIME = 2.0 * 60.0 * 1000.0;
+static const float FILLING_GOAL_PRESSURE = 1.08;
+static const float REFILL_PRESSURE = 0.5;
 
 WedgesController::WedgesController(const char *mode_uuid, const char *progress_uuid, const char *timer_uuid, 
-    VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve, Steering *rail)
+    VoltageDimmer *dimmer, MotorController *motor, PressureSensor *pressure_sensor1, PressureSensor *pressure_sensor2, Servo *servo, Valve *valve, Rail *rail)
 {
     this->dimmer = dimmer;
     this->motor = motor;
@@ -85,7 +88,12 @@ void WedgesController::update(float dt)
             this->timer_active = true;
         }
     } else if (this->mode == AutoControlMode::TRANSFER_PAUSED){
-        //pausing during filling ends up starting inversion
+        //pausing during filling ends up starting inversion <- maybe resolved?
+        // if (timer_active && pressure_sensor2->get_pressure() < REFILL_PRESSURE) {
+        //     this->dimmer->set_voltage(40.0);
+        //     this->valve->set_state((float)ValveState::FILL);
+        // }
+        // want to start at refill pressure and end at 1 ish psi
         if (timer_active && millis() - this->timer_start > DEFAULT_HOLD_TIME) {
             this->set_mode((float)AutoControlMode::INVERSION); 
             this->timer_active = false;
@@ -231,3 +239,4 @@ void WedgesController::set_info_msg(float msg_id)
 {
     this->info_msg = msg_id;
 }
+#endif

@@ -17,15 +17,10 @@
 
 #pragma once
 #include <SparkFun_LPS28DFW_Arduino_Library.h>
-#include "peripheral.h"
+#include "pressure_sensor.h"
 
 
-enum PressureSensorError {
-    NONE,
-    NOT_CONNECTED
-};
-
-class LpsSensor: public Peripheral {
+class LpsSensor: public PressureSensor {
 public:
     LpsSensor(const char *pressure_uuid, TwoWire* wire, int32_t SCL_pin, int32_t SDA_pin, uint8_t address);
 
@@ -33,31 +28,12 @@ public:
 
     void update(float dt) override;
 
-    float get_pressure();
-
     float get_temperature();
 
-    float get_derivative();
-
-    void set_calibrating(bool calibrating);
-
-    void set_error(PressureSensorError error);
-
-    float get_error();
-    
-    float pressure_offset;
 private:
-    float read_psi();
+    float read_psi() override;
 
     LPS28DFW sensor;
-    TwoWire* wire;
-    int32_t clock_pin;
-    int32_t data_pin;
     uint8_t address;
     float temperature_c;
-    float moving_pressure;
-    float moving_squared_pressure;
-    float pressure_derivative;
-    bool calibrating;
-    PressureSensorError error;
 };

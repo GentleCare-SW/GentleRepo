@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
+
 #include "motor_controller.h"
 #include "config.h"
 

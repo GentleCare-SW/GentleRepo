@@ -15,7 +15,6 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
 #include "voltage_dimmer.h"
 #include "config.h"
 

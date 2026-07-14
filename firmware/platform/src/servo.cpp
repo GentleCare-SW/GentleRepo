@@ -22,7 +22,9 @@ static const float MAX_MICROSECONDS = 2500.0;
 static const float MIN_MICROSECONDS = 500.0;
 static const float SERVO_UPDATE_INTERVAL = 0.2;
 
-Servo::Servo(const char *angle_uuid, int32_t pwm_pin, int32_t ledc_channel)
+static const float SERVO_STATES[3] = {0.0, 45.0, 90.0};
+
+Servo::Servo(const char *angle_uuid, int32_t pwm_pin, int32_t ledc_channel) : Valve(angle_uuid, -1, -1)
 {
     this->pwm_pin = pwm_pin;
     this->ledc_channel = ledc_channel;
@@ -41,21 +43,21 @@ void Servo::start()
 
 }
 
-void Servo::update(float dt)
-{
-    Peripheral::update(dt);
+// void Servo::update(float dt)
+// {
+//     Peripheral::update(dt);
 
-    uint32_t current_time = micros();
-    if (current_time - this->last_update_time > (uint32_t)(SERVO_UPDATE_INTERVAL * 1e6)) {
-        dt = (current_time - this->last_update_time) / 1e6;
-        this->last_update_time = current_time;
-        // Slow transition:
-        // if (this->goal_angle != this->angle){
-        //     this->angle = (this->goal_angle-this->angle)>0 ? this->angle+1 : this->angle-1;
-        //     this->set_angle(this->angle);
-        // }
-    }
-}
+//     uint32_t current_time = micros();
+//     if (current_time - this->last_update_time > (uint32_t)(SERVO_UPDATE_INTERVAL * 1e6)) {
+//         dt = (current_time - this->last_update_time) / 1e6;
+//         this->last_update_time = current_time;
+//         // Slow transition:
+//         if (this->goal_angle != this->angle){
+//             this->angle = (this->goal_angle-this->angle)>0 ? this->angle+1 : this->angle-1;
+//             this->set_angle(this->angle);
+//         }
+//     }
+// }
 
 void Servo::set_angle(float angle)
 {   
@@ -67,4 +69,10 @@ void Servo::set_angle(float angle)
 float Servo::get_angle()
 {
     return this->angle;
+}
+
+void Servo::set_state(float state)
+{
+    this->set_angle(SERVO_STATES[(int)state]);
+    this->state = state;
 }

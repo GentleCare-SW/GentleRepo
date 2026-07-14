@@ -15,7 +15,6 @@
  * SOFTWARE.
  */
 
-#include <Arduino.h>
 #include "tension_controller.h"
 #include "config.h"
 #include "service.h"
