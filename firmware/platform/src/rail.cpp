@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -39,8 +39,13 @@ void Rail::set_direction(float joystick_x)
 {
     this->direction = joystick_x;
     if (joystick_x == 0.0) {
-        digitalWrite(this->left_pin, HIGH);
-        digitalWrite(this->right_pin, HIGH);
+        #if WEDGE_V0
+            digitalWrite(this->left_pin, HIGH);
+            digitalWrite(this->right_pin, HIGH);
+        #elif WEDGE_V1
+            digitalWrite(this->left_pin, LOW);
+            digitalWrite(this->right_pin, LOW);
+        #endif
     } else if (joystick_x == -1.0) { //down
         digitalWrite(this->left_pin, HIGH);
         digitalWrite(this->right_pin, LOW);

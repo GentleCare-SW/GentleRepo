@@ -38,13 +38,14 @@ MotorController::MotorController(const char *position_uuid, const char *velocity
     this->error = MotorControllerError::NONE;
     this->add_characteristic(position_uuid, nullptr, std::bind(&MotorController::get_position, this));
     this->add_characteristic(velocity_uuid, std::bind(&MotorController::set_velocity, this, std::placeholders::_1), std::bind(&MotorController::get_velocity, this));
-    this->add_characteristic(torque_uuid, std::bind(&MotorController::set_torque, this, std::placeholders::_1), std::bind(&MotorController::get_torque, this));
+    this->add_characteristic(torque_uuid, nullptr, std::bind(&MotorController::get_torque, this));
     this->add_characteristic(error_uuid, std::bind(&MotorController::set_error, this, std::placeholders::_1), std::bind(&MotorController::get_error, this));
 }
 
 void MotorController::start()
 {
     delay(4000);
+    Serial.println("Old motor controller start");
 
     this->serial->begin(BAUD_RATE, SERIAL_8N1, this->rx_pin, this->tx_pin);
     while (!this->serial);
@@ -115,11 +116,6 @@ void MotorController::mode_changed(ServiceMode mode)
 void MotorController::set_velocity(float velocity)
 {
     this->write_velocity(velocity * -GEARBOX_RATIO / 60.0);
-}
-
-void MotorController::set_torque(float torque)
-{
-    this->write_torque(-torque);
 }
 
 float MotorController::get_velocity()

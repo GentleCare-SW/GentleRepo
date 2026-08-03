@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -47,9 +47,11 @@ void LpsSensor::start()
 void LpsSensor::update(float dt)
 {
     Peripheral::update(dt);
+    Serial.println("LPS Sensor update");
     if (this->error == PressureSensorError::NOT_CONNECTED)
         return;
 
+    Serial.println("LPS is connected");
     this->sensor.getSensorData();
     float psi = this->read_psi();
     this->temperature_c = this->sensor.data.heat.deg_c;

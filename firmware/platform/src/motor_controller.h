@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -31,15 +31,13 @@ class MotorController: public Peripheral {
 public:
     MotorController(const char *position_uuid, const char *velocity_uuid, const char *torque_uuid, const char *error_uuid, HardwareSerial *serial, int32_t rx_pin, int32_t tx_pin);
 
-    void start() override;
+    virtual void start() override;
 
-    void update(float dt) override;
+    virtual void update(float dt) override;
 
     void mode_changed(ServiceMode mode) override;
 
-    void set_velocity(float velocity);
-
-    void set_torque(float torque);
+    virtual void set_velocity(float velocity);
 
     void set_error(float error);
 
@@ -53,7 +51,7 @@ public:
 
     bool is_ok();
 
-private:
+protected:
     HardwareSerial *serial;
     int32_t rx_pin;
     int32_t tx_pin;

@@ -21,6 +21,7 @@
 #include "pressure_sensor.h"
 #include "LPS_sensor.h"
 #include "motor_controller.h"
+#include "can_motor_controller.h"
 #include "voltage_dimmer.h"
 #include "pressure_controller.h"
 #include "servo.h"
@@ -42,7 +43,7 @@ static Service service;
 #elif SOFTWARE_VERSION == 1
     static LpsSensor pressure_sensor1(PRESSURE_SENSOR_UUID, &default_I2C, 22, 21, 0x5C);
     // to be updated with new versions
-    static MotorController motor_controller(MOTOR_POSITION_UUID, MOTOR_VELOCITY_UUID, MOTOR_TORQUE_UUID, MOTOR_ERROR_UUID, &Serial1, MOTOR_CONTROLLER_RX_PIN, MOTOR_CONTROLLER_TX_PIN);
+    static CanMotorController motor_controller(MOTOR_POSITION_UUID, MOTOR_VELOCITY_UUID, MOTOR_TORQUE_UUID, MOTOR_ERROR_UUID, &Serial1);
     static VoltageDimmer voltage_dimmer1(CENTRAL_DIMMER_UUID, VOLTAGE_DIMMER_PWM_PIN, VOLTAGE_DIMMER_LEDC_CHANNEL);
 #endif
 
@@ -50,8 +51,8 @@ static Service service;
     static Valve valve(VALVE_STATE_UUID, VALVE_DIGITAL_PIN1, VALVE_DIGITAL_PIN2);
     static PressureSensor pressure_sensor2(PRESSURE_SENSOR2_UUID, &other_I2C, PRESSURE_SENSOR_SCL_PIN, PRESSURE_SENSOR_SDA_PIN);
 #elif WEDGE_V1
-    static LpsSensor pressure_sensor2(PRESSURE_SENSOR_UUID, &default_I2C, 22, 21, 0x5D);
-    static Servo servo2(SERVO_ANGLE_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
+    static LpsSensor pressure_sensor2(PRESSURE_SENSOR_UUID, &default_I2C, PRESSURE_SENSOR_SCL_PIN, PRESSURE_SENSOR_SDA_PIN, 0x5D);
+    static Servo valve(SERVO_ANGLE_UUID, SERVO_PWM_PIN, SERVO_LEDC_CHANNEL);
 #elif GLIDE_V0 || GLIDE_V1
     static VoltageDimmer voltage_dimmer2(OUTER_DIMMER_UUID, VOLTAGE_DIMMER2_PWM_PIN, VOLTAGE_DIMMER2_LEDC_CHANNEL);
 #elif GLIDE_V2
@@ -108,17 +109,17 @@ void loop()
         }
     #endif
    
-    Serial.print(">Pressure 1: ");
-    Serial.println(pressure_sensor1.get_pressure());
+    // Serial.print(">Pressure 1: ");
+    // Serial.println(pressure_sensor1.get_pressure());
     // Serial.print(">Angle: ");
     // Serial.println(servo.get_angle());
     // Serial.print(">Position: ");
     // Serial.println(motor_controller.get_position());
-    Serial.print(">Velocity: ");
-    Serial.println(motor_controller.get_velocity());
-    Serial.print(">Voltage: ");
-    Serial.println(voltage_dimmer1.get_voltage());
-    Serial.print(">Torque: ");
-    Serial.println(motor_controller.get_torque());
+    // Serial.print(">Velocity: ");
+    // Serial.println(motor_controller.get_velocity());
+    // Serial.print(">Voltage: ");
+    // Serial.println(voltage_dimmer1.get_voltage());
+    // Serial.print(">Torque: ");
+    // Serial.println(motor_controller.get_torque());
 
 }

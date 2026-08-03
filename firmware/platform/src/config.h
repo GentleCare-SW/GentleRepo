@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -23,28 +23,7 @@
 
 #define DEVICE_NAME "GentleWedge"
 #define ADVERTISED_NAME "Wedge"
-
-#define PRESSURE_SENSOR_SCL_PIN 13
-#define PRESSURE_SENSOR_SDA_PIN 14
-
-#define VOLTAGE_DIMMER_PWM_PIN 18
-#define VOLTAGE_DIMMER_LEDC_CHANNEL 0
 #define MAX_DIMMER_VOLTAGE 120.0
-
-#define SERVO_PWM_PIN 19
-#define SERVO_LEDC_CHANNEL 1
-#define SERVO_ANGLE1 128.0
-#define SERVO_ANGLE2 48.0
-// #define SERVO_ANGLE1 4.0
-// #define SERVO_ANGLE2 124.0
-
-#define LEFT_PIN 32
-#define RIGHT_PIN 27
-#define VALVE_DIGITAL_PIN1 25
-#define VALVE_DIGITAL_PIN2 26
-#define RAIL_STATE_PIN 35
-#define BOX_TO_RAIL_PIN 33
-
 
 #elif PLATFORM_TYPE == 1
 
@@ -66,20 +45,28 @@
 
 #endif
 
-#if MOTOR_TYPE_81
-    #define MOTOR_CONTROLLER_RX_PIN 16
-    #define MOTOR_CONTROLLER_TX_PIN 17
-    #define TORQUE_CONSTANT -7.4439
-    #define GEARBOX_RATIO 81.0
-    
-#elif MOTOR_TYPE_53
-    #define MOTOR_CONTROLLER_RX_PIN 16
-    #define MOTOR_CONTROLLER_TX_PIN 17
-    #define TORQUE_CONSTANT -3.975
-    #define GEARBOX_RATIO 53.0
-#endif
+#if WEDGE_V0
+    #define PRESSURE_SENSOR_SCL_PIN 13
+    #define PRESSURE_SENSOR_SDA_PIN 14
 
-#if SHEET_W0
+    #define VOLTAGE_DIMMER_PWM_PIN 18
+    #define VOLTAGE_DIMMER_LEDC_CHANNEL 0
+
+
+    #define SERVO_PWM_PIN 19
+    #define SERVO_LEDC_CHANNEL 1
+    #define SERVO_ANGLE1 128.0
+    #define SERVO_ANGLE2 48.0
+    // #define SERVO_ANGLE1 4.0
+    // #define SERVO_ANGLE2 124.0
+
+    #define LEFT_PIN 32
+    #define RIGHT_PIN 27
+    #define VALVE_DIGITAL_PIN1 25
+    #define VALVE_DIGITAL_PIN2 26
+    #define RAIL_STATE_PIN 35
+    #define BOX_TO_RAIL_PIN 33
+
     #define REFERENCE_TORQUE 0.0
     #define SHEET_LENGTH 12.0
     #define PROGRESS_FACTOR 0.676
@@ -91,8 +78,41 @@
     #define INVERSION_PAUSED_VOLTAGE 30.0
     #define EVERSION_MIN_VOLTAGE 30.0
     #define EVERSION_MAX_VOLTAGE 120.0
-    
-#elif SHEET_G0
+
+#elif WEDGE_V1
+
+    #define PRESSURE_SENSOR_SCL_PIN 22
+    #define PRESSURE_SENSOR_SDA_PIN 21
+
+    #define VOLTAGE_DIMMER_PWM_PIN 13
+    #define VOLTAGE_DIMMER_LEDC_CHANNEL 0
+
+    #define SERVO_PWM_PIN 27
+    #define SERVO_LEDC_CHANNEL 1
+    #define SERVO_ANGLE1 0 //check these
+    #define SERVO_ANGLE2 135
+
+    #define LEFT_PIN 33 //down
+    #define RIGHT_PIN 32 //up
+    #define VALVE_DIGITAL_PIN1 25
+    #define VALVE_DIGITAL_PIN2 26
+    #define RAIL_STATE_PIN 35
+    #define BOX_TO_RAIL_PIN 33
+
+    //change later
+    #define REFERENCE_TORQUE 0.0
+    #define SHEET_LENGTH 12.0
+    #define PROGRESS_FACTOR 0.676
+    #define EVERSION_PAUSED_VOLTAGE 40.0
+    #define BASE_VOLTAGE 50.0
+    #define BASE_SPEED 10.0
+    #define INVERSION_PRESSURE 0.25
+    #define INVERSION_VOLTAGE 48.0
+    #define INVERSION_PAUSED_VOLTAGE 30.0
+    #define EVERSION_MIN_VOLTAGE 30.0
+    #define EVERSION_MAX_VOLTAGE 120.0
+
+#elif GLIDE_V0
     #define REFERENCE_TORQUE 1.25
     #define SHEET_LENGTH 26
     #define PROGRESS_FACTOR 0.53
@@ -101,6 +121,8 @@
     #define BASE_SPEED 30.0
     #define INVERSION_PRESSURE 1.0
     #define INVERSION_VOLTAGE 75.0 //37.0
+    #define TRANSFER_VOLTAGE 100.0
+    #define BUMPER_TRANSFER_VOLTAGE 30.0
     #define BUMPER_INVERSION_VOLTAGE 20.0
     #define BUMPER_PAUSED_VOLTAGE 30.0
     #define INVERSION_PAUSED_VOLTAGE 30.0
@@ -108,16 +130,19 @@
     #define EVERSION_MAX_VOLTAGE 120.0
     #define BUMPER_MIN_VOLTAGE 0.0
     #define BUMPER_MAX_VOLTAGE 60.0
-#elif SHEET_G1
+
+#elif GLIDE_V1
     #define REFERENCE_TORQUE 1.2
     #define SHEET_LENGTH 18.6
     #define PROGRESS_FACTOR 0.55
     #define PRESSURE_LIMIT 2.0
     #define EVERSION_PAUSED_VOLTAGE 40.0
     #define BASE_VOLTAGE 50.0
-    #define BASE_SPEED 20.0
+    #define BASE_SPEED 18.0
     #define INVERSION_PRESSURE 1.0
     #define INVERSION_VOLTAGE 60
+    #define TRANSFER_VOLTAGE 90.0
+    #define BUMPER_TRANSFER_VOLTAGE 60.0
     #define BUMPER_INVERSION_VOLTAGE 16.0
     #define BUMPER_PAUSED_VOLTAGE 30.0
     #define INVERSION_PAUSED_VOLTAGE 30.0
@@ -125,4 +150,26 @@
     #define EVERSION_MAX_VOLTAGE 100.0
     #define BUMPER_MIN_VOLTAGE 0.0
     #define BUMPER_MAX_VOLTAGE 60.0
+
+#elif GLIDE_V2
+
+#endif
+
+#if MOTOR_TYPE_81
+    #define MOTOR_CONTROLLER_RX_PIN 16
+    #define MOTOR_CONTROLLER_TX_PIN 17
+    #define TORQUE_CONSTANT -7.4439
+    #define GEARBOX_RATIO 81.0
+    
+#elif MOTOR_TYPE_53
+    #define MOTOR_CONTROLLER_RX_PIN 16
+    #define MOTOR_CONTROLLER_TX_PIN 17
+    #define TORQUE_CONSTANT -3.975
+    #define GEARBOX_RATIO 53.0
+
+#elif MOTOR_TYPE_MOTEUS
+    #define MOTOR_CONTROLLER_RX_PIN -1
+    #define MOTOR_CONTROLLER_TX_PIN -1
+    #define TORQUE_CONSTANT 1
+    #define GEARBOX_RATIO 50.0
 #endif

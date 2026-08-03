@@ -123,8 +123,8 @@ void AutoController::set_mode(float mode)
         this->dimmer2->set_voltage(BUMPER_PAUSED_VOLTAGE);
 
     } else if (this->mode == AutoControlMode::TRANSFER) {
-        this->dimmer->set_voltage(30.0);
-        this->dimmer2->set_voltage(INVERSION_PAUSED_VOLTAGE);
+        this->dimmer->set_voltage(TRANSFER_VOLTAGE);
+        this->dimmer2->set_voltage(BUMPER_TRANSFER_VOLTAGE);
 
     } else if (this->mode == AutoControlMode::TRANSFER_PAUSED) {
         this->dimmer->set_voltage(EVERSION_PAUSED_VOLTAGE);

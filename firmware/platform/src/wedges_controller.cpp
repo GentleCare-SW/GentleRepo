@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GentleCare Corporation. All rights reserved.
+ * Copyright (c) 2026 GentleCare Corporation. All rights reserved.
  *
  * This source code and the accompanying materials are the confidential and
  * proprietary information of GentleCare Corporation. Unauthorized copying or
@@ -82,7 +82,7 @@ void WedgesController::update(float dt)
         float servo_angle = constrain(this->servo->get_angle() + 10.0 * pressure_error * dt, SERVO_ANGLE2, SERVO_ANGLE1);
         this->servo->set_angle(servo_angle);
 
-        if (pressure_sensor2->get_pressure() >= 1.08){
+        if (pressure_sensor2->get_pressure() >= 1.0){
             this->set_mode((float)AutoControlMode::TRANSFER_PAUSED);
             this->timer_start = millis();
             this->timer_active = true;
@@ -193,7 +193,7 @@ void WedgesController::auto_eversion(float progress)
 
 void WedgesController::auto_inversion(float progress)
 {
-    float inversion_voltage = (1.0 - progress) * 32.0 + 20.0;
+    float inversion_voltage = (1.0 - progress) * 28.0 + 20.0;
     if (progress <= 0.0){
         this->set_mode((float)AutoControlMode::IDLE);
         digitalWrite(this->to_rail_pin, LOW);
@@ -207,7 +207,7 @@ void WedgesController::auto_inversion(float progress)
     } else {
         float pressure = this->pressure_sensor2->get_pressure();
         float pressure_derivative = this->pressure_sensor2->get_derivative();
-        float pressure_goal = (2.0 - 0.8*progress) * 0.2;
+        float pressure_goal = (2.0 - 0.8*progress) * 0.18;
         float pressure_error = pressure_goal - pressure;
         // base_velocity + pressure_error * Kp - pressure_derivative * Kd;
         float inversion_velocity = constrain(-4.0 - pressure_error*20.0 + pressure_derivative*2.5, -10.0, -0.5);
